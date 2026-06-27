@@ -1,0 +1,49 @@
+<svg width="960" height="720" viewBox="0 0 960 720" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">CGV10 refined portal preview</title>
+  <desc id="desc">A polished civic portal preview for Cipta Greenville resident information, dues transparency, safety, services, and local resident activity.</desc>
+  <rect width="960" height="720" rx="38" fill="#F1EBDD"/>
+  <path d="M64 606C158 547 261 589 356 532C449 476 548 515 641 462C735 408 802 420 896 470" stroke="#145A3A" stroke-opacity=".16" stroke-width="22" stroke-linecap="round"/>
+  <circle cx="771" cy="125" r="151" fill="#E6F2EA"/>
+  <circle cx="146" cy="579" r="164" fill="#F4E7C4"/>
+  <rect x="74" y="62" width="812" height="596" rx="34" fill="#FFFFFF" stroke="#DDD5C7" stroke-width="2"/>
+  <rect x="112" y="100" width="736" height="74" rx="24" fill="#145A3A"/>
+  <rect x="140" y="123" width="38" height="38" rx="12" fill="#C89B3C"/>
+  <path d="M151 144h16M159 136v16" stroke="#145A3A" stroke-width="4" stroke-linecap="round"/>
+  <rect x="196" y="122" width="128" height="13" rx="6.5" fill="#FFFFFF"/>
+  <rect x="196" y="146" width="190" height="9" rx="4.5" fill="#D6E9DB"/>
+  <rect x="616" y="122" width="74" height="30" rx="15" fill="#FFFFFF" fill-opacity=".14"/>
+  <rect x="704" y="122" width="116" height="30" rx="15" fill="#C89B3C"/>
+  <rect x="112" y="210" width="318" height="194" rx="28" fill="#E6F2EA"/>
+  <rect x="146" y="244" width="154" height="14" rx="7" fill="#145A3A"/>
+  <rect x="146" y="274" width="224" height="10" rx="5" fill="#5F6F67"/>
+  <rect x="146" y="300" width="190" height="10" rx="5" fill="#5F6F67"/>
+  <rect x="146" y="340" width="134" height="38" rx="19" fill="#145A3A"/>
+  <rect x="304" y="340" width="62" height="38" rx="19" fill="#FFFFFF"/>
+  <circle cx="335" cy="359" r="9" fill="#C89B3C"/>
+  <rect x="462" y="210" width="176" height="194" rx="28" fill="#FFFFFF" stroke="#DDD5C7" stroke-width="2"/>
+  <rect x="494" y="244" width="54" height="54" rx="17" fill="#F4E7C4"/>
+  <path d="M510 272l10 10 20-24" stroke="#145A3A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="494" y="326" width="98" height="13" rx="6.5" fill="#10251B"/>
+  <rect x="494" y="352" width="112" height="9" rx="4.5" fill="#5F6F67"/>
+  <rect x="670" y="210" width="178" height="194" rx="28" fill="#10251B"/>
+  <rect x="702" y="244" width="54" height="54" rx="17" fill="#145A3A"/>
+  <path d="M729 254l17 33h-34l17-33Z" fill="#C89B3C"/>
+  <rect x="702" y="326" width="112" height="13" rx="6.5" fill="#FFFFFF"/>
+  <rect x="702" y="352" width="90" height="9" rx="4.5" fill="#C8D4CE"/>
+  <rect x="112" y="436" width="220" height="164" rx="28" fill="#FFFFFF" stroke="#DDD5C7" stroke-width="2"/>
+  <rect x="144" y="468" width="82" height="13" rx="6.5" fill="#145A3A"/>
+  <rect x="144" y="496" width="150" height="9" rx="4.5" fill="#5F6F67"/>
+  <rect x="144" y="532" width="156" height="16" rx="8" fill="#E6F2EA"/>
+  <rect x="144" y="560" width="112" height="16" rx="8" fill="#F4E7C4"/>
+  <rect x="370" y="436" width="220" height="164" rx="28" fill="#FFFFFF" stroke="#DDD5C7" stroke-width="2"/>
+  <rect x="402" y="468" width="104" height="13" rx="6.5" fill="#145A3A"/>
+  <rect x="402" y="496" width="136" height="9" rx="4.5" fill="#5F6F67"/>
+  <circle cx="430" cy="548" r="23" fill="#C89B3C"/>
+  <circle cx="482" cy="548" r="23" fill="#E6F2EA"/>
+  <circle cx="534" cy="548" r="23" fill="#145A3A"/>
+  <rect x="628" y="436" width="220" height="164" rx="28" fill="#FFFFFF" stroke="#DDD5C7" stroke-width="2"/>
+  <rect x="660" y="468" width="98" height="13" rx="6.5" fill="#145A3A"/>
+  <rect x="660" y="496" width="144" height="9" rx="4.5" fill="#5F6F67"/>
+  <rect x="660" y="534" width="56" height="38" rx="19" fill="#F4E7C4"/>
+  <rect x="728" y="534" width="72" height="38" rx="19" fill="#145A3A"/>
+</svg>

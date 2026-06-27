@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">CGV10 header mark</title>
+  <desc id="desc">Header-friendly CGV10 mark derived from the proposal logo house, leaf, and civic colors.</desc>
+  <rect width="64" height="64" rx="18" fill="#F7F3EA"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="16.5" fill="none" stroke="#DDD5C7" stroke-width="3"/>
+  <path d="M13 35.5 32 18l19 17.5" fill="none" stroke="#145A3A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M19 35.5v12h26v-12" fill="none" stroke="#145A3A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32 18v29" stroke="#145A3A" stroke-width="6" stroke-linecap="round"/>
+  <path d="M37.5 17.5c5.5-7.2 12.8-8.5 16.5-8.4-.4 4.4-2.9 11.2-11 14.6-2.2.9-4.5-.2-5.5-2.2-.6-1.2-.6-2.6 0-4Z" fill="#C89B3C"/>
+  <path d="M39.8 21.5c3.6-3.6 7.4-5.8 11.2-6.7" fill="none" stroke="#F7F3EA" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M10 50c10.5-3.5 33.5-3.5 44 0" fill="none" stroke="#C89B3C" stroke-width="4" stroke-linecap="round"/>
+</svg>
