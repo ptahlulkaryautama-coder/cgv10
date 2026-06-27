@@ -11,12 +11,12 @@ export default function PengumumanPage() {
     <PageShell>
       <PageHero
         eyebrow="Pengumuman"
-        title="Preview kanal informasi resmi untuk warga."
-        text="Halaman ini menunjukkan format pengumuman publik yang rapi, bukan daftar pengumuman aktif."
+        title="Kanal informasi resmi untuk ditinjau warga."
+        text="Halaman ini menunjukkan format pengumuman publik yang rapi, dengan isi resmi yang tetap menunggu validasi."
       />
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-24 xl:px-10">
         <PlaceholderNotice>
-          Kartu di bawah adalah contoh struktur. Isi resmi akan diperbarui
+          Kartu di bawah adalah struktur informasi. Isi resmi akan diperbarui
           setelah pengurus menyetujui pengumuman yang boleh dipublikasikan.
         </PlaceholderNotice>
         <div className="mt-8 grid gap-4 md:grid-cols-3">

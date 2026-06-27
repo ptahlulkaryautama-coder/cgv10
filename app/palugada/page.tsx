@@ -16,11 +16,11 @@ const campaignNotes = [
   },
   {
     title: "Direktori dulu",
-    text: "Tahap 1 menampilkan struktur katalog dan contoh tampilan, sambil menunggu data resmi dan kontak WA yang disetujui.",
+    text: "Tahap awal menampilkan struktur katalog dan contoh format, sambil menunggu data resmi dan kontak WA yang disetujui.",
     icon: "file",
   },
   {
-    title: "Transaksi menyusul",
+    title: "Belum transaksi aktif",
     text: "Belum ada pembayaran, keranjang, akun penjual, database, atau proses jual beli aktif di halaman ini.",
     icon: "shield",
   },
@@ -31,8 +31,8 @@ export default function PalugadaPage() {
     <PageShell>
       <PageHero
         eyebrow="PALUGADA CGV — Marketplace Warga"
-        title="Kampanye prioritas Tahap 1 untuk promosi dan direktori warga."
-        text="PALUGADA CGV adalah modul awal di dalam CGV10 untuk memperkenalkan ruang promosi warga. Halaman ini masih berupa preview katalog, bukan sistem transaksi aktif."
+        title="Kampanye prioritas untuk promosi dan direktori warga."
+        text="PALUGADA CGV adalah ruang awal di dalam CGV10 untuk memperkenalkan promosi warga. Halaman ini masih berupa preview katalog yang perlu validasi, bukan sistem transaksi aktif."
       />
       <section className="bg-primary text-white">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20 xl:px-10">
@@ -61,9 +61,9 @@ export default function PalugadaPage() {
             </div>
           </div>
           <p className="mb-8 max-w-3xl text-base leading-7 text-white/82">
-            Fokus Tahap 1 adalah memperkenalkan kategori, format kartu, dan
-            cara warga memahami PALUGADA sebelum data resmi dan kontak
-            disetujui pengurus.
+            Fokus tahap awal adalah memperkenalkan kategori, format kartu, dan
+            cara warga memahami PALUGADA sebelum data resmi, aturan item, dan
+            kontak disetujui pengurus.
           </p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             {palugadaCategories.map((category) => (
@@ -107,9 +107,10 @@ export default function PalugadaPage() {
       </section>
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24 xl:px-10">
         <PlaceholderNotice>
-          Item di bawah jelas ditandai sebagai contoh tampilan. Tidak ada
+          Item di bawah jelas ditandai sebagai contoh format. Tidak ada
           transaksi, pembayaran, keranjang, database, akun penjual, atau tombol
-          WA aktif sampai data dan kontak resmi disetujui pengurus.
+          WA aktif sampai data, aturan item, dan kontak resmi disetujui
+          pengurus.
         </PlaceholderNotice>
         <div className="mt-8 grid gap-4 lg:grid-cols-3">
           {[1, 2, 3].map((item) => (
@@ -118,7 +119,7 @@ export default function PalugadaPage() {
               className="rounded-2xl border border-border bg-surface p-5 shadow-sm"
             >
               <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                Contoh tampilan
+                Contoh format
               </p>
               <div className="space-y-3">
                 {marketplaceItems.map((field) => (

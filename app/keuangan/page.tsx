@@ -10,13 +10,13 @@ export default function KeuanganPage() {
     <PageShell>
       <PageHero
         eyebrow="Keuangan"
-        title="Ringkasan transparansi kas tanpa angka yang belum resmi."
-        text="Format ini membantu warga memahami struktur laporan kas RT ketika data resmi sudah tersedia dari pengurus."
+        title="Format transparansi kas untuk divalidasi pengurus."
+        text="Struktur ini membantu warga memahami ringkasan kas setelah format dan angka resmi disetujui untuk publikasi."
       />
       <section className="mx-auto grid max-w-7xl gap-8 px-4 pb-16 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:px-8 lg:pb-24 xl:px-10">
         <PlaceholderNotice>
           Tidak ada nilai keuangan yang ditampilkan sebelum saldo, pemasukan,
-          dan pengeluaran dikonfirmasi sebagai data resmi.
+          dan pengeluaran divalidasi sebagai data resmi.
         </PlaceholderNotice>
         <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
           {financeRows.map((row, index) => (

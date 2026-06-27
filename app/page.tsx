@@ -11,7 +11,7 @@ import { quickInfo } from "@/lib/portal-data";
 const phaseFocus = [
   {
     title: "Portal Warga",
-    text: "Tahap awal memusatkan informasi yang boleh dilihat publik: pengurus, kas, pengumuman, kontak penting, dan arah layanan warga.",
+    text: "Tahap awal memusatkan informasi yang siap ditinjau: pengurus, kas, pengumuman, kontak penting, dan layanan warga.",
     icon: "home",
   },
   {
@@ -51,7 +51,7 @@ export default function Home() {
                 href="/pengurus/"
                 className="inline-flex min-h-12 items-center justify-center rounded-xl bg-primary px-5 text-center text-base font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:px-6"
               >
-                Lihat struktur pengurus
+                Tinjau struktur pengurus
               </Link>
               <Link
                 href="/palugada/"
@@ -133,8 +133,8 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 xl:px-10">
           <SectionHeading
             eyebrow="Info cepat"
-            title="Ringkasan awal yang siap diisi data resmi."
-            text="Kartu berikut menjaga struktur portal tetap jelas tanpa menampilkan angka yang belum dikonfirmasi pengurus."
+            title="Ringkasan awal yang siap divalidasi pengurus."
+            text="Kartu berikut menjaga struktur portal tetap jelas tanpa menampilkan angka atau status yang belum dikonfirmasi."
           />
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {quickInfo.map((item) => (
@@ -152,8 +152,8 @@ export default function Home() {
           </div>
           <div className="mt-8">
             <PlaceholderNotice>
-              Data publik pada halaman ini adalah placeholder aman sampai
-              pengurus mengonfirmasi data resmi yang boleh dipublikasikan.
+              Data publik pada halaman ini masih menunggu validasi pengurus
+              sebelum digunakan untuk komunikasi warga yang lebih luas.
             </PlaceholderNotice>
           </div>
         </div>

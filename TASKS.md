@@ -1588,3 +1588,81 @@ Quality checks:
 Recommended commit message:
 remove public roadmap narrative
 
+## Task 23 — Phase 1 Review Readiness Polish
+
+Use the ui-ux-pro-max skill.
+
+Treat this as public review readiness polish after removing the public roadmap.
+
+Current live preview:
+https://thriving-bunny-9f4e92.netlify.app/
+
+Current public direction:
+CGV10 — Portal Digital Warga
+Cipta Greenville • RT 010 / RW 021
+
+Main objective:
+Make the public website feel more ready for pengurus review, while keeping it honest as a Phase 1 public portal.
+
+Scope:
+Public website polish only.
+
+Do not redesign the website from zero.
+Do not add roadmap section back.
+Do not build login, auth, database, backend, API routes, payment, checkout, cart, transaction system, real complaint system, admin dashboard, group chat, push notification, or real app functionality.
+
+Focus areas:
+
+1. Review homepage clarity after roadmap removal.
+2. Make the website feel like a resident portal, not a product concept.
+3. Strengthen PALUGADA CGV as the priority campaign.
+4. Improve empty states and placeholder messages so they look professional, not unfinished.
+5. Replace rough placeholder wording with polished public-safe wording such as:
+
+   * “Data resmi dalam proses konfirmasi pengurus”
+   * “Informasi akan diperbarui setelah validasi”
+   * “Kontak resmi menunggu persetujuan publikasi”
+6. Keep transparency that data is not final yet.
+7. Do not invent names, phone numbers, financial values, QR codes, PALUGADA items, or seller data.
+8. Keep all routes:
+
+   * /
+   * /pengurus/
+   * /keuangan/
+   * /pengumuman/
+   * /palugada/
+   * /kontak/
+9. Check mobile readability.
+10. Check CTA wording so it feels suitable for pengurus/warga review.
+11. Keep premium green/cream/gold civic visual style.
+12. Keep PALUGADA page as campaign priority, but do not make it look like active transaction system.
+
+Documentation:
+Create or update `PENGURUS_REVIEW_CHECKLIST.md`.
+
+The checklist should include the official data still needed before wider public sharing:
+
+1. Approved pengurus names and roles.
+2. Approved financial summary format.
+3. Approved announcement categories.
+4. Approved official contact numbers.
+5. Approved QR codes if needed.
+6. PALUGADA seller/item submission rules.
+7. PALUGADA item approval flow.
+8. Public launch approval from pengurus.
+
+Static export requirement:
+Keep `output: "export"` in `next.config.ts`.
+Keep deployment output compatible with Netlify publish directory `out`.
+
+Quality checks:
+
+1. Run npm.cmd run lint.
+2. Run npm.cmd run build.
+3. Confirm the `out` folder is generated.
+4. Summarize changed files.
+5. Provide recommended commit message.
+
+Recommended commit message:
+polish phase 1 review readiness
+
