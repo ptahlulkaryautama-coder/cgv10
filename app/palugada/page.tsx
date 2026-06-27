@@ -85,7 +85,7 @@ export default function PalugadaPage() {
           <SectionHeading
             eyebrow="Kampanye Tahap 1"
             title="Ruang promosi warga yang dimulai dari katalog preview."
-            text="PALUGADA CGV dibuat penting sejak awal karena membantu warga melihat arah marketplace komunitas tanpa perlu menunggu seluruh fitur aplikasi selesai."
+            text="PALUGADA CGV dibuat penting sejak awal karena membantu warga melihat arah marketplace komunitas sebagai ruang promosi dan direktori yang bisa ditinjau bersama."
           />
           <div className="mt-10 grid gap-4 lg:grid-cols-3">
             {campaignNotes.map((item) => (

@@ -10,8 +10,8 @@ import { quickInfo } from "@/lib/portal-data";
 
 const phaseFocus = [
   {
-    title: "Portal Warga Publik",
-    text: "Tahap 1 memusatkan informasi yang boleh dilihat publik: pengurus, kas, pengumuman, kontak penting, dan arah layanan warga.",
+    title: "Portal Warga",
+    text: "Tahap awal memusatkan informasi yang boleh dilihat publik: pengurus, kas, pengumuman, kontak penting, dan arah layanan warga.",
     icon: "home",
   },
   {
@@ -20,22 +20,11 @@ const phaseFocus = [
     icon: "store",
   },
   {
-    title: "Fondasi bertahap",
-    text: "Fitur aplikasi seperti login warga, katalog aktif, keluhan, chat, dan notifikasi menjadi roadmap berikutnya setelah fondasi publik rapi.",
+    title: "Siap ditinjau bersama",
+    text: "Struktur portal disiapkan bertahap agar warga dan pengurus dapat meninjau informasi, alur, dan prioritas sebelum data resmi dipublikasikan.",
     icon: "calendar",
   },
 ] as const;
-
-const roadmapPreview = [
-  "Phase 1 — Public portal + PALUGADA campaign",
-  "Phase 2 — Login warga + profil rumah",
-  "Phase 3 — Community feed",
-  "Phase 4 — PALUGADA katalog",
-  "Phase 5 — Keluhan, lapor RT, security",
-  "Phase 6 — Group chat basic",
-  "Phase 7 — Push notification + moderation",
-  "Phase 8 — Full resident app",
-];
 
 export default function Home() {
   return (
@@ -45,16 +34,17 @@ export default function Home() {
         <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 pb-14 pt-10 sm:px-6 md:grid-cols-[0.95fr_1.05fr] md:items-center lg:px-8 lg:pb-20 lg:pt-16 xl:px-10">
           <div className="max-w-3xl">
             <p className="mb-5 text-sm font-semibold uppercase tracking-[0.14em] text-primary sm:tracking-[0.18em]">
-              Phase 1 — Portal Warga Publik
+              Tahap awal - Portal Warga
             </p>
             <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              Cipta Greenville • RT 010 / RW 021
+              Cipta Greenville &bull; RT 010 / RW 021
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-muted sm:mt-6 sm:text-lg sm:leading-8">
-              CGV10 dimulai dari Tahap 1: portal warga publik yang menyusun
-              informasi pengurus, keuangan, pengumuman, kontak penting, dan
-              PALUGADA CGV sebagai kampanye prioritas Marketplace Warga.
-              Pengembangan berikutnya dilakukan bertahap dan berkesinambungan.
+              CGV10 dimulai dari portal warga publik yang menyusun informasi
+              pengurus, keuangan, pengumuman, kontak penting, dan PALUGADA CGV
+              sebagai kampanye prioritas Marketplace Warga. Fokus saat ini
+              adalah membuat informasi, pengumuman, transparansi, dan direktori
+              warga lebih rapi untuk ditinjau bersama.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -116,9 +106,9 @@ export default function Home() {
       <section className="border-y border-border bg-surface">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 xl:px-10">
           <SectionHeading
-            eyebrow="Fokus Tahap 1"
-            title="Fondasi publik dulu, fitur aplikasi menyusul bertahap."
-            text="Tahap 1 menjaga pengalaman tetap sederhana dan tepercaya: informasi yang dibutuhkan warga tersedia rapi, sementara fitur privat dan transaksi disiapkan sebagai arah pengembangan berikutnya."
+            eyebrow="Fokus Tahap Awal"
+            title="Portal warga yang fokus pada informasi resmi dan PALUGADA."
+            text="Tahap awal menjaga pengalaman tetap sederhana dan tepercaya: informasi yang dibutuhkan warga tersedia rapi, sementara PALUGADA CGV diperkenalkan sebagai kampanye prioritas direktori warga."
           />
           <div className="mt-10 grid gap-4 lg:grid-cols-3">
             {phaseFocus.map((item) => (
@@ -165,37 +155,6 @@ export default function Home() {
               Data publik pada halaman ini adalah placeholder aman sampai
               pengurus mengonfirmasi data resmi yang boleh dipublikasikan.
             </PlaceholderNotice>
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24 xl:px-10">
-        <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
-          <SectionHeading
-            eyebrow="Roadmap bertahap"
-            title="Phase 1 adalah pondasi, bukan akhir dari produk."
-            text="Roadmap CGV10 menjaga ekspektasi warga tetap jelas: portal publik dan PALUGADA campaign berjalan lebih dulu, lalu fitur aplikasi dikembangkan setelah data, alur, dan persetujuan pengurus siap."
-          />
-          <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
-            <ol className="space-y-3">
-              {roadmapPreview.map((item, index) => (
-                <li
-                  key={item}
-                  className={`flex gap-3 rounded-xl border p-4 text-sm leading-6 ${
-                    index === 0
-                      ? "border-primary/35 bg-primary-soft text-foreground"
-                      : "border-border bg-background text-muted"
-                  }`}
-                >
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-surface text-xs font-semibold text-primary">
-                    {index + 1}
-                  </span>
-                  <span className={index === 0 ? "font-semibold" : ""}>
-                    {item}
-                  </span>
-                </li>
-              ))}
-            </ol>
           </div>
         </div>
       </section>

@@ -33,3 +33,7 @@ All routes returned HTTP 200 on the live Netlify preview during QA.
 ## Phase 1 Confirmation
 
 CGV10 Phase 1 remains a public resident portal with PALUGADA CGV positioned as a priority campaign and catalogue preview. The Netlify deployment should publish the static export from `out`.
+
+## Public Roadmap Visibility
+
+The detailed product roadmap remains internal in `ROADMAP.md` and is not shown as a public website section.
