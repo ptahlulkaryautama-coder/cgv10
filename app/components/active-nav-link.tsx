@@ -4,11 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 function isActiveRoute(pathname: string, href: string) {
-  if (href === "/") {
-    return pathname === "/";
+  const normalizePath = (path: string) =>
+    path === "/" ? "/" : path.replace(/\/+$/, "");
+
+  const currentPath = normalizePath(pathname);
+  const targetPath = normalizePath(href);
+
+  if (targetPath === "/") {
+    return currentPath === "/";
   }
 
-  return pathname === href || pathname.startsWith(`${href}/`);
+  return currentPath === targetPath || currentPath.startsWith(`${targetPath}/`);
 }
 
 export function ActiveNavLink({

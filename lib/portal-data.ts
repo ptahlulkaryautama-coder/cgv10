@@ -38,11 +38,10 @@ export type ContactEntry = {
 
 export const navItems = [
   ["Beranda", "/"],
-  ["Pengurus", "/pengurus"],
-  ["Keuangan", "/keuangan"],
-  ["Pengumuman", "/pengumuman"],
-  ["PALUGADA", "/palugada"],
-  ["Kontak", "/kontak"],
+  ["Pengurus", "/pengurus/"],
+  ["Keuangan", "/keuangan/"],
+  ["Pengumuman", "/pengumuman/"],
+  ["PALUGADA", "/palugada/"],
 ] as const;
 
 // Insert official pengurus-approved quick-info values here when available.

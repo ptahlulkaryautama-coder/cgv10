@@ -1418,3 +1418,173 @@ After editing/checking:
 1. Summarize repository readiness.
 2. Summarize remaining items before public deploy.
 3. Provide safe manual GitHub push steps.
+
+## Task 21 — Production QA and Navigation Polish
+
+Use the ui-ux-pro-max skill.
+
+Treat this as production QA after the first successful Netlify deployment.
+
+Current live preview:
+https://thriving-bunny-9f4e92.netlify.app/
+
+Scope:
+Production polish only.
+
+Do not redesign the website from zero.
+Do not change the approved brand direction.
+Do not build login, auth, database, backend, API routes, payment, checkout, cart, transaction system, real complaint system, admin dashboard, group chat, push notification, or real app functionality.
+
+Current product direction:
+CGV10 Phase 1 — Public Resident Portal + PALUGADA CGV Priority Campaign.
+
+Main goals:
+
+1. Review all public routes for static export compatibility:
+
+   * /
+   * /pengurus/
+   * /keuangan/
+   * /pengumuman/
+   * /palugada/
+   * /kontak/
+2. Ensure internal navigation works correctly on Netlify static export.
+3. Ensure all navigation links use static-export-friendly paths.
+4. Check whether any navigation item appears duplicated, especially “Kontak”.
+5. Remove or fix duplicated navigation if found.
+6. Check header behavior on desktop and mobile.
+7. Check footer links and identity text.
+8. Check PALUGADA page positioning and make sure it still reads as a Phase 1 priority campaign, not an active transaction system.
+9. Confirm placeholder warnings remain honest and visible.
+10. Confirm no city name is introduced.
+11. Confirm no fake phone numbers, QR codes, financial values, names, or active PALUGADA items are introduced.
+12. Keep the site visually consistent with the current premium green/cream/gold system.
+13. Do not add major new sections unless required to fix clarity.
+
+Static export requirement:
+This project is currently deployed as a static export for Netlify.
+Keep `output: "export"` in `next.config.ts`.
+Keep deployment output compatible with Netlify publish directory `out`.
+
+Documentation:
+Create or update `PRODUCTION_QA.md`.
+
+The document should include:
+
+1. Live preview URL.
+2. Routes checked.
+3. Issues found.
+4. Fixes applied.
+5. Remaining known limitations.
+6. Confirmation that Phase 1 remains static public portal only.
+
+Quality checks:
+
+1. Run npm.cmd run lint.
+2. Run npm.cmd run build.
+3. Confirm the `out` folder is generated.
+4. Summarize changed files.
+5. Provide recommended commit message.
+
+Recommended commit message:
+production qa and navigation polish
+
+After completion:
+
+1. Summarize what was fixed.
+2. Tell the user if the Netlify deploy should be triggered again.
+
+## Task 22 — Remove Public Roadmap and Strengthen Phase 1 Portal Narrative
+
+Use the ui-ux-pro-max skill.
+
+Treat this as public narrative refinement after Task 21.
+
+All completed work from Task 1 to Task 21 remains valid and must be preserved.
+
+Strategic decision:
+The detailed phased product roadmap should not be published on the public website at this stage.
+
+Reason:
+The public website should feel like a more focused resident portal and PALUGADA campaign, not a long future product concept.
+
+Scope:
+Public website copy and section refinement only.
+
+Do not redesign the website from zero.
+Do not remove the internal ROADMAP.md documentation.
+Do not build login, auth, database, backend, API routes, payment, checkout, cart, transaction system, real complaint system, admin dashboard, group chat, push notification, or real app functionality.
+
+Main objectives:
+
+1. Remove or hide any public-facing detailed roadmap section from the website.
+2. Remove public mentions of detailed future phases such as:
+
+   * Login warga
+   * Community feed
+   * Group chat
+   * Push notification
+   * Full resident app
+3. Keep ROADMAP.md as internal product planning documentation.
+4. Keep PHASE_1_SCOPE.md as internal scope documentation.
+5. Strengthen the public narrative around:
+
+   * Portal Warga Publik
+   * Informasi resmi warga
+   * Pengurus
+   * Keuangan / kas transparency structure
+   * Pengumuman
+   * Kontak penting
+   * PALUGADA CGV as priority campaign / marketplace warga
+6. Keep PALUGADA CGV as the priority campaign focus.
+7. Make the website feel more like a Phase 1 portal ready for review, not a future-app concept.
+8. Keep placeholder warnings honest and visible.
+9. Do not invent names, financial values, phone numbers, QR codes, or active PALUGADA items.
+10. Do not mention any city name.
+
+Recommended public wording direction:
+Use:
+
+* “Portal Warga”
+* “Tahap awal”
+* “Disiapkan bertahap”
+* “Kampanye prioritas PALUGADA CGV”
+* “Informasi, pengumuman, transparansi, dan direktori warga”
+
+Avoid:
+
+* “8 phase roadmap”
+* “full resident app”
+* “community feed”
+* “group chat”
+* “push notification”
+* “login warga”
+* “future app ecosystem”
+
+Routes to review:
+
+* /
+* /palugada/
+* /pengurus/
+* /keuangan/
+* /pengumuman/
+* /kontak/
+
+Static export requirement:
+Keep `output: "export"` in `next.config.ts`.
+Keep deployment output compatible with Netlify publish directory `out`.
+
+Documentation:
+Update `PRODUCTION_QA.md` or create a short note that detailed roadmap remains internal and is not shown publicly.
+
+Quality checks:
+
+1. Run npm.cmd run lint.
+2. Run npm.cmd run build.
+3. Confirm the `out` folder is generated.
+4. Summarize changed files.
+5. Provide recommended commit message.
+
+Recommended commit message:
+remove public roadmap narrative
+

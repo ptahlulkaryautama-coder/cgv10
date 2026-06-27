@@ -58,13 +58,13 @@ export default function Home() {
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/pengurus"
+                href="/pengurus/"
                 className="inline-flex min-h-12 items-center justify-center rounded-xl bg-primary px-5 text-center text-base font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:px-6"
               >
                 Lihat struktur pengurus
               </Link>
               <Link
-                href="/palugada"
+                href="/palugada/"
                 className="inline-flex min-h-12 items-center justify-center rounded-xl border border-border bg-surface px-5 text-center text-base font-semibold text-primary transition-colors hover:border-primary/40 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:px-6"
               >
                 Buka PALUGADA CGV

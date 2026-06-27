@@ -104,7 +104,7 @@ export function SiteHeader() {
         </nav>
 
         <Link
-          href="/kontak"
+          href="/kontak/"
           className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           Kontak
