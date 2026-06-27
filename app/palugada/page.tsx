@@ -16,12 +16,12 @@ const campaignNotes = [
   },
   {
     title: "Direktori dulu",
-    text: "Tahap awal menampilkan struktur katalog dan contoh format, sambil menunggu data resmi dan kontak WA yang disetujui.",
+    text: "Tahap awal menampilkan struktur katalog dan contoh tampilan, sambil menunggu data resmi dan kontak WA yang disetujui.",
     icon: "file",
   },
   {
-    title: "Belum transaksi aktif",
-    text: "Belum ada pembayaran, keranjang, akun penjual, database, atau proses jual beli aktif di halaman ini.",
+    title: "Transaksi nonaktif",
+    text: "Pembayaran, keranjang, akun penjual, database, dan proses jual beli tidak diaktifkan pada mode demo ini.",
     icon: "shield",
   },
 ] as const;
@@ -32,7 +32,7 @@ export default function PalugadaPage() {
       <PageHero
         eyebrow="PALUGADA CGV — Marketplace Warga"
         title="Kampanye prioritas untuk promosi dan direktori warga."
-        text="PALUGADA CGV adalah ruang awal di dalam CGV10 untuk memperkenalkan promosi warga. Halaman ini masih berupa preview katalog yang perlu validasi, bukan sistem transaksi aktif."
+        text="PALUGADA CGV adalah ruang awal di dalam CGV10 untuk memperkenalkan promosi warga. Halaman ini memakai contoh tampilan katalog untuk review, bukan sistem transaksi aktif."
       />
       <section className="bg-primary text-white">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20 xl:px-10">
@@ -107,44 +107,52 @@ export default function PalugadaPage() {
       </section>
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24 xl:px-10">
         <PlaceholderNotice>
-          Item di bawah jelas ditandai sebagai contoh format. Tidak ada
-          transaksi, pembayaran, keranjang, database, akun penjual, atau tombol
-          WA aktif sampai data, aturan item, dan kontak resmi disetujui
-          pengurus.
+          Mode Tinjauan Pengurus: item di bawah jelas ditandai sebagai contoh
+          tampilan. Tidak ada transaksi, pembayaran, keranjang, database, akun
+          penjual, atau tombol WA aktif sampai data, aturan item, dan kontak
+          resmi disetujui pengurus.
         </PlaceholderNotice>
-        <div className="mt-8 rounded-2xl border border-primary/25 bg-primary-soft p-5 text-sm leading-6 text-foreground">
-          PALUGADA CGV ditampilkan sebagai kampanye prioritas dan contoh
-          tampilan direktori warga. Semua item perlu aturan submit, validasi,
-          dan persetujuan sebelum dapat dipublikasikan.
-        </div>
-        <div className="mt-8 grid gap-4 lg:grid-cols-3">
-          {[1, 2, 3].map((item) => (
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {marketplaceItems.map((item) => (
             <article
-              key={item}
+              key={item.name}
               className="rounded-2xl border border-border bg-surface p-5 shadow-sm transition-colors hover:border-primary/30"
             >
-              <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                Contoh format
+              <p className="mb-4 inline-flex rounded-full bg-accent-soft px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-foreground">
+                Contoh tampilan
               </p>
               <div className="space-y-3">
-                {marketplaceItems.map((field) => (
-                  <div
-                    key={field.label}
-                    className="grid gap-1 border-b border-border pb-3 last:border-b-0 last:pb-0 sm:grid-cols-[0.45fr_0.55fr] sm:gap-4"
-                  >
-                    <span className="text-sm text-muted">{field.label}</span>
-                    <span className="text-sm font-semibold text-foreground sm:text-right">
-                      {field.value}
-                    </span>
-                  </div>
-                ))}
+                <div className="grid gap-1 border-b border-border pb-3">
+                  <span className="text-sm text-muted">Nama</span>
+                  <span className="text-base font-semibold text-foreground">
+                    {item.name}
+                  </span>
+                </div>
+                <div className="grid gap-1 border-b border-border pb-3">
+                  <span className="text-sm text-muted">Kategori</span>
+                  <span className="text-sm font-semibold text-foreground">
+                    {item.category}
+                  </span>
+                </div>
+                <div className="grid gap-1 border-b border-border pb-3">
+                  <span className="text-sm text-muted">Harga</span>
+                  <span className="text-sm font-semibold text-foreground">
+                    {item.price}
+                  </span>
+                </div>
+                <div className="grid gap-1">
+                  <span className="text-sm text-muted">Status</span>
+                  <span className="text-sm font-semibold text-foreground">
+                    {item.status}
+                  </span>
+                </div>
               </div>
               <button
                 type="button"
                 disabled
                 className="mt-5 inline-flex min-h-11 w-full cursor-not-allowed items-center justify-center rounded-xl bg-primary-soft px-4 text-sm font-semibold text-primary/70"
               >
-                WA belum tersedia
+                WA nonaktif untuk demo
               </button>
             </article>
           ))}

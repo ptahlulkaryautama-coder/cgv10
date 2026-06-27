@@ -10,14 +10,15 @@ export default function PengumumanPage() {
   return (
     <PageShell>
       <PageHero
-        eyebrow="Pengumuman"
-        title="Kanal informasi resmi untuk ditinjau warga."
-        text="Halaman ini menunjukkan format pengumuman publik yang rapi, dengan isi resmi yang tetap menunggu validasi."
+        eyebrow="Mode Tinjauan Pengurus"
+        title="Contoh kanal pengumuman yang siap direview."
+        text="Halaman ini menunjukkan contoh format pengumuman publik yang rapi sebelum isi resmi dipilih dan disetujui untuk publikasi."
       />
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-24 xl:px-10">
         <PlaceholderNotice>
-          Kartu di bawah adalah struktur informasi. Isi resmi akan diperbarui
-          setelah pengurus menyetujui pengumuman yang boleh dipublikasikan.
+          Mode Tinjauan Pengurus: semua kartu di bawah adalah contoh
+          pengumuman dan simulasi konten, bukan informasi resmi yang sudah
+          dipublikasikan.
         </PlaceholderNotice>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {announcements.map((item) => (

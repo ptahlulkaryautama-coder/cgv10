@@ -29,9 +29,11 @@ export type FinanceRow = {
   value: string;
 };
 
-export type MarketplaceField = {
-  label: string;
-  value: string;
+export type MarketplaceItem = {
+  name: string;
+  category: string;
+  price: string;
+  status: string;
 };
 
 export type ContactEntry = {
@@ -52,27 +54,27 @@ export const navItems = [
 export const quickInfo: IconCard[] = [
   {
     title: "Saldo Kas RT",
-    text: "Data resmi dalam proses konfirmasi pengurus.",
+    text: "Simulasi ringkasan kas untuk review.",
     icon: "wallet",
   },
   {
     title: "Jumlah KK",
-    text: "Informasi akan diperbarui setelah validasi.",
+    text: "Format tampilan data warga untuk ditinjau.",
     icon: "users",
   },
   {
     title: "Pengaduan Aktif",
-    text: "Kanal pengaduan belum dibuka untuk publik.",
+    text: "Contoh status kanal layanan warga.",
     icon: "message",
   },
   {
     title: "Kegiatan Terdekat",
-    text: "Jadwal resmi menunggu konfirmasi pengurus.",
+    text: "Contoh tampilan jadwal lingkungan.",
     icon: "calendar",
   },
 ];
 
-// Replace role placeholders with official names only after publication approval.
+// Replace review-mode role entries with official names only after publication approval.
 export const pengurusRoles: IconCard[] = [
   {
     title: "Ketua RT",
@@ -85,49 +87,54 @@ export const pengurusRoles: IconCard[] = [
   },
   {
     title: "Sekretaris",
-    text: "Nama resmi dalam proses konfirmasi pengurus.",
+    text: "Peran dan nama resmi menunggu persetujuan publikasi.",
     icon: "users",
   },
   {
     title: "Bendahara",
-    text: "Nama resmi dalam proses konfirmasi pengurus.",
+    text: "Peran dan nama resmi menunggu persetujuan publikasi.",
     icon: "users",
   },
   {
     title: "Semua seksi",
-    text: "Daftar seksi akan diperbarui setelah validasi.",
+    text: "Struktur seksi disiapkan sebagai format tinjauan.",
     icon: "users",
   },
   {
     title: "Koordinator cluster",
-    text: "Data koordinator menunggu persetujuan publikasi.",
+    text: "Format koordinator disiapkan untuk persetujuan publikasi.",
     icon: "users",
   },
 ];
 
 // Insert confirmed finance numbers here after pengurus approval.
 export const financeRows: FinanceRow[] = [
-  { label: "Saldo awal", value: "Dalam proses validasi pengurus" },
-  { label: "Pemasukan", value: "Dalam proses validasi pengurus" },
-  { label: "Pengeluaran", value: "Dalam proses validasi pengurus" },
-  { label: "Saldo akhir", value: "Dalam proses validasi pengurus" },
+  { label: "Saldo awal", value: "Rp 8.500.000" },
+  { label: "Pemasukan", value: "Rp 20.250.000" },
+  { label: "Pengeluaran", value: "Rp 5.750.000" },
+  { label: "Saldo akhir", value: "Rp 23.000.000" },
 ];
 
 // Replace preview copy only with announcement content approved for public display.
 export const announcements: IconCard[] = [
   {
-    title: "Jadwal kegiatan lingkungan",
-    text: "Format pengumuman agenda warga yang akan diisi setelah jadwal resmi divalidasi.",
+    title: "Jadwal kerja bakti lingkungan",
+    text: "Contoh pengumuman untuk mengatur agenda kebersihan bersama warga.",
     icon: "calendar",
   },
   {
-    title: "Informasi keamanan",
-    text: "Ruang informasi keamanan yang menunggu arahan resmi sebelum dipublikasikan.",
+    title: "Pendataan warga dan kendaraan",
+    text: "Simulasi konten untuk memperlihatkan format pendataan lingkungan.",
+    icon: "file",
+  },
+  {
+    title: "Informasi keamanan lingkungan",
+    text: "Contoh informasi keamanan yang dapat ditinjau sebelum dipublikasikan.",
     icon: "shield",
   },
   {
-    title: "Pengumuman layanan warga",
-    text: "Kanal ringkas untuk informasi administrasi dan layanan warga yang sudah disetujui.",
+    title: "Pengingat administrasi warga",
+    text: "Format demo untuk pengingat administrasi yang tetap menunggu persetujuan.",
     icon: "file",
   },
 ];
@@ -141,11 +148,31 @@ export const palugadaCategories: { title: string; icon: IconName }[] = [
 ];
 
 // Insert official PALUGADA item values only after seller and pengurus approval.
-export const marketplaceItems: MarketplaceField[] = [
-  { label: "Nama", value: "Contoh format item warga" },
-  { label: "Harga", value: "Informasi menunggu validasi" },
-  { label: "Cluster", value: "Cluster menunggu konfirmasi" },
-  { label: "Tombol WA", value: "WA menunggu persetujuan publikasi" },
+export const marketplaceItems: MarketplaceItem[] = [
+  {
+    name: "Donat kentang warga",
+    category: "Kuliner",
+    price: "Harga contoh: Rp 35.000",
+    status: "Contoh tampilan - WA nonaktif",
+  },
+  {
+    name: "Jasa laundry kiloan",
+    category: "Jasa",
+    price: "Harga contoh: sesuai berat cucian",
+    status: "Contoh tampilan - WA nonaktif",
+  },
+  {
+    name: "Tanaman hias rumah",
+    category: "Barang",
+    price: "Harga contoh: Rp 25.000",
+    status: "Contoh tampilan - WA nonaktif",
+  },
+  {
+    name: "Info properti warga",
+    category: "Properti",
+    price: "Harga contoh: informasi menyusul",
+    status: "Contoh tampilan - WA nonaktif",
+  },
 ];
 
 // Insert public contact and QR assets only after explicit approval.
@@ -153,21 +180,21 @@ export const contacts: ContactEntry[] = [
   {
     role: "Ketua RT",
     text: "Kontak resmi menunggu persetujuan publikasi.",
-    qrStatus: "QR menunggu validasi",
+    qrStatus: "QR akan ditampilkan setelah disetujui pengurus",
   },
   {
     role: "Sekretaris",
     text: "Kontak resmi menunggu persetujuan publikasi.",
-    qrStatus: "QR menunggu validasi",
+    qrStatus: "QR akan ditampilkan setelah disetujui pengurus",
   },
   {
     role: "Bendahara",
     text: "Kontak resmi menunggu persetujuan publikasi.",
-    qrStatus: "QR menunggu validasi",
+    qrStatus: "QR akan ditampilkan setelah disetujui pengurus",
   },
   {
     role: "Keamanan",
     text: "Kontak resmi menunggu persetujuan publikasi.",
-    qrStatus: "QR menunggu validasi",
+    qrStatus: "QR akan ditampilkan setelah disetujui pengurus",
   },
 ];

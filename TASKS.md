@@ -1768,3 +1768,137 @@ Quality checks:
 Recommended commit message:
 polish presentation demo content
 
+## Task 25 — Replace Placeholder Feel with Presentation Demo Mode
+
+Use the ui-ux-pro-max skill.
+
+Treat this as urgent presentation polish for pengurus review.
+
+Current live preview:
+https://thriving-bunny-9f4e92.netlify.app/
+
+Main objective:
+Reduce the “empty placeholder” feeling and make the website feel like a polished presentation demo for pengurus review.
+
+Scope:
+Static public presentation preview only.
+
+Do not redesign the website from zero.
+Do not add roadmap back.
+Do not build login, auth, database, backend, API routes, payment, checkout, cart, transaction system, real complaint system, admin dashboard, group chat, push notification, or real app functionality.
+
+Strategic direction:
+Use “Mode Tinjauan Pengurus” as the public framing.
+The site may show demo/example content for presentation clarity, but all non-official content must be clearly labeled as simulation or example.
+
+Important wording rule:
+Do not use the word “dummy” on the website.
+
+Use:
+
+* Mode Tinjauan Pengurus
+* Contoh tampilan
+* Simulasi format
+* Data simulasi untuk review
+* Bukan data resmi
+* Menunggu persetujuan publikasi
+
+Avoid overusing:
+
+* Placeholder
+* Belum tersedia
+* Menunggu validasi
+* Kosong
+* Data belum ada
+
+Homepage:
+
+1. Make the hero feel more confident and presentation-ready.
+2. Replace overly weak placeholder wording with “Mode Tinjauan Pengurus”.
+3. Keep a clear note that some data is simulation for review.
+4. Keep CTA buttons focused on:
+
+   * Tinjau struktur pengurus
+   * Buka PALUGADA CGV
+5. Make quick info cards feel more useful with demo-style states, not empty states.
+
+Pengurus page:
+
+1. Keep Doddy Dharma as Ketua RT.
+2. Keep the larger profile photo and hover zoom effect.
+3. Keep other roles pending, but make them look like structured approval cards, not empty cards.
+4. Do not invent additional pengurus names.
+
+Keuangan page:
+
+1. Add a professional financial transparency demo.
+2. Use sample values only if clearly labeled as:
+   “Simulasi format — bukan data kas resmi.”
+3. Suggested example values:
+
+   * Saldo awal: Rp 8.500.000
+   * Pemasukan: Rp 20.250.000
+   * Pengeluaran: Rp 5.750.000
+   * Saldo akhir: Rp 23.000.000
+4. Add a visible note that all numbers are sample format for review only.
+5. Do not present these numbers as official RT cash data.
+
+Pengumuman page:
+
+1. Add polished example announcement cards.
+2. Label them as “Contoh pengumuman”.
+3. Suggested example content:
+
+   * Jadwal kerja bakti lingkungan
+   * Pendataan warga dan kendaraan
+   * Informasi keamanan lingkungan
+   * Pengingat administrasi warga
+4. Avoid exact official dates unless labeled as example.
+
+PALUGADA page:
+
+1. Make PALUGADA feel more like a priority campaign.
+2. Add refined example item cards under categories.
+3. Label all items as “Contoh tampilan”.
+4. Suggested example items:
+
+   * Donat kentang warga — Kuliner
+   * Jasa laundry kiloan — Jasa
+   * Tanaman hias rumah — Barang
+   * Info properti warga — Properti
+5. If using prices, label as example price or use “Harga contoh”.
+6. Do not activate real WA links.
+7. Do not add cart, checkout, payment, seller account, or transaction flow.
+
+Kontak page:
+
+1. Do not invent phone numbers.
+2. Keep QR/contact as approval state.
+3. Make cards feel intentional:
+
+   * Kontak resmi menunggu persetujuan publikasi
+   * QR akan ditampilkan setelah disetujui pengurus
+
+Visual polish:
+
+1. Reduce repetitive warning boxes.
+2. Use one strong “Mode Tinjauan Pengurus” notice per page where needed.
+3. Improve hierarchy, spacing, card density, and readability.
+4. Keep premium green/cream/gold civic visual style.
+5. Check desktop and mobile presentation quality.
+
+Static export requirement:
+Keep `output: "export"` in `next.config.ts`.
+Keep deployment output compatible with Netlify publish directory `out`.
+
+Quality checks:
+
+1. Run npm.cmd run lint.
+2. Run npm.cmd run build.
+3. Confirm the `out` folder is generated.
+4. Summarize changed files.
+5. Provide recommended commit message.
+
+Recommended commit message:
+upgrade presentation demo content
+

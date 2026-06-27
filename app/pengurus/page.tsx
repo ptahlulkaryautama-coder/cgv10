@@ -11,15 +11,15 @@ export default function PengurusPage() {
   return (
     <PageShell>
       <PageHero
-        eyebrow="Pengurus"
-        title="Struktur pengurus untuk tinjauan publik."
-        text="Halaman ini menampilkan data pengurus yang sudah disetujui untuk contoh publikasi, sementara peran lain tetap menunggu validasi."
+        eyebrow="Mode Tinjauan Pengurus"
+        title="Struktur pengurus untuk review publikasi."
+        text="Halaman ini menampilkan contoh susunan pengurus dengan data Ketua RT yang sudah diberikan, sementara peran lain disiapkan sebagai kartu persetujuan publikasi."
       />
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-24 xl:px-10">
         <PlaceholderNotice>
-          Profil Ketua RT ditampilkan dengan data resmi yang tersedia. Nama
-          pengurus lain, seksi, dan koordinator cluster akan diperbarui setelah
-          data divalidasi dan disetujui untuk ditampilkan.
+          Mode Tinjauan Pengurus: profil Ketua RT ditampilkan sesuai data yang
+          diberikan. Nama pengurus lain, seksi, dan koordinator cluster tetap
+          menunggu persetujuan publikasi.
         </PlaceholderNotice>
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           {pengurusRoles.map((role) => (
@@ -56,7 +56,9 @@ export default function PengurusPage() {
                 </div>
               </div>
               <p className="mb-3 inline-flex rounded-full bg-accent-soft px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-foreground">
-                {role.name ? "Data resmi tersedia" : "Menunggu konfirmasi"}
+                {role.name
+                  ? "Data resmi tersedia"
+                  : "Menunggu persetujuan publikasi"}
               </p>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
                 {role.title}

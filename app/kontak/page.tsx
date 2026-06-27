@@ -11,14 +11,15 @@ export default function KontakPage() {
   return (
     <PageShell>
       <PageHero
-        eyebrow="Kontak"
-        title="Direktori kontak penting untuk validasi pengurus."
-        text="Nomor telepon dan QR belum ditampilkan sampai kontak resmi disetujui untuk publikasi."
+        eyebrow="Mode Tinjauan Pengurus"
+        title="Direktori kontak penting untuk persetujuan publikasi."
+        text="Nomor telepon dan QR tidak ditampilkan sampai kontak resmi disetujui untuk publikasi."
       />
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-24 xl:px-10">
         <PlaceholderNotice>
-          QR pada halaman ini hanya placeholder visual. Tidak ada QR asli atau
-          nomor kontak yang ditampilkan tanpa persetujuan pengurus.
+          Mode Tinjauan Pengurus: kontak resmi menunggu persetujuan publikasi.
+          Tidak ada nomor atau QR resmi yang ditampilkan tanpa persetujuan
+          pengurus.
         </PlaceholderNotice>
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {contacts.map((contact) => (

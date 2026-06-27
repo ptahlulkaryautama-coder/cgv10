@@ -34,20 +34,20 @@ export default function Home() {
         <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 pb-14 pt-10 sm:px-6 md:grid-cols-[0.95fr_1.05fr] md:items-center lg:px-8 lg:pb-20 lg:pt-16 xl:px-10">
           <div className="max-w-3xl">
             <p className="mb-5 text-sm font-semibold uppercase tracking-[0.14em] text-primary sm:tracking-[0.18em]">
-              Tahap awal - Portal Warga
+              Mode Tinjauan Pengurus
             </p>
             <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
               Cipta Greenville &bull; RT 010 / RW 021
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-muted sm:mt-6 sm:text-lg sm:leading-8">
-              CGV10 dimulai dari portal warga publik yang menyusun informasi
-              pengurus, keuangan, pengumuman, kontak penting, dan PALUGADA CGV
-              sebagai kampanye prioritas Marketplace Warga. Fokus saat ini
-              adalah membuat informasi, pengumuman, transparansi, dan direktori
-              warga lebih rapi untuk ditinjau bersama.
+              CGV10 ditampilkan sebagai portal warga publik yang siap ditinjau:
+              struktur pengurus, transparansi kas, pengumuman, kontak penting,
+              dan PALUGADA CGV sebagai kampanye prioritas Marketplace Warga.
+              Sebagian data menggunakan simulasi format agar alur publikasi
+              bisa dinilai sebelum informasi resmi disetujui.
             </p>
             <div className="mt-6 inline-flex rounded-full border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-foreground">
-              Data simulasi untuk review pengurus
+              Data simulasi untuk review - bukan data resmi
             </div>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -120,7 +120,7 @@ export default function Home() {
                 className="rounded-2xl border border-border bg-background p-5 shadow-sm transition-colors hover:border-primary/30"
               >
                 <p className="mb-4 inline-flex rounded-full bg-accent-soft px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-foreground">
-                  Data menunggu validasi
+                  Mode Tinjauan Pengurus
                 </p>
                 <div className="mb-4 grid h-11 w-11 place-items-center rounded-xl bg-primary-soft text-primary">
                   <Icon name={item.icon} />
@@ -139,8 +139,8 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 xl:px-10">
           <SectionHeading
             eyebrow="Info cepat"
-            title="Ringkasan awal yang siap divalidasi pengurus."
-            text="Kartu berikut menjaga struktur portal tetap jelas tanpa menampilkan angka atau status yang belum dikonfirmasi."
+            title="Ringkasan demo yang terasa siap ditinjau."
+            text="Kartu berikut menunjukkan contoh tampilan ringkasan portal tanpa mengklaim angka, status, atau jadwal sebagai data resmi."
           />
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {quickInfo.map((item) => (
@@ -158,8 +158,8 @@ export default function Home() {
           </div>
           <div className="mt-8">
             <PlaceholderNotice>
-              Data publik pada halaman ini masih menunggu validasi pengurus
-              sebelum digunakan untuk komunikasi warga yang lebih luas.
+              Mode Tinjauan Pengurus: sebagian data pada halaman ini adalah
+              simulasi format untuk diskusi, bukan data resmi.
             </PlaceholderNotice>
           </div>
         </div>
