@@ -1665,4 +1665,106 @@ Quality checks:
 
 Recommended commit message:
 polish phase 1 review readiness
+## Task 24 — Presentation Demo Content and Premium Polish
+
+Use the ui-ux-pro-max skill.
+
+Treat this as urgent presentation-readiness polish for pengurus review.
+
+Current live preview:
+https://thriving-bunny-9f4e92.netlify.app/
+
+Current public direction:
+CGV10 — Portal Digital Warga
+Cipta Greenville • RT 010 / RW 021
+
+Main objective:
+Make the website feel more premium, complete, and ready to present to pengurus, while clearly marking non-official data as example/demo content.
+
+Scope:
+Static public presentation preview only.
+
+Do not redesign the website from zero.
+Do not add roadmap back.
+Do not build login, auth, database, backend, API routes, payment, checkout, cart, transaction system, real complaint system, admin dashboard, group chat, push notification, or real app functionality.
+
+Important presentation rule:
+The website may use example/demo content for presentation clarity, but it must be clearly labeled as:
+
+* Contoh tampilan
+* Data simulasi untuk review
+* Format demo
+* Data resmi menunggu konfirmasi pengurus
+
+Do not present demo content as official final data.
+
+Focus areas:
+
+1. Make the homepage feel more premium and review-ready.
+2. Strengthen the hero section so it feels like a real resident portal preview.
+3. Improve quick info cards so they feel useful, not empty.
+4. Add refined demo examples where helpful, clearly labeled as “Contoh tampilan” or “Data simulasi untuk review”.
+5. Improve Pengurus page:
+
+   * Keep Doddy Dharma as Ketua RT profile.
+   * Keep profile photo larger and premium.
+   * Keep hover zoom effect on profile photo.
+   * Other roles may remain “menunggu konfirmasi”, but should look polished.
+6. Improve Keuangan page:
+
+   * Show a professional demo format for financial transparency.
+   * If using sample values, label clearly as “Simulasi format — bukan data kas resmi”.
+   * Do not make sample financial values look official.
+7. Improve Pengumuman page:
+
+   * Add polished example announcement cards.
+   * Label them as contoh pengumuman / simulasi konten.
+8. Improve PALUGADA page:
+
+   * Make PALUGADA feel like a priority campaign.
+   * Add refined example item cards if useful.
+   * Label all items clearly as contoh tampilan.
+   * Do not make it look like active transaction system.
+   * No real checkout, payment, cart, seller account, or active WA transaction.
+9. Improve Kontak page:
+
+   * Keep official contacts pending if not approved.
+   * Do not invent phone numbers.
+   * Make the pending contact state look intentional and professional.
+10. Improve spacing, hierarchy, card polish, and visual consistency where needed.
+11. Check mobile presentation quality.
+12. Keep premium green/cream/gold civic visual style.
+
+Allowed demo examples:
+
+* Example announcement titles
+* Example PALUGADA item categories
+* Example financial table format
+* Example contact approval state
+* Example public information layout
+
+Not allowed:
+
+* Fake official phone numbers
+* Fake QR codes
+* Fake confirmed pengurus names besides approved Ketua RT data
+* Fake active transactions
+* Fake official financial claims without “simulasi” label
+* City names
+* Public roadmap section
+
+Static export requirement:
+Keep `output: "export"` in `next.config.ts`.
+Keep deployment output compatible with Netlify publish directory `out`.
+
+Quality checks:
+
+1. Run npm.cmd run lint.
+2. Run npm.cmd run build.
+3. Confirm the `out` folder is generated.
+4. Summarize changed files.
+5. Provide recommended commit message.
+
+Recommended commit message:
+polish presentation demo content
 

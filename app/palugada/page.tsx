@@ -112,11 +112,16 @@ export default function PalugadaPage() {
           WA aktif sampai data, aturan item, dan kontak resmi disetujui
           pengurus.
         </PlaceholderNotice>
+        <div className="mt-8 rounded-2xl border border-primary/25 bg-primary-soft p-5 text-sm leading-6 text-foreground">
+          PALUGADA CGV ditampilkan sebagai kampanye prioritas dan contoh
+          tampilan direktori warga. Semua item perlu aturan submit, validasi,
+          dan persetujuan sebelum dapat dipublikasikan.
+        </div>
         <div className="mt-8 grid gap-4 lg:grid-cols-3">
           {[1, 2, 3].map((item) => (
             <article
               key={item}
-              className="rounded-2xl border border-border bg-surface p-5 shadow-sm"
+              className="rounded-2xl border border-border bg-surface p-5 shadow-sm transition-colors hover:border-primary/30"
             >
               <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
                 Contoh format

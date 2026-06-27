@@ -46,6 +46,9 @@ export default function Home() {
               adalah membuat informasi, pengumuman, transparansi, dan direktori
               warga lebih rapi untuk ditinjau bersama.
             </p>
+            <div className="mt-6 inline-flex rounded-full border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-foreground">
+              Data simulasi untuk review pengurus
+            </div>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/pengurus/"
@@ -114,8 +117,11 @@ export default function Home() {
             {phaseFocus.map((item) => (
               <article
                 key={item.title}
-                className="rounded-2xl border border-border bg-background p-5 shadow-sm"
+                className="rounded-2xl border border-border bg-background p-5 shadow-sm transition-colors hover:border-primary/30"
               >
+                <p className="mb-4 inline-flex rounded-full bg-accent-soft px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-foreground">
+                  Data menunggu validasi
+                </p>
                 <div className="mb-4 grid h-11 w-11 place-items-center rounded-xl bg-primary-soft text-primary">
                   <Icon name={item.icon} />
                 </div>

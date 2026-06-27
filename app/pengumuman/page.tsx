@@ -23,8 +23,11 @@ export default function PengumumanPage() {
           {announcements.map((item) => (
             <article
               key={item.title}
-              className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6"
+              className="rounded-2xl border border-border bg-surface p-5 shadow-sm transition-colors hover:border-primary/30 sm:p-6"
             >
+              <p className="mb-4 inline-flex rounded-full bg-accent-soft px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-foreground">
+                Contoh pengumuman
+              </p>
               <div className="mb-5 grid h-12 w-12 place-items-center rounded-xl bg-accent-soft text-foreground">
                 <Icon name={item.icon} />
               </div>

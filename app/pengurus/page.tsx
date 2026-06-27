@@ -25,22 +25,39 @@ export default function PengurusPage() {
           {pengurusRoles.map((role) => (
             <article
               key={role.title}
-              className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6"
+              className={`rounded-2xl border p-5 shadow-sm sm:p-6 ${
+                role.imageSrc
+                  ? "border-primary/25 bg-surface"
+                  : "border-border bg-surface"
+              }`}
             >
               <div className="mb-5 flex items-center gap-3">
-                <Image
-                  src={
-                    role.imageSrc ?? "/assets/placeholders/profile-placeholder.svg"
-                  }
-                  alt={role.imageAlt ?? ""}
-                  width="48"
-                  height="48"
-                  className="h-12 w-12 rounded-xl object-cover"
-                />
+                {role.imageSrc ? (
+                  <div className="group/photo overflow-hidden rounded-2xl border border-border bg-background shadow-[0_14px_35px_rgba(20,90,58,0.16)] transition-shadow duration-300 hover:shadow-[0_18px_48px_rgba(20,90,58,0.22)]">
+                    <Image
+                      src={role.imageSrc}
+                      alt={role.imageAlt ?? ""}
+                      width="96"
+                      height="96"
+                      className="h-20 w-20 object-cover transition-transform duration-300 ease-out group-hover/photo:scale-105 sm:h-24 sm:w-24"
+                    />
+                  </div>
+                ) : (
+                  <Image
+                    src="/assets/placeholders/profile-placeholder.svg"
+                    alt=""
+                    width="48"
+                    height="48"
+                    className="h-12 w-12 rounded-xl object-cover"
+                  />
+                )}
                 <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary-soft text-primary">
                   <Icon name={role.icon} />
                 </div>
               </div>
+              <p className="mb-3 inline-flex rounded-full bg-accent-soft px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-foreground">
+                {role.name ? "Data resmi tersedia" : "Menunggu konfirmasi"}
+              </p>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
                 {role.title}
               </p>

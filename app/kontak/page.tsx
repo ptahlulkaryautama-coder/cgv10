@@ -24,7 +24,7 @@ export default function KontakPage() {
           {contacts.map((contact) => (
             <article
               key={contact.role}
-              className="rounded-2xl border border-border bg-surface p-6 shadow-sm"
+              className="rounded-2xl border border-border bg-surface p-6 shadow-sm transition-colors hover:border-primary/30"
             >
               <div className="mb-5 flex items-center justify-between gap-4">
                 <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary-soft text-primary">
@@ -38,6 +38,9 @@ export default function KontakPage() {
                   className="h-16 w-16 shrink-0 rounded-xl border border-dashed border-border bg-background"
                 />
               </div>
+              <p className="mb-3 inline-flex rounded-full bg-accent-soft px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-foreground">
+                Persetujuan publikasi
+              </p>
               <h2 className="text-lg font-semibold">{contact.role}</h2>
               <p className="mt-3 text-sm leading-6 text-muted">
                 {contact.text}
