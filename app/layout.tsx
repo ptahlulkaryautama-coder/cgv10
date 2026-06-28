@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "CGV10 — Portal Digital Warga",
   description:
-    "Portal digital warga Cipta Greenville RT 010 / RW 021 untuk informasi komunitas, layanan, transparansi iuran, keamanan, dan rencana pengembangan warga.",
+    "Portal digital warga Cipta Greenville RT 010 / RW 021 untuk informasi komunitas, pengurus, transparansi iuran, pengumuman, kegiatan, kontak, dan PALUGADA CGV.",
   icons: {
     icon: "/assets/brand/favicon.svg",
   },

@@ -1,3 +1,1041 @@
+## CURRENT ACTIVE DIRECTION
+
+CGV10 public website is in presentation demo mode for pengurus review.
+
+The website must feel premium, alive, executive, and consistent.
+
+Roadmap remains internal only and must not appear on the public website.
+
+PALUGADA CGV uses Ma'niez Donut as the first pilot lapak.
+
+Approved WA pilot for Ma'niez Donut:
++62 812-9125-4064
+
+Keuangan page uses simulation dashboard data and must remain clearly labeled as demo/review data.
+
+Do not add backend, database, login, payment, checkout, CMS, upload system, real form submission, or active admin dashboard.
+
+## Task 39 — Premium Brand Popover and Image Preview System
+
+Use the ui-ux-pro-max skill.
+
+Goal:
+Add a premium image/brand preview interaction so CGV10 feels more executive and less static.
+
+Scope:
+Frontend-only static interaction.
+No backend.
+No database.
+No CMS.
+No upload system.
+
+Part A — Portal logo popover
+
+1. Add a hover/focus/click popover to the main CGV10/Portal logo area in the shared header.
+2. The popover should show a larger Portal Warga CGV brand preview.
+3. Inspect available assets first and use the best matching logo from:
+   public/assets/brand/
+4. Prefer one of these if available:
+   - official-cgv-logo.png
+   - cgv10-logo-proposal.png
+   - cgv10-wordmark.svg
+5. Popover content:
+   - Larger logo preview
+   - Title: Portal Warga CGV
+   - Subtitle: Terhubung • Terlibat • Terpercaya
+   - Small note: Identitas portal digital warga
+6. Keep header clean and unchanged in layout.
+7. Make sure it works on desktop hover/focus and mobile tap.
+
+Part B — Keep RT identity popover
+
+1. Preserve the existing RT official logo popover.
+2. Make its behavior visually consistent with the new portal logo popover.
+3. Do not make either popover too large or intrusive.
+
+Part C — Create reusable image preview/lightbox
+
+1. Create a reusable component if helpful:
+   - ImagePreview
+   - MediaPreview
+   - LightboxPreview
+2. It should support:
+   - click to enlarge
+   - close button
+   - keyboard accessible close if practical
+   - clean overlay
+   - premium rounded modal
+   - image title/caption
+3. Keep it static and client-side only.
+
+Part D — Apply image preview selectively
+
+Apply the preview/enlarge feature to:
+1. PALUGADA listing images
+2. PALUGADA detail gallery images
+3. Kegiatan documentation card images
+4. Pengurus profile photo if available
+
+Do not apply to every decorative image or icon.
+
+Part E — Visual behavior
+
+1. Add subtle cue on previewable images:
+   - cursor pointer
+   - small “Lihat besar” or magnifier icon on hover
+2. Avoid making the page noisy.
+3. Keep premium green, cream, and warm gold style.
+4. Ensure mobile remains clean.
+
+Part F — Quality checks
+
+Run:
+npm.cmd run lint
+npm.cmd run build
+
+Confirm out folder is generated.
+
+Summarize:
+- changed files
+- reusable component created or updated
+- where image preview was applied
+- which portal logo asset was used
+
+Recommended commit message:
+add premium brand popover and image preview
+
+## Task 38 — Unified Header and Brand Identity Fix
+
+Use the ui-ux-pro-max skill.
+
+Goal:
+Fix header/logo inconsistency across the whole CGV10 website and integrate the proposed brand assets properly.
+
+Current issue:
+Homepage header and Keuangan/page headers do not feel fully aligned. Logo updates also did not appear after the previous prompt, likely because the header is duplicated, hardcoded, or using the wrong asset path.
+
+Scope:
+Header, navigation, brand identity, footer consistency only.
+
+Do not redesign the whole website.
+Do not change page content unless needed for header/footer consistency.
+Do not add new features.
+
+Required work:
+
+1. Inspect brand assets
+Inspect:
+public/assets/brand/
+public/assets/
+
+Find available logo files related to:
+- CGV10
+- Portal Warga CGV
+- RT 010
+- Cipta Greenville
+- official RT/logo identity
+
+Do not assume filenames. Inspect actual files first.
+
+2. Create or enforce one shared header component
+Ensure all pages use one consistent header/navigation component.
+
+If there are duplicate headers inside individual page files, consolidate or align them.
+
+Header must be visually consistent on:
+- /
+- /layanan/
+- /pengurus/
+- /keuangan/
+- /pengumuman/
+- /kegiatan/
+- /palugada/
+- /kontak/
+
+3. Header brand structure
+Use this structure:
+
+Left:
+- CGV10 compact mark/icon
+- Text: CGV10
+- Subtext: Portal Digital Warga
+
+Center/right:
+- Navigation:
+  Beranda
+  Layanan
+  Pengurus
+  Keuangan
+  Pengumuman
+  Kegiatan
+  PALUGADA
+
+Identity badge:
+- Cipta Greenville
+- RT 010 / RW 021
+
+Right CTA:
+- Hubungi Pengurus
+- Link: /pengurus/#kontak-pengurus
+
+4. Official logo handling
+Do not show the words “Logo resmi” as placeholder.
+
+If an official RT/Cipta Greenville logo asset exists and is suitable:
+- use it subtly as an identity badge or in footer/brand section
+- do not force a large complex logo into the small header
+
+If no suitable official logo file exists:
+- keep clean text badges only:
+  Cipta Greenville
+  RT 010 / RW 021
+
+5. Proposed logo usage
+The full “Portal Warga CGV” logo may be used in a brand preview area or footer if suitable, but should not break the header layout.
+
+The complex RT 010 emblem may be used as supporting official identity visual, not as the main small header logo unless it remains readable.
+
+6. Responsive consistency
+Fix responsive behavior so header does not look like a different design on Keuangan compared to homepage.
+
+Ensure desktop/tablet/mobile header states feel like one system.
+
+7. Footer consistency
+Footer should consistently show:
+CGV10 — Portal Digital Warga
+Cipta Greenville • RT 010 / RW 021
+
+Optional:
+Add small official identity mark only if it looks clean.
+
+8. Quality checks
+Run:
+npm.cmd run lint
+npm.cmd run build
+
+Confirm out folder is generated.
+
+Summarize:
+- which logo files were found
+- which logo files were used
+- which header/footer files changed
+- whether all pages now share consistent header
+
+Recommended commit message:
+fix unified header and brand identity
+
+## Task 37A — Combine Pengurus and Kontak + Prepare Layanan Entry
+
+Use the ui-ux-pro-max skill.
+
+Goal:
+Simplify CGV10 navigation by combining Pengurus and Kontak into one trust-focused page, then prepare Layanan as the next resident-service hub.
+
+This is an information architecture polish task, not a full feature build.
+
+Scope:
+Static public demo only.
+
+Do not build backend, database, login, CMS, real form submission, admin dashboard, payment, or active service system.
+
+Part A — Combine Pengurus and Kontak
+
+1. Keep /pengurus/ as the main page for:
+   - Struktur pengurus
+   - Ketua RT profile
+   - Roles waiting for confirmation
+   - Official contact publication status
+   - QR/contact approval state
+
+2. Move or merge the useful content from /kontak/ into the lower section of /pengurus/.
+
+3. Add an anchor section in /pengurus/:
+   id="kontak-pengurus"
+
+4. Section title idea:
+   “Kontak resmi pengurus”
+
+5. Keep contact numbers/QR pending unless approved.
+   Do not invent phone numbers.
+   Do not add fake QR codes.
+
+6. Make the section feel intentional and premium, not like an empty placeholder:
+   - Ketua RT
+   - Sekretaris
+   - Bendahara
+   - Keamanan
+   Each can show:
+   “Kontak resmi menunggu persetujuan publikasi”
+   “QR akan tampil setelah disetujui pengurus”
+
+Part B — Navigation cleanup
+
+1. Remove “Kontak” as a standalone main navigation item if it exists.
+2. Keep the right-side CTA button, but change label from “Kontak” to:
+   “Hubungi Pengurus”
+3. Link the CTA to:
+   /pengurus/#kontak-pengurus
+
+4. Header navigation should become:
+   Beranda
+   Layanan
+   Pengurus
+   Keuangan
+   Pengumuman
+   Kegiatan
+   PALUGADA
+
+If the header feels too crowded, keep visual spacing clean and prioritize readability.
+
+Part C — Keep /kontak/ safe
+
+Do not break existing /kontak/ route.
+
+Update /kontak/ into a simple transition page that says:
+“Kontak resmi kini digabung dalam halaman Pengurus.”
+
+Add button:
+“Buka Kontak Pengurus”
+
+Button link:
+/ pengurus/#kontak-pengurus
+
+Use correct path without space:
+/pengurus/#kontak-pengurus
+
+Part D — Prepare Layanan entry
+
+1. Add “Layanan” to navigation.
+2. Create /layanan/ as a simple hub preview page.
+3. Do not create all detail service pages yet.
+4. Layanan page should introduce future static demo modules:
+   - Pengaduan warga
+   - Pendaftaran warga
+   - Iuran bulanan
+   - Donasi / kontribusi warga
+   - Administrasi / permohonan surat
+   - Keamanan lingkungan
+   - Usulan / aspirasi warga
+
+5. Each card should be marked:
+   “Mode Tinjauan Pengurus”
+   or
+   “Simulasi layanan”
+
+6. No real forms yet.
+7. No submit button that implies real submission.
+8. If button is needed, use:
+   “Tinjau format”
+   not
+   “Kirim”
+
+Part E — Homepage link consistency
+
+1. Any homepage “Portal Warga” / “Layanan” card should link to /layanan/.
+2. Any “Hubungi Pengurus” CTA should link to /pengurus/#kontak-pengurus.
+3. Do not incorrectly route generic “Tinjau portal” to Pengurus.
+
+Part F — Quality
+
+1. Keep premium green, cream, and warm gold style.
+2. Keep desktop and mobile navigation clean.
+3. Maintain static export compatibility with Netlify publish directory out.
+
+Quality checks:
+1. Run npm.cmd run lint
+2. Run npm.cmd run build
+3. Confirm out folder is generated
+4. Summarize changed files
+
+Recommended commit message:
+combine pengurus kontak and prepare layanan hub
+
+## Task 36 — Upgrade Halaman Keuangan dengan Dummy Data dan Grafik Premium
+
+Use the ui-ux-pro-max skill.
+
+Goal:
+Upgrade the keuangan page so it feels more premium, alive, and presentation-ready using the approved dummy financial data below. Add visual graphics and dashboard treatment inspired by the richer DKM dashboard style, but still aligned with CGV10 public website simplicity.
+
+Approved dummy financial data:
+
+1. Dana kas RT — qty 1 — satuan 2.000.000 — subtotal 2.000.000
+2. Pendaftaran Calon Doddy — qty 1 — satuan 500.000 — subtotal 500.000
+3. Pendaftaran Calon Fikri — qty 1 — satuan 500.000 — subtotal 500.000
+4. Pendaftaran Calon Meyer — qty 1 — satuan 500.000 — subtotal 500.000
+5. Dari KPU Sebelumnya — qty 1 — satuan 1.000.000 — subtotal 1.000.000
+6. Dari Sumbangan Warga - Mandeville 09 — qty 1 — satuan 1.000.000 — subtotal 1.000.000
+
+Total pemasukan simulasi: Rp 5.500.000
+
+Assume:
+
+* Kas keluar: Rp 0
+* Saldo akhir simulasi: Rp 5.500.000
+* Jumlah transaksi: 6
+
+Required work:
+
+1. Upgrade /keuangan page visual quality
+   Make it feel more premium, structured, and alive — not just a plain table section.
+
+2. Add summary cards at the top
+   Include:
+
+* Kas Masuk → Rp 5.500.000
+* Kas Keluar → Rp 0
+* Saldo Akhir → Rp 5.500.000
+* Jumlah Transaksi → 6
+  Optionally:
+* Sumber Dana Aktif → 6
+
+3. Add premium charts/graphics
+   Add at least 2 visual graphics:
+
+* Donut chart for distribusi sumber dana
+* Bar chart (or similar) for nominal kontribusi per sumber
+
+Suggested donut source breakdown:
+
+* Dana kas RT → 2.000.000
+* Calon Doddy → 500.000
+* Calon Fikri → 500.000
+* Calon Meyer → 500.000
+* KPU Sebelumnya → 1.000.000
+* Sumbangan Warga - Mandeville 09 → 1.000.000
+
+4. Add a recent transaction / activity panel
+   Show the 6 dummy transactions as premium list items, similar to a compact activity feed.
+
+5. Keep or improve the detailed table
+   Display:
+
+* No
+* Deskripsi
+* Jumlah
+* Satuan
+* Sub Total
+
+6. Improve content hierarchy
+   The page should visually balance:
+
+* summary
+* charts
+* transaction list
+* detailed table
+
+7. Keep honesty and clarity
+   The page must clearly state that this is simulation content:
+
+* Mode Tinjauan Pengurus
+* Data simulasi untuk review — bukan data resmi
+
+8. Match design language
+   Stay consistent with:
+
+* green / cream / soft gold palette
+* rounded cards
+* premium spacing
+* clean shadows
+* editorial but readable public-portal design
+
+Important:
+Do not make it look like an accountant ERP dashboard.
+Do not make it too crowded.
+Do not add fake expenses or fake official claims beyond the approved dummy values.
+
+Quality checks:
+
+1. Run npm.cmd run lint
+2. Run npm.cmd run build
+3. Confirm output builds successfully
+4. Summarize changed files
+
+Recommended commit message:
+upgrade keuangan page with premium dummy dashboard
+
+
+## Task 35 — Homepage Premium Experience Upgrade
+
+Use the ui-ux-pro-max skill.
+
+Goal:
+Make the homepage feel significantly more premium, alive, and presentation-ready for pengurus review.
+
+This must be a high-impact homepage upgrade, not minor copy polish.
+
+Focus primarily on:
+
+* app/page.tsx
+* shared data/components only if needed
+
+Do not redesign the whole website from zero.
+Do not change PALUGADA detail flow unless needed for homepage links.
+Do not add roadmap back.
+
+Required improvements:
+
+1. Upgrade the hero portal preview
+   Replace the current generic portal illustration with a more alive premium “portal preview board”.
+
+The preview board should visually show:
+
+* Saldo Kas RT: Rp 23.000.000
+* Jumlah KK: 128 KK
+* Pengaduan Aktif: 2 laporan
+* Kegiatan Terdekat: Kerja bakti lingkungan
+* PALUGADA Pilot: Ma'niez Donut
+* Dokumentasi Kegiatan
+
+Use richer UI treatment:
+
+* small cards
+* status chips
+* miniature image thumbnails where available
+* soft shadows
+* premium green/cream/gold accents
+* subtle ornamental shapes or layered panels
+* visual rhythm that feels like a real portal preview, not a placeholder.
+
+Use local images if useful:
+
+* /assets/palugada/maniez-donut-main.png
+* /assets/kegiatan/kerja-bakti.png
+* /assets/kegiatan/kegiatan-keluarga.png
+
+2. Fix homepage CTA routing
+   The “Tinjau portal” button must not incorrectly go to Pengurus unless the label clearly says “Tinjau struktur pengurus”.
+
+Preferred fix:
+
+* Main hero CTA: “Lihat ringkasan portal” → scroll/link to Info Cepat or Highlight Portal section.
+* Secondary CTA: “Buka PALUGADA CGV” → /palugada/
+
+For Fokus Tahap Awal cards:
+
+* Portal Warga → “Lihat ringkasan portal” or “Tinjau info cepat”
+* PALUGADA CGV → /palugada/
+* Dokumentasi Kegiatan → /kegiatan/
+
+3. Upgrade Fokus Tahap Awal section
+   Make the three cards feel more premium and alive.
+
+Each card should include:
+
+* stronger title
+* clearer CTA
+* small visual motif or image thumbnail where appropriate
+* better hierarchy
+* less generic wording
+
+Cards:
+
+* Portal Warga
+* PALUGADA CGV
+* Dokumentasi Kegiatan
+
+4. Upgrade Info Cepat section
+   Keep simulation values:
+
+* Saldo Kas RT: Rp 23.000.000
+* Jumlah KK: 128 KK
+* Pengaduan Aktif: 2 laporan
+* Kegiatan Terdekat: Kerja bakti lingkungan
+
+Make this section feel like a premium dashboard snapshot:
+
+* stronger visual hierarchy
+* darker or richer accent treatment
+* subtle “Mode Tinjauan” status
+* less repetitive warning boxes
+* concise label: “Data simulasi untuk review — bukan data resmi”
+
+5. Upgrade Highlight Portal section
+   Make it less generic by using visual proof.
+
+Cards:
+
+* Ma'niez Donut pilot → use Ma'niez image thumbnail and link to /palugada/donat-kentang-warga/
+* Dokumentasi kegiatan warga → use kegiatan image thumbnail and link to /kegiatan/
+* Transparansi kas demo → use premium financial summary visual and link to /keuangan/
+
+Each card must feel like a feature preview, not a plain text card.
+
+6. Reduce stiffness
+   Reduce repetitive text-heavy blocks.
+   Use more visual hierarchy, spacing, image thumbnails, badges, and structured preview panels.
+
+7. Keep honesty
+   All simulated values must remain clearly labeled:
+   “Data simulasi untuk review — bukan data resmi.”
+
+Do not imply official final data.
+Do not add fake official names, phone numbers, QR codes, or final financial claims.
+
+Quality checks:
+
+1. Run npm.cmd run lint.
+2. Run npm.cmd run build.
+3. Confirm out folder is generated.
+4. Summarize changed files.
+
+Recommended commit message:
+upgrade homepage premium experience
+
+
+## Task 34 — High Impact Homepage and Kegiatan Demo Upgrade
+
+Use the ui-ux-pro-max skill.
+
+Goal:
+Make CGV10 feel significantly more complete and less static for pengurus presentation.
+
+This is a high-impact visual and interaction polish sprint.
+
+Scope:
+Static public demo only.
+
+Part A — Homepage upgrade:
+1. Replace weak placeholder feel on homepage with stronger demo content.
+2. Make the hero visual feel like a real portal preview, not generic illustration.
+3. Convert the “Fokus Tahap Awal” cards into clickable program cards:
+   - Portal Warga → /pengurus/
+   - PALUGADA CGV → /palugada/
+   - Dokumentasi Kegiatan → /kegiatan/
+4. Improve “Info Cepat” using simulation values:
+   - Saldo Kas RT: Rp 23.000.000
+   - Jumlah KK: 128 KK
+   - Pengaduan Aktif: 2 laporan
+   - Kegiatan Terdekat: Kerja bakti lingkungan
+5. Clearly label all values as:
+   “Data simulasi untuk review — bukan data resmi.”
+6. Add a small “Highlight Portal” section if useful:
+   - Ma'niez Donut pilot
+   - Dokumentasi kegiatan warga
+   - Transparansi kas demo
+7. Keep premium green, cream, and warm gold style.
+
+Part B — Kegiatan page upgrade:
+1. Make each Kegiatan card clickable.
+2. Add “Lihat dokumentasi” button to each card.
+3. Create static detail pages:
+   - /kegiatan/kerja-bakti-lingkungan/
+   - /kegiatan/rapat-warga/
+   - /kegiatan/kegiatan-sosial/
+   - /kegiatan/keamanan-kebersihan/
+   - /kegiatan/kegiatan-keluarga/
+4. Use existing local images from:
+   /assets/kegiatan/
+5. Each detail page should include:
+   - large hero image
+   - badge “Contoh dokumentasi”
+   - title
+   - short description
+   - gallery preview section
+   - caption examples
+   - approval status note
+   - back link to /kegiatan/
+6. Do not claim these are real official event records.
+7. Keep wording as review/demo:
+   - “Contoh dokumentasi”
+   - “Bukan data resmi”
+   - “Menunggu persetujuan publikasi”
+8. Keep static export compatible with Netlify publish directory out.
+
+Part C — Presentation impact:
+1. Reduce repeated warning boxes.
+2. Make pages feel more visual and less text-only.
+3. Improve desktop and mobile readability.
+4. Do not redesign from zero.
+5. Do not change PALUGADA pilot flow unless necessary for homepage linking.
+
+Quality checks:
+1. Run npm.cmd run lint.
+2. Run npm.cmd run build.
+3. Confirm out folder is generated.
+4. Summarize changed files.
+
+Recommended commit message:
+upgrade homepage and kegiatan demo experience
+
+## Task 33 — Final Presentation QA and Deploy Readiness
+
+Use the ui-ux-pro-max skill.
+
+Goal:
+Prepare CGV10 for pengurus presentation.
+
+Scope:
+Final QA and polish only. Do not add new major features.
+
+Check these pages:
+
+* /
+* /pengurus/
+* /keuangan/
+* /pengumuman/
+* /kegiatan/
+* /palugada/
+* /palugada/donat-kentang-warga/
+* /kontak/
+
+Required checks:
+
+1. Ensure PALUGADA pilot Ma'niez Donut shows:
+
+   * name: Ma'niez Donut
+   * category: Kuliner
+   * cluster: Cluster Colloseum
+   * price: Rp 20.000
+   * WA: +62 812-9125-4064
+   * button: Hubungi WA Pilot
+2. Ensure only Ma'niez Donut has active WA pilot link.
+3. Other PALUGADA items must remain demo/inactive.
+4. Ensure wording is consistent:
+
+   * Mode Tinjauan Pengurus
+   * Contoh tampilan
+   * Bukan data resmi
+   * Pilot lapak
+5. Remove excessive placeholder feel where possible.
+6. Keep Kegiatan page as documentation preview, not final archive.
+7. Ensure no roadmap appears publicly.
+8. Ensure no fake official names, phone numbers, QR codes, or financial claims are added.
+9. Check desktop and mobile readability.
+10. Keep premium green, cream, and warm gold style.
+11. Keep static export compatible with Netlify publish directory out.
+
+Quality checks:
+
+1. Run npm.cmd run lint.
+2. Run npm.cmd run build.
+3. Confirm out folder is generated.
+4. Summarize changed files.
+
+Recommended commit message:
+final presentation qa for pengurus review
+
+
+## Task 32 — Dokumentasi Kegiatan Warga Page
+
+Use the ui-ux-pro-max skill.
+
+Focus on adding a new public page for resident activity documentation.
+
+Goal:
+Add a “Kegiatan” page so CGV10 feels more like a complete resident portal, not only a PALUGADA marketplace preview.
+
+Route:
+Create /kegiatan/
+
+Navigation:
+Add “Kegiatan” to the main navigation if it fits cleanly.
+
+Concept:
+
+* Pengumuman = official information before or during events.
+* Kegiatan = documentation/archive of activities after they happen.
+* PALUGADA = resident marketplace/catalogue campaign.
+
+Scope:
+Static public demo only.
+
+Do not build backend, database, login, upload system, gallery CMS, admin dashboard, or dynamic posting system.
+
+Required page content:
+
+1. Hero section:
+   Title idea:
+   “Dokumentasi kegiatan warga untuk arsip bersama.”
+2. Subtitle:
+   Explain that this page will become a curated archive of RT/community activities after photos and captions are approved.
+3. Add a “Mode Tinjauan Pengurus” note.
+4. Add visual documentation cards for example categories:
+
+   * Kerja bakti lingkungan
+   * Rapat warga
+   * Kegiatan sosial
+   * Keamanan dan kebersihan
+   * Kegiatan anak-anak / keluarga
+5. Each card should feel visual and premium.
+6. If no real photos are available, use polished visual placeholder treatment, but avoid making it feel empty.
+7. Label example content as “Contoh dokumentasi”.
+8. Do not invent exact dates, real names, or real event claims.
+9. Add a simple approval workflow section:
+
+   * Foto kegiatan dikumpulkan
+   * Pengurus memilih dokumentasi yang layak tampil
+   * Caption disetujui
+   * Dokumentasi dipublikasikan
+10. Keep premium green, cream, and warm gold visual style.
+11. Ensure mobile layout is clean.
+12. Keep static export compatible with Netlify publish directory out.
+
+Quality checks:
+
+1. Run npm.cmd run lint.
+2. Run npm.cmd run build.
+3. Summarize changed files.
+
+Recommended commit message:
+add kegiatan documentation page
+
+
+## Task 31 — PALUGADA Donat Kentang Pilot Demo
+
+Use the ui-ux-pro-max skill.
+
+Read CURRENT ACTIVE DIRECTION first.
+
+Focus only on PALUGADA pilot demo.
+
+Goal:
+Turn Donat Kentang Warga into the primary PALUGADA pilot lapak demo, so pengurus can review one complete example before PALUGADA is expanded to more warga listings.
+
+Scope:
+Static public demo only.
+
+Do not build backend, database, login, seller account, payment, checkout, cart, active WhatsApp, transaction flow, or roadmap.
+
+Strategic direction:
+PALUGADA Phase 1 should start with one curated pilot lapak.
+The pilot is managed by admin/pengurus, not seller self-service.
+
+Required changes:
+
+1. On /palugada/, visually highlight Donat Kentang Warga as:
+   “Pilot Lapak PALUGADA”
+2. Make Donat Kentang the primary featured listing.
+3. Keep other listings as secondary “contoh tampilan”.
+4. On /palugada/donat-kentang-warga/, make the detail page feel more complete and pilot-ready.
+5. Add or refine these detail sections:
+
+   * Ringkasan lapak
+   * Detail produk
+   * Varian contoh
+   * Format pesanan
+   * Area layanan
+   * Status transaksi
+   * Profil penyedia — contoh tampilan
+   * Alur validasi admin
+6. Use available local donat image assets from public/assets/palugada/.
+7. Do not publish real seller name, phone number, or WA link unless already approved.
+8. Keep WA inactive and labeled:
+   “WA nonaktif untuk demo”
+9. Add a clear note:
+   “Pilot ini digunakan untuk meninjau format katalog sebelum data resmi dan kontak penjual dipublikasikan.”
+10. Keep premium green, cream, and warm gold visual style.
+11. Improve desktop and mobile readability.
+
+Suggested pilot content:
+
+* Nama lapak: Donat Kentang Warga
+* Kategori: Kuliner
+* Cluster: Cluster Greenwich
+* Harga contoh: Rp 35.000
+* Varian contoh: Coklat meses, keju, red velvet
+* Format pesanan: Box kecil, box keluarga, pesanan acara warga
+* Status: Contoh pilot — bukan transaksi aktif
+* Kontak: WA nonaktif untuk demo
+
+Quality checks:
+
+1. Run npm.cmd run lint.
+2. Run npm.cmd run build.
+3. Summarize changed files.
+
+Recommended commit message:
+add palugada donat pilot demo
+
+
+## Task 30 — PALUGADA Detail Page Content Depth
+
+Use the ui-ux-pro-max skill.
+
+Read CURRENT ACTIVE DIRECTION first.
+
+Focus only on PALUGADA static detail pages.
+
+Goal:
+Make each PALUGADA detail page feel more complete, useful, and presentation-ready after users click “Tinjau detail”.
+
+Scope:
+Static public demo only.
+
+Do not build backend, database, login, seller account, payment, checkout, cart, active WhatsApp, transaction flow, or roadmap.
+
+Required improvement:
+
+1. Keep the current detail page hero with large image and item title.
+2. Keep the left column as quick summary:
+
+   * category
+   * cluster
+   * price/status
+   * WA inactive demo button
+   * transaction inactive note
+3. Add a new right-column card above “Profil Penyedia” called:
+   “Detail Produk — Contoh Tampilan”
+4. The detail card should include:
+
+   * short item/service description
+   * example variants or service scope
+   * availability/order note
+   * demo status note
+5. Keep “Profil Penyedia — Contoh Tampilan” below product detail.
+6. Keep “Mini Katalog” below provider profile.
+7. Add detail content for these pages:
+
+   * Donat Kentang Warga
+   * Jasa Laundry Kiloan
+   * Catering Rumahan
+   * Jasa Servis AC
+8. Keep all wording honest:
+
+   * Contoh tampilan
+   * Mode Tinjauan Pengurus
+   * Bukan transaksi aktif
+   * WA nonaktif untuk demo
+9. Do not imply real active seller operation.
+10. Keep premium green, cream, and warm gold visual style.
+11. Improve desktop and mobile readability.
+
+Static export:
+Keep Next.js static export compatible with Netlify publish directory out.
+
+Quality checks:
+
+1. Run npm.cmd run lint.
+2. Run npm.cmd run build.
+3. Summarize changed files.
+
+Recommended commit message:
+add palugada detail page content depth
+
+
+## Task 29 — PALUGADA Static Detail Pages Demo
+
+Use the ui-ux-pro-max skill.
+
+Focus only on PALUGADA.
+
+Goal:
+Add a clickable catalogue detail experience so PALUGADA feels more like a real resident marketplace preview, while remaining a static demo.
+
+Scope:
+Static public demo only.
+
+Do not build backend, database, login, seller account, payment, checkout, cart, active WhatsApp, transaction flow, or roadmap.
+
+Required changes:
+
+1. Add “Lihat detail” or “Tinjau detail” button/link on PALUGADA listing cards.
+2. Create static detail pages for:
+
+   * Donat Kentang Warga
+   * Jasa Laundry Kiloan
+   * Catering Rumahan
+   * Jasa Servis AC
+3. Suggested routes:
+
+   * /palugada/donat-kentang-warga/
+   * /palugada/jasa-laundry-kiloan/
+   * /palugada/catering-rumahan/
+   * /palugada/jasa-servis-ac/
+4. Keep static export compatible with Netlify output directory `out`.
+5. Use available local images from public/assets/palugada/.
+6. Detail page structure:
+
+   * large hero image
+   * “Contoh tampilan” badge
+   * item name
+   * category
+   * cluster
+   * sample price/status
+   * short description
+   * “Profil penyedia — contoh tampilan”
+   * mini catalogue/gallery area if suitable
+   * inactive WA demo button
+   * back link to PALUGADA
+7. Make it clear this is not an active transaction system.
+8. Keep premium green, cream, and warm gold visual style.
+9. Improve desktop and mobile presentation quality.
+
+Quality checks:
+
+1. Run npm.cmd run lint.
+2. Run npm.cmd run build.
+3. Confirm out folder is generated.
+4. Summarize changed files.
+
+Recommended commit message:
+add palugada static detail pages demo
+
+
+## Task 28 — PALUGADA Real Image Integration Pass
+
+Use the ui-ux-pro-max skill.
+
+Focus only on the PALUGADA page.
+
+Goal:
+Use the provided local PALUGADA images to make the PALUGADA page feel premium, visual, alive, and presentation-ready for pengurus review.
+
+Important:
+Do not create new images.
+Do not create SVG thumbnails.
+Do not download external images.
+Use only the local image files already available in public/assets/palugada/.
+
+Scope:
+Static public demo only.
+
+Do not redesign the whole website.
+Do not change unrelated pages.
+Do not add roadmap back.
+Do not build backend, login, database, payment, checkout, cart, seller account, active WhatsApp transaction, or real marketplace functionality.
+
+Required changes:
+
+1. Inspect public/assets/palugada/ and identify the available image files.
+2. Use the best PALUGADA collage/hero image in the top hero campaign section.
+3. Use available product/service images for listing cards:
+
+   * Donat Kentang Warga
+   * Jasa Laundry Kiloan
+   * Catering Rumahan
+   * Jasa Servis AC
+4. If Tanaman Hias Rumah or Info Properti Warga has no matching image, keep them as polished visual placeholder cards, but make them visually consistent.
+5. Replace blank placeholder bars in listing cards with real image thumbnails.
+6. Make listing cards feel like premium marketplace catalogue cards:
+
+   * large visual thumbnail
+   * Contoh tampilan badge
+   * category
+   * item name
+   * cluster
+   * sample price/status
+   * inactive WA demo button
+7. Make the hero section more visual and less text-heavy.
+8. Use the provided hero/collage image as visual proof of PALUGADA categories.
+9. Keep all labels honest:
+
+   * Mode Tinjauan Pengurus
+   * Contoh tampilan
+   * Bukan transaksi aktif
+   * WA nonaktif untuk demo
+10. Keep WhatsApp inactive.
+11. Do not imply active transaction.
+12. Keep premium green, cream, and warm gold CGV10 visual style.
+13. Keep static export compatible with Netlify publish directory out.
+
+Quality checks:
+
+1. Run npm.cmd run lint.
+2. Run npm.cmd run build.
+3. Summarize changed files.
+4. Recommended commit message:
+   integrate palugada real image catalogue
 
 
 # CGV10 Codex Task List
@@ -1902,3 +2940,54 @@ Quality checks:
 Recommended commit message:
 upgrade presentation demo content
 
+## Task 26 — PALUGADA Visual Campaign Enrichment
+
+Use the ui-ux-pro-max skill.
+
+Focus only on the PALUGADA page.
+
+Goal:
+Make PALUGADA CGV feel more alive, visual, premium, and presentation-ready for pengurus review.
+
+Current issue:
+The page is clean but still feels too generic and text-heavy.
+
+Scope:
+Static public demo only.
+
+Do not redesign the whole website.
+Do not change other pages unless required for shared components.
+Do not add roadmap back.
+Do not build backend, login, database, payment, checkout, cart, seller account, active WhatsApp transaction, or real marketplace functionality.
+
+Improve the PALUGADA page:
+
+1. Add stronger visual storytelling.
+2. Make PALUGADA feel like a priority campaign, not just a text directory.
+3. Add a more engaging campaign hero or visual preview area.
+4. Add richer category cards with icons, short descriptions, and better visual hierarchy.
+5. Add featured example listing cards with more visual treatment.
+6. Use tasteful visual placeholders, illustration-style product blocks, or premium icon cards if real product images are not available.
+7. Add 4–6 example listings:
+
+   * Donat Kentang Warga — Kuliner — Cluster Greenwich — Harga contoh: Rp 35.000
+   * Jasa Laundry Kiloan — Jasa — Cluster Oxford — Harga sesuai berat cucian
+   * Tanaman Hias Rumah — Barang — Cluster Windsor — Harga contoh: Rp 25.000
+   * Info Properti Warga — Properti — Cluster Cambridge — Informasi menyusul
+   * Catering Rumahan — Kuliner — Cluster Chelsea — Harga menu saat rilis
+   * Jasa Servis AC — Jasa — Cluster Somerset — Harga menunggu konfirmasi
+8. Every listing must be clearly labeled as “Contoh tampilan”.
+9. WhatsApp buttons must remain inactive and clearly labeled for demo only.
+10. Keep the page honest: no real transaction, no payment, no cart, no seller account, no active WA.
+11. Keep premium green, cream, and warm gold visual system.
+12. Improve spacing, rhythm, card hierarchy, and mobile readability.
+
+Static export:
+Keep Next.js static export compatible with Netlify publish directory `out`.
+
+Quality checks:
+
+1. Run npm.cmd run lint.
+2. Run npm.cmd run build.
+3. Summarize changed files.
+4. Recommended commit message: enrich palugada visual campaign

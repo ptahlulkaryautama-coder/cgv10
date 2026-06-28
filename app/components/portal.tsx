@@ -58,38 +58,98 @@ export function SiteHeader() {
         Lewati navigasi
       </a>
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8 xl:px-10">
-        <Link
-          href="/"
-          aria-label="CGV10 beranda"
-          className="flex min-h-11 shrink-0 items-center gap-3 rounded-xl outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-        >
-          <Image
-            src="/assets/brand/cgv10-header-mark.svg"
-            alt="CGV10"
-            width="48"
-            height="48"
-            className="h-11 w-11 rounded-2xl shadow-sm sm:h-12 sm:w-12"
-          />
-          <span className="flex flex-col leading-none">
-            <span className="text-xl font-semibold tracking-tight text-primary sm:text-2xl">
-              CGV10
+        <details className="group/details relative shrink-0">
+          <summary
+            aria-label="Lihat pratinjau identitas portal CGV10"
+            className="flex min-h-11 cursor-pointer list-none items-center gap-3 rounded-xl outline-none transition-colors marker:hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background [&::-webkit-details-marker]:hidden"
+          >
+            <span className="grid h-11 w-11 place-items-center rounded-2xl border border-border bg-surface shadow-sm sm:h-12 sm:w-12">
+              <Image
+                src="/assets/brand/cgv10-header-mark.svg"
+                alt="CGV10"
+                width="48"
+                height="48"
+                className="h-10 w-10 rounded-[0.9rem] sm:h-11 sm:w-11"
+              />
             </span>
-            <span className="mt-1 hidden text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-muted min-[430px]:block">
-              Portal Digital Warga
+            <span className="flex flex-col leading-none">
+              <span className="text-xl font-semibold tracking-tight text-primary sm:text-2xl">
+                CGV10
+              </span>
+              <span className="mt-1 hidden text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-muted min-[430px]:block">
+                Portal Digital Warga
+              </span>
             </span>
-          </span>
-        </Link>
+          </summary>
+          <div className="absolute left-0 top-full z-40 mt-3 w-72 rounded-2xl border border-border bg-surface p-4 text-center shadow-[0_24px_70px_rgba(20,90,58,0.18)]">
+            <div className="mx-auto grid h-36 w-full place-items-center overflow-hidden rounded-2xl border border-border bg-background p-3">
+              <Image
+                src="/assets/brand/official-cgv-logo.png"
+                alt="Portal Warga CGV"
+                width="230"
+                height="150"
+                className="h-28 w-auto object-contain"
+              />
+            </div>
+            <p className="mt-4 text-sm font-semibold text-foreground">
+              CGV10 Portal Digital Warga
+            </p>
+            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+              Preview identitas portal
+            </p>
+            <p className="mt-2 text-xs leading-5 text-muted">
+              Menampilkan logo lengkap Portal Warga CGV sebagai pratinjau
+              identitas.
+            </p>
+            <Link
+              href="/"
+              className="mt-4 inline-flex min-h-10 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+            >
+              Buka beranda
+            </Link>
+          </div>
+        </details>
 
         {/* Keep identity badges separate from the proposal-based CGV10 header mark. */}
-        <div className="hidden items-center gap-2 rounded-full border border-border bg-surface px-3 py-2 text-xs font-semibold text-muted xl:flex">
+        <div className="hidden items-center gap-2 rounded-full border border-border bg-surface px-3 py-2 text-xs font-semibold text-muted shadow-sm xl:flex">
           <span className="grid h-7 min-w-16 place-items-center whitespace-nowrap rounded-full border border-dashed border-border bg-primary-soft px-3 text-primary">
             Cipta Greenville
           </span>
           <span className="h-6 w-px bg-border" />
+          <details className="group/details relative">
+            <summary
+              aria-label="Lihat identitas RT 010 / RW 021"
+              className="grid h-10 w-10 cursor-pointer list-none place-items-center overflow-hidden rounded-full border border-border bg-surface shadow-sm transition-colors duration-200 marker:hidden hover:border-primary/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface [&::-webkit-details-marker]:hidden"
+            >
+              <Image
+                src="/assets/brand/official-rt-logo.png"
+                alt="Logo RT 010"
+                width="40"
+                height="40"
+                className="h-9 w-9 object-contain"
+              />
+            </summary>
+            <div className="absolute left-1/2 top-full z-40 mt-3 w-64 -translate-x-1/2 rounded-2xl border border-border bg-surface p-4 text-center shadow-[0_24px_70px_rgba(20,90,58,0.18)]">
+              <div className="mx-auto grid h-44 w-44 place-items-center overflow-hidden rounded-2xl border border-border bg-background p-3">
+                <Image
+                  src="/assets/brand/official-rt-logo.png"
+                  alt="Logo resmi RT 010 / RW 021"
+                  width="190"
+                  height="190"
+                  className="h-40 w-40 object-contain"
+                />
+              </div>
+              <p className="mt-4 text-sm font-semibold text-foreground">
+                Identitas RT 010 / RW 021
+              </p>
+              <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                Cipta Greenville
+              </p>
+            </div>
+          </details>
           <span className="grid h-7 min-w-24 place-items-center whitespace-nowrap rounded-full border border-dashed border-border bg-accent-soft px-3 text-foreground">
             RT 010 / RW 021
           </span>
-          <span>Logo resmi</span>
         </div>
 
         <nav
@@ -104,10 +164,10 @@ export function SiteHeader() {
         </nav>
 
         <Link
-          href="/kontak/"
+          href="/pengurus/#kontak-pengurus"
           className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
-          Kontak
+          Hubungi Pengurus
         </Link>
       </div>
       <nav
@@ -127,10 +187,26 @@ export function SiteHeader() {
 export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-surface">
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-8 text-sm text-muted sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8 xl:px-10">
-        <p className="font-semibold text-foreground">
-          CGV10 — Portal Digital Warga
-        </p>
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-muted sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8 xl:px-10">
+        <div className="flex items-center gap-3">
+          <div className="grid h-14 w-28 place-items-center overflow-hidden rounded-2xl border border-border bg-background px-2">
+            <Image
+              src="/assets/brand/official-cgv-logo.png"
+              alt="Portal Warga CGV"
+              width="140"
+              height="72"
+              className="h-12 w-auto object-contain"
+            />
+          </div>
+          <div>
+            <p className="font-semibold text-foreground">
+              CGV10 - Portal Digital Warga
+            </p>
+            <p className="mt-1 text-xs text-muted">
+              Terhubung - Terlibat - Terpercaya
+            </p>
+          </div>
+        </div>
         <p>Cipta Greenville • RT 010 / RW 021</p>
       </div>
     </footer>
