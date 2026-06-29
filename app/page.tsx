@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Icon, PageShell } from "./components/portal";
+import { HeroImageRotator } from "./components/hero-image-rotator";
 import { quickInfo, type IconName } from "@/lib/portal-data";
 
 const actionTiles: {
@@ -139,17 +139,11 @@ export default function Home() {
           <div className="relative">
             <div className="relative overflow-hidden rounded-[1.5rem] border border-white/16 bg-primary shadow-[0_28px_80px_rgba(0,0,0,0.32)]">
               <div className="relative min-h-[360px] sm:min-h-[430px]">
-                {heroSlides.map((slide, index) => (
-                  <Image
-                    key={slide.src}
-                    src={slide.src}
-                    alt={slide.alt}
-                    fill
-                    priority={index === 0}
-                    sizes="(min-width: 1024px) 620px, 92vw"
-                    className="hero-slide object-cover"
-                  />
-                ))}
+                <HeroImageRotator
+                  slides={heroSlides}
+                  sizes="(min-width: 1024px) 620px, 92vw"
+                  className="object-cover"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/76 via-primary/18 to-primary/6" />
                 <div className="absolute left-5 right-5 top-5 flex items-center justify-between gap-3">
                   <span className="rounded-full border border-white/22 bg-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-white backdrop-blur">
@@ -163,16 +157,9 @@ export default function Home() {
                   <p className="max-w-[15rem] text-sm font-semibold leading-6 text-white/88">
                     Suasana warga, kegiatan, dan lingkungan Cipta Greenville.
                   </p>
-                  <div className="flex gap-2">
-                    {heroSlides.map((slide, index) => (
-                      <span
-                        key={slide.src}
-                        className={`h-2 rounded-full bg-white/80 ${
-                          index === 0 ? "w-8" : "w-2"
-                        }`}
-                      />
-                    ))}
-                  </div>
+                  <span className="rounded-full border border-white/22 bg-white/14 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+                    Visual utama
+                  </span>
                 </div>
               </div>
             </div>

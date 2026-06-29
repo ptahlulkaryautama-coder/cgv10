@@ -127,7 +127,7 @@ export const quickInfo: IconCard[] = [
     text: "Jadwal kegiatan lingkungan.",
     status: "Agenda warga.",
     icon: "calendar",
-    href: "/kabar-warga/#agenda",
+    href: "/kabar-warga/#dokumentasi",
   },
 ];
 

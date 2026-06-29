@@ -5,40 +5,21 @@ import { ImagePreview } from "../components/image-preview";
 import { Icon, PageShell } from "../components/portal";
 import { announcements, kegiatanItems } from "@/lib/portal-data";
 
-const agendaItems = [
-  {
-    title: "Kerja bakti lingkungan",
-    date: "Agenda warga",
-    text: "Koordinasi kebersihan area bersama dan perawatan lingkungan.",
-  },
-  {
-    title: "Rapat warga",
-    date: "Forum lingkungan",
-    text: "Ruang musyawarah untuk kebutuhan dan informasi warga.",
-  },
-  {
-    title: "Kegiatan keluarga",
-    date: "Komunitas",
-    text: "Aktivitas kebersamaan yang menguatkan hubungan antarwarga.",
-  },
-] as const;
-
 const livingStats = [
   ["4", "Pengumuman"],
-  ["3", "Agenda"],
   ["5", "Dokumentasi"],
+  ["1", "Pusat kabar"],
 ] as const;
 
 export const metadata: Metadata = {
   title: "Kabar Warga | CGV10",
   description:
-    "Kabar Warga CGV10 menggabungkan pengumuman resmi, agenda lingkungan, dan dokumentasi kegiatan warga.",
+    "Kabar Warga CGV10 menggabungkan pengumuman resmi dan dokumentasi kegiatan warga.",
 };
 
 export default function KabarWargaPage() {
   const mainNotice = announcements[0];
   const featuredActivity = kegiatanItems[0];
-  const featuredImages = kegiatanItems.slice(0, 3);
 
   return (
     <PageShell>
@@ -52,12 +33,12 @@ export default function KabarWargaPage() {
               Kabar Warga CGV10
             </p>
             <h1 className="mt-5 text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
-              Satu halaman untuk kabar, agenda, dan cerita warga.
+              Satu halaman untuk kabar resmi dan cerita warga.
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-white/82 sm:text-lg sm:leading-8">
-              Pengumuman dan kegiatan digabung menjadi pusat informasi yang
-              lebih natural: warga melihat kabar penting, agenda berikutnya,
-              dan dokumentasi komunitas tanpa berpindah konteks.
+              Pengumuman dan dokumentasi digabung menjadi pusat informasi yang
+              lebih natural: warga melihat kabar penting dan cerita komunitas
+              tanpa berpindah konteks.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -78,24 +59,21 @@ export default function KabarWargaPage() {
           <div className="rounded-2xl border border-white/14 bg-white/10 p-3 shadow-[0_24px_80px_rgba(0,0,0,0.26)] sm:p-4">
             <div className="grid gap-3 md:grid-cols-[1.1fr_0.9fr]">
               <div className="relative min-h-[360px] overflow-hidden rounded-xl bg-foreground/20 sm:min-h-[460px]">
-                {featuredImages.map((item, index) => (
-                  <Image
-                    key={item.slug}
-                    src={item.imageSrc}
-                    alt={item.imageAlt}
-                    fill
-                    priority={index === 0}
-                    sizes="(min-width: 1024px) 580px, 92vw"
-                    className="hero-slide object-cover"
-                  />
-                ))}
+                <Image
+                  src={featuredActivity.imageSrc}
+                  alt={featuredActivity.imageAlt}
+                  fill
+                  priority
+                  sizes="(min-width: 1024px) 580px, 92vw"
+                  className="object-cover"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/86 via-primary/18 to-transparent" />
                 <div className="absolute left-4 top-4 rounded-full border border-white/22 bg-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-white backdrop-blur">
                   Hari ini di lingkungan
                 </div>
                 <div className="absolute bottom-4 left-4 right-4">
                   <div className="flex flex-wrap gap-2">
-                    {["Pengumuman", "Agenda", "Dokumentasi"].map((label) => (
+                    {["Pengumuman", "Dokumentasi"].map((label) => (
                       <span
                         key={label}
                         className="rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-foreground"
@@ -127,7 +105,7 @@ export default function KabarWargaPage() {
                   </p>
                   <p className="mt-2 text-sm leading-6 text-white/76">
                     Kabar terbaru disusun agar warga cepat tahu apa yang perlu
-                    dibaca, diikuti, dan diingat kembali.
+                    dibaca dan diingat kembali.
                   </p>
                 </div>
               </div>
@@ -192,53 +170,9 @@ export default function KabarWargaPage() {
         </div>
       </section>
 
-      <section id="agenda" className="scroll-mt-28 bg-background">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20 xl:px-10">
-          <div className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr] lg:items-start">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">
-                Agenda Kegiatan
-              </p>
-              <h2 className="mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                Agenda dibuat seperti ritme komunitas, bukan daftar kartu.
-              </h2>
-              <p className="mt-5 text-base leading-7 text-muted">
-                Warga bisa melihat kegiatan yang berjalan dan memahami
-                konteksnya sebelum membuka dokumentasi.
-              </p>
-            </div>
-
-            <div className="relative">
-              <div className="absolute left-5 top-5 hidden h-[calc(100%-2.5rem)] w-px bg-border sm:block" />
-              <div className="grid gap-4">
-                {agendaItems.map((item, index) => (
-                  <article
-                    key={item.title}
-                    className="relative rounded-2xl border border-border bg-surface p-5 shadow-sm sm:ml-12"
-                  >
-                    <span className="mb-4 grid h-10 w-10 place-items-center rounded-full bg-primary text-sm font-semibold text-white sm:absolute sm:-left-16 sm:top-5 sm:mb-0">
-                      {index + 1}
-                    </span>
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-                      {item.date}
-                    </p>
-                    <h3 className="mt-2 text-lg font-semibold text-foreground">
-                      {item.title}
-                    </h3>
-                    <p className="mt-3 text-sm leading-6 text-muted">
-                      {item.text}
-                    </p>
-                  </article>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section
         id="dokumentasi"
-        className="scroll-mt-28 border-y border-border bg-surface"
+        className="scroll-mt-28 border-y border-border bg-background"
       >
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20 xl:px-10">
           <div className="mb-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
