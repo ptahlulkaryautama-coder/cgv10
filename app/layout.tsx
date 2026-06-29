@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "CGV10 — Portal Digital Warga",
   description:
-    "Portal digital warga Cipta Greenville RT 010 / RW 021 untuk informasi komunitas, pengurus, transparansi iuran, pengumuman, kegiatan, kontak, dan PALUGADA CGV.",
+    "Portal digital warga Cipta Greenville RT 010 / RW 021 untuk kabar warga, layanan, pengurus, transparansi iuran, kontak, dan PALUGADA CGV.",
   icons: {
     icon: "/assets/brand/favicon.svg",
   },
@@ -31,7 +31,7 @@ export default function RootLayout({
       lang="id"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background font-sans text-foreground">
+      <body className="bg-background font-sans text-foreground">
         {children}
       </body>
     </html>

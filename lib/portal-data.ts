@@ -48,8 +48,8 @@ export type MarketplaceItem = {
   productDetail?: string;
   exampleScope?: string[];
   availabilityNote?: string;
-  demoStatusNote?: string;
-  pilotBadge?: string;
+  catalogStatusNote?: string;
+  contactBadge?: string;
   galleryImages?: {
     src: string;
     alt: string;
@@ -59,7 +59,7 @@ export type MarketplaceItem = {
   serviceAreas?: string[];
   transactionStatus?: string;
   validationSteps?: string[];
-  pilotNote?: string;
+  catalogNote?: string;
   whatsappHref?: string;
   whatsappLabel?: string;
   whatsappDisplayNumber?: string;
@@ -83,52 +83,51 @@ export type KegiatanItem = {
   imageSrc: string;
   imageAlt: string;
   captions: string[];
-  approvalNote: string;
+  archiveNote: string;
 };
 
 export const navItems = [
   ["Beranda", "/"],
   ["Layanan", "/layanan/"],
+  ["Kabar Warga", "/kabar-warga/"],
   ["Pengurus", "/pengurus/"],
   ["Keuangan", "/keuangan/"],
-  ["Pengumuman", "/pengumuman/"],
-  ["Kegiatan", "/kegiatan/"],
   ["PALUGADA", "/palugada/"],
 ] as const;
 
-// Insert official pengurus-approved quick-info values here when available.
+// Maintain public quick-info values for the portal overview.
 export const quickInfo: IconCard[] = [
   {
     title: "Saldo Kas RT",
     value: "Rp 5.500.000",
-    text: "Simulasi ringkasan kas untuk review.",
-    status: "Data simulasi untuk review - bukan data resmi.",
+    text: "Ringkasan kas lingkungan yang mudah dipantau warga.",
+    status: "Ringkasan kas RT.",
     icon: "wallet",
     href: "/keuangan/",
   },
   {
     title: "Jumlah KK",
-    value: "128 KK",
-    text: "Format tampilan data warga untuk ditinjau.",
-    status: "Data simulasi untuk review - bukan data resmi.",
+    value: "250 KK",
+    text: "Ringkasan data keluarga di lingkungan.",
+    status: "Ringkasan warga.",
     icon: "users",
     href: "/pengurus/",
   },
   {
     title: "Pengaduan Aktif",
     value: "2 laporan",
-    text: "Contoh status kanal layanan warga.",
-    status: "Data simulasi untuk review - bukan data resmi.",
+    text: "Status kanal layanan warga.",
+    status: "Laporan warga.",
     icon: "message",
     href: "/layanan/",
   },
   {
     title: "Kegiatan Terdekat",
     value: "Kerja bakti lingkungan",
-    text: "Contoh tampilan jadwal lingkungan.",
-    status: "Data simulasi untuk review - bukan data resmi.",
+    text: "Jadwal kegiatan lingkungan.",
+    status: "Agenda warga.",
     icon: "calendar",
-    href: "/kegiatan/kerja-bakti-lingkungan/",
+    href: "/kabar-warga/#agenda",
   },
 ];
 
@@ -137,105 +136,96 @@ export const kegiatanItems: KegiatanItem[] = [
     title: "Kerja bakti lingkungan",
     slug: "kerja-bakti-lingkungan",
     href: "/kegiatan/kerja-bakti-lingkungan/",
-    text: "Format dokumentasi untuk kegiatan kebersihan bersama setelah foto dan caption disetujui.",
+    text: "Dokumentasi kegiatan kebersihan bersama warga lingkungan.",
     detailDescription:
-      "Contoh halaman dokumentasi kerja bakti lingkungan untuk memperlihatkan cara foto, caption, dan status persetujuan dapat ditata sebelum menjadi arsip publik.",
+      "Dokumentasi kerja bakti lingkungan untuk memperlihatkan suasana gotong royong dan arsip kegiatan warga.",
     icon: "users",
     tone: "primary",
     imageSrc: "/assets/kegiatan/kerja-bakti.png",
-    imageAlt:
-      "Contoh visual dokumentasi kerja bakti lingkungan untuk Mode Tinjauan Pengurus",
+    imageAlt: "Dokumentasi kerja bakti lingkungan warga CGV10",
     captions: [
-      "Caption contoh untuk suasana gotong royong warga setelah foto disetujui.",
-      "Catatan kebersihan area bersama dapat ditulis singkat tanpa tanggal resmi.",
-      "Dokumentasi hanya dipublikasikan setelah pengurus menyetujui materi.",
+      "Suasana gotong royong warga dalam kegiatan kebersihan lingkungan.",
+      "Catatan kebersihan area bersama ditulis singkat dan mudah dibaca.",
+      "Dokumentasi disusun sebagai arsip kegiatan warga.",
     ],
-    approvalNote:
-      "Menunggu persetujuan publikasi. Ini contoh dokumentasi, bukan catatan resmi kegiatan.",
+    archiveNote:
+      "Dokumentasi kegiatan warga untuk arsip lingkungan.",
   },
   {
     title: "Rapat warga",
     slug: "rapat-warga",
     href: "/kegiatan/rapat-warga/",
-    text: "Arsip visual untuk rangkuman suasana musyawarah tanpa mencantumkan nama atau keputusan sebelum persetujuan.",
+    text: "Arsip visual untuk rangkuman suasana musyawarah warga.",
     detailDescription:
-      "Contoh dokumentasi rapat warga yang fokus pada suasana forum dan struktur caption, tanpa memuat keputusan atau peserta sebagai klaim resmi.",
+      "Dokumentasi rapat warga yang menampilkan suasana forum dan koordinasi lingkungan.",
     icon: "message",
     tone: "accent",
     imageSrc: "/assets/kegiatan/rapat-warga.png",
-    imageAlt:
-      "Contoh visual dokumentasi rapat warga untuk Mode Tinjauan Pengurus",
+    imageAlt: "Dokumentasi rapat warga CGV10",
     captions: [
-      "Caption contoh untuk suasana diskusi warga setelah materi disetujui.",
+      "Suasana diskusi warga dalam forum lingkungan.",
       "Rangkuman dapat ditulis sebagai arsip visual, bukan notulen resmi.",
-      "Nama peserta dan keputusan tidak ditampilkan sebelum persetujuan publikasi.",
+      "Rangkuman dapat ditulis singkat agar mudah dibaca warga.",
     ],
-    approvalNote:
-      "Menunggu persetujuan publikasi. Halaman ini bukan notulen atau keputusan resmi.",
+    archiveNote: "Dokumentasi forum warga untuk arsip lingkungan.",
   },
   {
     title: "Kegiatan sosial",
     slug: "kegiatan-sosial",
     href: "/kegiatan/kegiatan-sosial/",
-    text: "Ruang kurasi untuk momen kebersamaan warga yang layak tampil sebagai dokumentasi komunitas.",
+    text: "Ruang dokumentasi untuk momen kebersamaan warga sebagai arsip komunitas.",
     detailDescription:
-      "Contoh arsip kegiatan sosial yang menunjukkan bagaimana momen kebersamaan dapat dipresentasikan secara rapi setelah kurasi pengurus.",
+      "Arsip kegiatan sosial yang menunjukkan momen kebersamaan warga.",
     icon: "home",
     tone: "cream",
     imageSrc: "/assets/kegiatan/kegiatan-sosial.png",
-    imageAlt:
-      "Contoh visual dokumentasi kegiatan sosial untuk Mode Tinjauan Pengurus",
+    imageAlt: "Dokumentasi kegiatan sosial warga CGV10",
     captions: [
-      "Caption contoh untuk kegiatan sosial warga yang sudah dikurasi.",
+      "Kegiatan sosial warga sebagai bagian dari arsip komunitas.",
       "Materi visual dapat dipilih agar tetap sopan dan relevan untuk arsip.",
-      "Informasi penerima, nama, atau detail sensitif tidak ditampilkan tanpa persetujuan.",
+      "Informasi kegiatan ditulis ringkas dan tetap menjaga kenyamanan warga.",
     ],
-    approvalNote:
-      "Menunggu persetujuan publikasi. Konten ini hanya simulasi format dokumentasi.",
+    archiveNote: "Dokumentasi kegiatan sosial warga.",
   },
   {
     title: "Keamanan dan kebersihan",
     slug: "keamanan-kebersihan",
     href: "/kegiatan/keamanan-kebersihan/",
-    text: "Contoh kategori untuk dokumentasi koordinasi lingkungan, patroli, dan perawatan area bersama.",
+    text: "Kategori untuk dokumentasi koordinasi lingkungan, patroli, dan perawatan area bersama.",
     detailDescription:
-      "Contoh dokumentasi keamanan dan kebersihan untuk memperlihatkan arsip visual kegiatan lingkungan tanpa mengklaim jadwal atau laporan resmi.",
+      "Dokumentasi keamanan dan kebersihan untuk arsip visual kegiatan lingkungan.",
     icon: "shield",
     tone: "primary",
     imageSrc: "/assets/kegiatan/keamanan-kebersihan.png",
-    imageAlt:
-      "Contoh visual dokumentasi keamanan dan kebersihan untuk Mode Tinjauan Pengurus",
+    imageAlt: "Dokumentasi keamanan dan kebersihan lingkungan CGV10",
     captions: [
-      "Caption contoh untuk koordinasi keamanan dan kebersihan lingkungan.",
+      "Koordinasi keamanan dan kebersihan lingkungan.",
       "Keterangan dapat berisi fokus kegiatan tanpa menyebut laporan resmi.",
-      "Foto dan caption tetap melewati persetujuan sebelum publikasi.",
+      "Foto dan catatan kegiatan disusun untuk arsip lingkungan.",
     ],
-    approvalNote:
-      "Menunggu persetujuan publikasi. Ini bukan laporan keamanan resmi.",
+    archiveNote: "Dokumentasi koordinasi keamanan dan kebersihan.",
   },
   {
     title: "Kegiatan anak-anak / keluarga",
     slug: "kegiatan-keluarga",
     href: "/kegiatan/kegiatan-keluarga/",
-    text: "Format arsip untuk aktivitas keluarga yang dipublikasikan hanya setelah materi visual disetujui.",
+    text: "Arsip aktivitas keluarga yang menjaga kenyamanan dan privasi warga.",
     detailDescription:
-      "Contoh halaman dokumentasi kegiatan keluarga yang menekankan kurasi foto dan caption sebelum konten layak tampil untuk publik.",
+      "Dokumentasi kegiatan keluarga yang menampilkan aktivitas kebersamaan warga.",
     icon: "calendar",
     tone: "accent",
     imageSrc: "/assets/kegiatan/kegiatan-keluarga.png",
-    imageAlt:
-      "Contoh visual dokumentasi kegiatan anak-anak dan keluarga untuk Mode Tinjauan Pengurus",
+    imageAlt: "Dokumentasi kegiatan anak-anak dan keluarga CGV10",
     captions: [
-      "Caption contoh untuk aktivitas keluarga setelah materi visual disetujui.",
+      "Aktivitas keluarga sebagai bagian dari arsip komunitas.",
       "Dokumentasi anak-anak atau keluarga memerlukan kurasi yang lebih hati-hati.",
-      "Detail pribadi tidak ditampilkan tanpa persetujuan publikasi.",
+      "Detail pribadi tetap dijaga agar dokumentasi nyaman untuk warga.",
     ],
-    approvalNote:
-      "Menunggu persetujuan publikasi. Konten ini bukan arsip kegiatan resmi.",
+    archiveNote: "Dokumentasi kegiatan keluarga warga.",
   },
 ];
 
-// Replace review-mode role entries with official names only after publication approval.
+// Public pengurus structure shown in the portal.
 export const pengurusRoles: IconCard[] = [
   {
     title: "Ketua RT",
@@ -248,27 +238,27 @@ export const pengurusRoles: IconCard[] = [
   },
   {
     title: "Sekretaris",
-    text: "Peran dan nama resmi menunggu persetujuan publikasi.",
+    text: "Peran sekretaris mendukung administrasi dan dokumentasi warga.",
     icon: "users",
   },
   {
     title: "Bendahara",
-    text: "Peran dan nama resmi menunggu persetujuan publikasi.",
+    text: "Peran bendahara mendukung transparansi kas dan pencatatan iuran.",
     icon: "users",
   },
   {
     title: "Semua seksi",
-    text: "Struktur seksi disiapkan sebagai format tinjauan.",
+    text: "Struktur seksi membantu pembagian peran pengurus.",
     icon: "users",
   },
   {
     title: "Koordinator cluster",
-    text: "Format koordinator disiapkan untuk persetujuan publikasi.",
+    text: "Koordinator cluster membantu jalur komunikasi antarwarga.",
     icon: "users",
   },
 ];
 
-// Insert confirmed finance numbers here after pengurus approval.
+// Public finance summary shown in the portal.
 export const financeRows: FinanceRow[] = [
   { label: "Saldo awal", value: "Rp 8.500.000" },
   { label: "Pemasukan", value: "Rp 20.250.000" },
@@ -276,26 +266,26 @@ export const financeRows: FinanceRow[] = [
   { label: "Saldo akhir", value: "Rp 5.500.000" },
 ];
 
-// Replace preview copy only with announcement content approved for public display.
+// Public announcement content for residents.
 export const announcements: IconCard[] = [
   {
     title: "Jadwal kerja bakti lingkungan",
-    text: "Contoh pengumuman untuk mengatur agenda kebersihan bersama warga.",
+    text: "Agenda kebersihan bersama warga untuk menjaga lingkungan tetap rapi.",
     icon: "calendar",
   },
   {
     title: "Pendataan warga dan kendaraan",
-    text: "Simulasi konten untuk memperlihatkan format pendataan lingkungan.",
+    text: "Informasi pendataan lingkungan agar data warga dan kendaraan tertata.",
     icon: "file",
   },
   {
     title: "Informasi keamanan lingkungan",
-    text: "Contoh informasi keamanan yang dapat ditinjau sebelum dipublikasikan.",
+    text: "Informasi keamanan lingkungan untuk meningkatkan kewaspadaan warga.",
     icon: "shield",
   },
   {
     title: "Pengingat administrasi warga",
-    text: "Format demo untuk pengingat administrasi yang tetap menunggu persetujuan.",
+    text: "Pengingat administrasi warga agar kebutuhan lingkungan berjalan tertib.",
     icon: "file",
   },
 ];
@@ -308,47 +298,47 @@ export const palugadaCategories: { title: string; icon: IconName }[] = [
   { title: "Lainnya", icon: "file" },
 ];
 
-// Insert official PALUGADA item values only after seller and pengurus approval.
+// Public PALUGADA catalog content.
 export const marketplaceItems: MarketplaceItem[] = [
   {
     name: "Ma'niez Donut",
     category: "Kuliner",
     cluster: "Cluster Colloseum",
-    price: "Harga contoh: Rp 20.000",
-    status: "Pilot trial WA / Mode Uji Coba",
+    price: "Mulai Rp 20.000",
+    status: "Kanal WhatsApp tersedia",
     icon: "utensils",
     imageSrc: "/assets/palugada/maniez-donut-main.png",
-    imageAlt: "Contoh tampilan Ma'niez Donut untuk katalog PALUGADA CGV",
+    imageAlt: "Ma'niez Donut untuk katalog PALUGADA CGV",
     detailSlug: "donat-kentang-warga",
     detailHref: "/palugada/donat-kentang-warga/",
     detailDescription:
-      "Pilot lapak PALUGADA untuk meninjau format katalog kuliner warga Ma'niez Donut dengan WhatsApp trial khusus selama Mode Uji Coba.",
+      "Lapak awal PALUGADA untuk katalog kuliner warga Ma'niez Donut dengan kanal WhatsApp untuk konfirmasi.",
     providerProfile:
-      "Profil penyedia ditampilkan sebagai format usaha rumahan warga untuk pilot trial. Tautan WhatsApp hanya aktif untuk Ma'niez Donut selama Mode Uji Coba.",
+      "Profil penyedia menampilkan usaha rumahan warga dengan kanal WhatsApp untuk Ma'niez Donut.",
     productDetail:
-      "Ma'niez Donut dipakai sebagai pilot lapak PALUGADA: produk kuliner rumahan dengan foto lokal, harga contoh, varian contoh, format pesanan, area layanan, dan status transaksi yang dibuat jelas sejak awal.",
+      "Ma'niez Donut menjadi lapak awal PALUGADA: produk kuliner rumahan dengan foto lokal, harga, varian, format pesanan, area layanan, dan status kontak yang jelas.",
     exampleScope: [
-      "Varian contoh: coklat meses, keju, dan red velvet.",
-      "Format pesanan contoh: box kecil, box keluarga, dan pesanan acara warga.",
-      "Informasi ketersediaan, jadwal produksi, dan kontak masih berupa simulasi format.",
+      "Varian: coklat meses, keju, dan red velvet.",
+      "Format pesanan: box kecil, box keluarga, dan pesanan acara warga.",
+      "Informasi ketersediaan dan jadwal produksi dapat dikonfirmasi melalui kanal PALUGADA.",
     ],
     availabilityNote:
-      "Ketersediaan dan jadwal pesanan masih dalam Mode Uji Coba. Konfirmasi awal hanya melalui WhatsApp pilot Ma'niez Donut.",
-    demoStatusNote:
-      "Pilot trial WA dalam Mode Uji Coba. Tidak ada checkout, keranjang, pembayaran, login, database, backend, atau dashboard penjual.",
-    pilotBadge: "WA Pilot Mode Uji Coba",
+      "Ketersediaan dan jadwal pesanan dapat dikonfirmasi melalui WhatsApp Ma'niez Donut.",
+    catalogStatusNote:
+      "Kanal WhatsApp tersedia untuk konfirmasi awal PALUGADA.",
+    contactBadge: "Kanal WhatsApp",
     galleryImages: [
       {
         src: "/assets/palugada/maniez-donut-main.png",
-        alt: "Ma'niez Donut sebagai foto utama pilot PALUGADA",
+        alt: "Ma'niez Donut sebagai foto utama PALUGADA",
       },
       {
         src: "/assets/palugada/maniez-donut-varian01.png",
-        alt: "Contoh varian Ma'niez Donut untuk katalog PALUGADA",
+        alt: "Varian Ma'niez Donut untuk katalog PALUGADA",
       },
       {
         src: "/assets/palugada/maniez-donut-varian02.png",
-        alt: "Contoh pilihan Ma'niez Donut untuk pilot PALUGADA",
+        alt: "Pilihan Ma'niez Donut untuk PALUGADA",
       },
     ],
     variants: ["Coklat meses", "Keju", "Red velvet"],
@@ -358,123 +348,123 @@ export const marketplaceItems: MarketplaceItem[] = [
       "Pesanan acara warga dengan konfirmasi admin",
     ],
     serviceAreas: [
-      "Cluster Colloseum sebagai area contoh pilot",
-      "Area CGV10 lain dapat ditinjau setelah aturan publikasi disepakati",
-      "Pengambilan atau pengantaran belum menjadi layanan aktif",
+      "Cluster Colloseum sebagai area awal PALUGADA",
+      "Area CGV10 lain dapat ditambahkan bertahap",
+      "Pengambilan atau pengantaran mengikuti informasi penyedia",
     ],
     transactionStatus:
-      "Status transaksi: pilot trial WA untuk konfirmasi awal Ma'niez Donut. Pembayaran, checkout, keranjang, login, database, backend, dan dashboard penjual tidak tersedia.",
+      "Status transaksi: konfirmasi awal Ma'niez Donut melalui WhatsApp. Pembayaran dan pemesanan mengikuti arahan penyedia.",
     validationSteps: [
-      "Admin/pengurus meninjau data lapak dan foto produk.",
-      "WhatsApp trial hanya aktif untuk Ma'niez Donut selama Mode Uji Coba.",
-      "Listing pilot dipakai untuk menyepakati format katalog sebelum diperluas tanpa checkout, pembayaran, atau dashboard penjual.",
+      "Informasi lapak dan foto produk dikelola agar rapi.",
+      "WhatsApp tersedia untuk Ma'niez Donut.",
+      "Listing awal membantu warga memahami format katalog PALUGADA.",
     ],
-    pilotNote:
-      "Pilot ini digunakan untuk meninjau format katalog dengan WhatsApp trial khusus Ma'niez Donut.",
+    catalogNote:
+      "Lapak awal ini memperlihatkan format katalog dengan kanal WhatsApp khusus Ma'niez Donut.",
     whatsappHref: "https://wa.me/6281291254064",
-    whatsappLabel: "Hubungi WA Pilot",
+    whatsappLabel: "Hubungi WhatsApp",
     whatsappDisplayNumber: "+62 812-9125-4064",
-    whatsappStatus: "Pilot trial WA",
+    whatsappStatus: "WhatsApp tersedia",
   },
   {
     name: "Jasa Laundry Kiloan",
     category: "Jasa",
-    cluster: "Cluster Oxford",
+    cluster: "Cluster Pinnata",
     price: "Harga sesuai berat cucian",
-    status: "Contoh tampilan - WA nonaktif",
+    status: "Katalog warga",
     icon: "briefcase",
     imageSrc: "/assets/palugada/palugada-laundry.jpg",
     imageAlt:
-      "Contoh tampilan jasa laundry kiloan untuk katalog PALUGADA CGV",
+      "Jasa laundry kiloan untuk katalog PALUGADA CGV",
     detailSlug: "jasa-laundry-kiloan",
     detailHref: "/palugada/jasa-laundry-kiloan/",
     detailDescription:
-      "Contoh halaman detail untuk jasa harian warga dengan informasi cluster, status layanan, dan batasan bahwa WA belum aktif.",
+      "Halaman detail untuk jasa harian warga dengan informasi cluster dan status layanan.",
     providerProfile:
-      "Profil penyedia jasa ditampilkan sebagai contoh struktur direktori. Detail operasional dan kontak resmi belum dipublikasikan.",
+      "Profil penyedia jasa membantu warga memahami layanan yang tersedia.",
     productDetail:
-      "Jasa laundry kiloan ditampilkan sebagai contoh layanan harian warga yang dapat dijelaskan lebih rapi melalui halaman detail katalog.",
+      "Jasa laundry kiloan ditampilkan sebagai layanan harian warga yang dapat dijelaskan melalui halaman detail katalog.",
     exampleScope: [
-      "Cakupan contoh: cuci kiloan, setrika, dan lipat pakaian.",
+      "Cakupan layanan: cuci kiloan, setrika, dan lipat pakaian.",
       "Catatan layanan dapat memuat area cluster, estimasi pengerjaan, dan syarat penerimaan cucian.",
-      "Harga akhir, jam layanan, dan metode penyerahan belum menjadi data resmi.",
+      "Harga akhir, jam layanan, dan metode penyerahan mengikuti informasi penyedia.",
     ],
     availabilityNote:
-      "Ketersediaan layanan masih simulasi untuk review. Jadwal operasional dan kontak penyedia belum dipublikasikan.",
-    demoStatusNote:
-      "Contoh tampilan dalam Mode Tinjauan Pengurus. Bukan transaksi aktif dan WA nonaktif untuk demo.",
+      "Ketersediaan layanan dapat diperbarui melalui kanal PALUGADA.",
+    catalogStatusNote:
+      "Katalog warga PALUGADA.",
   },
   {
     name: "Tanaman Hias Rumah",
     category: "Barang",
-    cluster: "Cluster Windsor",
-    price: "Harga contoh: Rp 25.000",
-    status: "Contoh tampilan - WA nonaktif",
+    cluster: "Cluster Greenwich",
+    price: "Mulai Rp 25.000",
+    status: "Katalog warga",
     icon: "store",
   },
   {
     name: "Info Properti Warga",
     category: "Properti",
-    cluster: "Cluster Cambridge",
-    price: "Harga contoh: informasi menyusul",
-    status: "Contoh tampilan - WA nonaktif",
+    cluster: "Cluster Aurora",
+    price: "Informasi menyusul",
+    status: "Katalog warga",
     icon: "building",
   },
   {
     name: "Catering Rumahan",
     category: "Kuliner",
-    cluster: "Cluster Chelsea",
+    cluster: "Cluster Meteora",
     price: "Harga menu saat rilis",
-    status: "Contoh tampilan - WA nonaktif",
+    status: "Katalog warga",
     icon: "utensils",
     imageSrc: "/assets/palugada/palugada-catering.jpg",
     imageAlt:
-      "Contoh tampilan catering rumahan untuk katalog PALUGADA CGV",
+      "Catering rumahan untuk katalog PALUGADA CGV",
     detailSlug: "catering-rumahan",
     detailHref: "/palugada/catering-rumahan/",
     detailDescription:
-      "Contoh halaman detail untuk katalog catering rumahan, termasuk gambaran menu, cluster, dan status harga yang masih menunggu rilis.",
+      "Halaman detail untuk katalog catering rumahan, termasuk gambaran menu, cluster, dan status harga.",
     providerProfile:
-      "Profil penyedia kuliner rumahan masih berupa contoh tampilan. Kontak, jadwal pesanan, dan ketentuan publikasi menunggu persetujuan.",
+      "Profil penyedia kuliner rumahan membantu warga mengenal layanan makanan sekitar.",
     productDetail:
-      "Catering rumahan ditampilkan sebagai contoh layanan kuliner yang membutuhkan deskripsi menu, area layanan, dan status pemesanan yang jelas.",
+      "Catering rumahan ditampilkan sebagai layanan kuliner yang membutuhkan deskripsi menu, area layanan, dan status pemesanan yang jelas.",
     exampleScope: [
-      "Cakupan contoh: paket nasi rumahan, lauk harian, dan pesanan acara kecil.",
+      "Cakupan layanan: paket nasi rumahan, lauk harian, dan pesanan acara kecil.",
       "Halaman detail dapat menampilkan catatan menu, porsi, dan waktu pemesanan.",
-      "Harga menu saat rilis masih menunggu data resmi dari penyedia.",
+      "Harga menu mengikuti informasi dari penyedia.",
     ],
     availabilityNote:
-      "Ketersediaan menu dan batas pemesanan belum aktif. Konten ini hanya contoh struktur untuk bahan tinjauan.",
-    demoStatusNote:
-      "Contoh tampilan dalam Mode Tinjauan Pengurus. Bukan transaksi aktif dan WA nonaktif untuk demo.",
+      "Ketersediaan menu dan batas pemesanan dapat diperbarui melalui kanal PALUGADA.",
+    catalogStatusNote:
+      "Katalog warga PALUGADA.",
   },
   {
     name: "Jasa Servis AC",
     category: "Jasa",
-    cluster: "Cluster Somerset",
-    price: "Harga menunggu konfirmasi",
-    status: "Contoh tampilan - WA nonaktif",
+    cluster: "Cluster Aurora",
+    price: "Harga sesuai konfirmasi",
+    status: "Katalog warga",
     icon: "briefcase",
     imageSrc: "/assets/palugada/palugada-servis-ac.jpg",
     imageAlt:
-      "Contoh tampilan jasa servis AC untuk katalog PALUGADA CGV",
+      "Jasa servis AC untuk katalog PALUGADA CGV",
     detailSlug: "jasa-servis-ac",
     detailHref: "/palugada/jasa-servis-ac/",
     detailDescription:
-      "Contoh halaman detail untuk layanan servis AC warga dengan foto layanan, cluster, harga menunggu konfirmasi, dan tombol WA nonaktif.",
+      "Halaman detail untuk layanan servis AC warga dengan foto layanan, cluster, dan harga sesuai konfirmasi.",
     providerProfile:
-      "Profil penyedia jasa teknis disiapkan sebagai contoh kartu review. Data penyedia dan kontak resmi belum menjadi data publik.",
+      "Profil penyedia jasa teknis membantu warga memahami cakupan layanan.",
     productDetail:
-      "Jasa servis AC ditampilkan sebagai contoh layanan teknis warga yang perlu menjelaskan cakupan pekerjaan dan status harga secara transparan.",
+      "Jasa servis AC ditampilkan sebagai layanan teknis warga yang menjelaskan cakupan pekerjaan dan status harga secara transparan.",
     exampleScope: [
-      "Cakupan contoh: pengecekan AC, pembersihan ringan, dan konsultasi kondisi unit.",
+      "Cakupan layanan: pengecekan AC, pembersihan ringan, dan konsultasi kondisi unit.",
       "Detail layanan dapat memuat area cluster, catatan kunjungan, dan kebutuhan konfirmasi teknisi.",
-      "Harga, jadwal kunjungan, dan kontak penyedia belum dikonfirmasi sebagai data resmi.",
+      "Harga, jadwal kunjungan, dan kontak penyedia mengikuti informasi layanan.",
     ],
     availabilityNote:
-      "Ketersediaan layanan masih menunggu konfirmasi. Halaman ini tidak membuka pemesanan atau transaksi.",
-    demoStatusNote:
-      "Contoh tampilan dalam Mode Tinjauan Pengurus. Bukan transaksi aktif dan WA nonaktif untuk demo.",
+      "Ketersediaan layanan dapat diperbarui melalui kanal PALUGADA.",
+    catalogStatusNote:
+      "Katalog warga PALUGADA.",
   },
 ];
 
@@ -489,7 +479,7 @@ export const palugadaDetailItems = marketplaceItems.filter(
     productDetail: string;
     exampleScope: string[];
     availabilityNote: string;
-    demoStatusNote: string;
+    catalogStatusNote: string;
   } =>
     Boolean(
       item.detailSlug &&
@@ -501,30 +491,30 @@ export const palugadaDetailItems = marketplaceItems.filter(
         item.productDetail &&
         item.exampleScope &&
         item.availabilityNote &&
-        item.demoStatusNote,
+        item.catalogStatusNote,
     ),
 );
 
-// Insert public contact and QR assets only after explicit approval.
+// Public contact entries for residents.
 export const contacts: ContactEntry[] = [
   {
     role: "Ketua RT",
-    text: "Kontak resmi menunggu persetujuan publikasi.",
-    qrStatus: "QR akan ditampilkan setelah disetujui pengurus",
+    text: "Kontak pengurus tersedia melalui kanal resmi lingkungan.",
+    qrStatus: "QR dikelola melalui pengurus",
   },
   {
     role: "Sekretaris",
-    text: "Kontak resmi menunggu persetujuan publikasi.",
-    qrStatus: "QR akan ditampilkan setelah disetujui pengurus",
+    text: "Kontak pengurus tersedia melalui kanal resmi lingkungan.",
+    qrStatus: "QR dikelola melalui pengurus",
   },
   {
     role: "Bendahara",
-    text: "Kontak resmi menunggu persetujuan publikasi.",
-    qrStatus: "QR akan ditampilkan setelah disetujui pengurus",
+    text: "Kontak pengurus tersedia melalui kanal resmi lingkungan.",
+    qrStatus: "QR dikelola melalui pengurus",
   },
   {
     role: "Keamanan",
-    text: "Kontak resmi menunggu persetujuan publikasi.",
-    qrStatus: "QR akan ditampilkan setelah disetujui pengurus",
+    text: "Kontak pengurus tersedia melalui kanal resmi lingkungan.",
+    qrStatus: "QR dikelola melalui pengurus",
   },
 ];

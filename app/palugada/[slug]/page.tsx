@@ -53,22 +53,22 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
   const relatedItems = palugadaDetailItems
     .filter((entry) => entry.detailSlug !== item.detailSlug)
     .slice(0, 3);
-  const isPilot = item.detailSlug === "donat-kentang-warga";
-  const hasWhatsappPilot = Boolean(item.whatsappHref);
-  const whatsappLabel = item.whatsappLabel ?? "Hubungi WA Pilot";
+  const isPrimaryListing = item.detailSlug === "donat-kentang-warga";
+  const hasWhatsappContact = Boolean(item.whatsappHref);
+  const whatsappLabel = item.whatsappLabel ?? "Hubungi WhatsApp";
   const variants = item.variants ?? item.exampleScope;
   const orderFormats =
-    item.orderFormats ?? ["Format pesanan masih berupa contoh tampilan."];
+    item.orderFormats ?? ["Format pesanan mengikuti informasi penyedia."];
   const serviceAreas =
-    item.serviceAreas ?? ["Area layanan menunggu data resmi penyedia."];
+    item.serviceAreas ?? ["Area layanan mengikuti informasi penyedia."];
   const transactionStatus =
     item.transactionStatus ??
-    "Bukan transaksi aktif. Pembayaran, checkout, keranjang, dan WA aktif tidak tersedia pada mode demo.";
+    "Kontak dan pemesanan diarahkan melalui kanal pengurus atau penyedia terkait.";
   const validationSteps =
     item.validationSteps ?? [
-      "Admin/pengurus meninjau informasi listing.",
-      "Data dan kontak hanya dipublikasikan setelah disetujui.",
-      "Format katalog digunakan sebagai bahan review.",
+      "Informasi listing dikelola agar mudah dibaca warga.",
+      "Kontak penyedia ditampilkan melalui kanal yang sesuai.",
+      "Katalog membantu warga menemukan kebutuhan sekitar.",
     ];
   const galleryImages = item.galleryImages ?? [
     {
@@ -76,9 +76,9 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
       alt: item.imageAlt,
     },
   ];
-  const pilotNote =
-    item.pilotNote ??
-    "Detail ini digunakan untuk meninjau format katalog sebelum data resmi dipublikasikan.";
+  const catalogNote =
+    item.catalogNote ??
+    "Detail katalog membantu warga mengenal usaha dan layanan di lingkungan.";
 
   return (
     <PageShell>
@@ -103,7 +103,7 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
             </ImagePreview>
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-primary/72 via-primary/12 to-transparent" />
             <div className="pointer-events-none absolute left-4 top-4 rounded-full bg-accent-soft px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-foreground shadow-sm">
-              {hasWhatsappPilot ? whatsappLabel : "Contoh tampilan"}
+              {hasWhatsappContact ? whatsappLabel : "Katalog warga"}
             </div>
           </div>
 
@@ -125,10 +125,10 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white">
-                Mode Tinjauan Pengurus
+                Katalog Warga
               </span>
               <span className="inline-flex rounded-full border border-accent-soft/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-foreground">
-                {hasWhatsappPilot ? whatsappLabel : "Bukan transaksi aktif"}
+                {hasWhatsappContact ? whatsappLabel : "Kontak via pengurus"}
               </span>
             </div>
           </div>
@@ -139,15 +139,15 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
         <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
           <aside className="space-y-4">
             <PlaceholderNotice>
-              {pilotNote}{" "}
-              {hasWhatsappPilot
-                ? "WhatsApp trial hanya aktif untuk Ma'niez Donut dalam Mode Uji Coba. Tidak ada pembayaran, checkout, keranjang, akun penjual, database, backend, login, atau dashboard penjual."
-                : "Tidak ada pembayaran, checkout, keranjang, akun penjual, database, backend, login, dashboard penjual, atau WhatsApp aktif pada mode demo."}
+              {catalogNote}{" "}
+              {hasWhatsappContact
+                ? "Warga dapat menggunakan kontak PALUGADA untuk konfirmasi awal."
+                : "Informasi kontak dapat diarahkan melalui pengurus atau kanal PALUGADA."}
             </PlaceholderNotice>
 
             <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-                Status demo
+                Status katalog
               </p>
               <div className="mt-5 space-y-4 text-sm">
                 <div className="flex items-center justify-between gap-4 border-b border-border pb-4">
@@ -171,7 +171,7 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-muted">WA</span>
                   <span className="text-right font-semibold text-foreground">
-                    {item.whatsappStatus ?? "WA nonaktif untuk demo"}
+                    {item.whatsappStatus ?? "Kontak via pengurus"}
                   </span>
                 </div>
                 {item.whatsappDisplayNumber ? (
@@ -199,7 +199,7 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                   disabled
                   className="mt-6 inline-flex min-h-11 w-full cursor-not-allowed items-center justify-center rounded-xl bg-primary-soft px-4 text-sm font-semibold text-primary/70"
                 >
-                  WA nonaktif untuk demo
+                  Kontak via pengurus
                 </button>
               )}
             </div>
@@ -211,9 +211,9 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                 Ringkasan lapak
               </p>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                {isPilot
-                  ? "Pilot pertama untuk format katalog PALUGADA."
-                  : "Ringkasan contoh katalog PALUGADA."}
+                {isPrimaryListing
+                  ? "Lapak awal untuk format katalog PALUGADA."
+                  : "Ringkasan katalog PALUGADA."}
               </h2>
               <p className="mt-4 text-base leading-7 text-foreground">
                 {item.detailDescription}
@@ -234,7 +234,7 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                 <div className="rounded-xl border border-accent/30 bg-surface/80 p-4">
                   <span className="text-muted">Kontak</span>
                   <p className="mt-2 font-semibold text-foreground">
-                    {item.whatsappStatus ?? "WA nonaktif untuk demo"}
+                    {item.whatsappStatus ?? "Kontak via pengurus"}
                   </p>
                   {item.whatsappDisplayNumber ? (
                     <p className="mt-1 text-sm font-semibold text-primary">
@@ -250,10 +250,10 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                 <Icon name={item.icon} />
               </div>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-                Detail Produk - Contoh Tampilan
+                Detail Produk
               </p>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                Informasi katalog untuk bahan tinjauan.
+                Informasi katalog untuk warga.
               </h2>
               <p className="mt-4 text-base leading-7 text-muted">
                 {item.productDetail}
@@ -283,7 +283,7 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
               <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_0.9fr]">
                 <div className="rounded-2xl border border-border bg-background p-4">
                   <p className="text-sm font-semibold text-foreground">
-                    Varian contoh
+                    Varian
                   </p>
                   <ul className="mt-4 space-y-3 text-sm leading-6 text-muted">
                     {variants.map((scope) => (
@@ -327,7 +327,7 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                   Area layanan
                 </p>
                 <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                  Area tetap contoh sampai aturan disetujui.
+                  Area layanan mengikuti informasi penyedia.
                 </h2>
                 <ul className="mt-5 space-y-3 text-sm leading-6 text-muted">
                   {serviceAreas.map((area) => (
@@ -347,9 +347,9 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                   Status transaksi
                 </p>
                 <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                  {hasWhatsappPilot
-                    ? "WA pilot untuk konfirmasi awal, tanpa transaksi sistem."
-                    : "Tidak ada pemesanan aktif pada demo."}
+                  {hasWhatsappContact
+                    ? "WhatsApp untuk konfirmasi awal pesanan."
+                    : "Kontak dapat diarahkan melalui pengurus."}
                 </h2>
                 <p className="mt-5 text-sm leading-6 text-muted">
                   {transactionStatus}
@@ -362,10 +362,10 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                 <Icon name={item.icon} />
               </div>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-                Profil penyedia - contoh tampilan
+                Profil penyedia
               </p>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                Format profil sebelum data resmi dipublikasikan.
+                Informasi profil untuk membantu warga mengenal penyedia.
               </h2>
               <p className="mt-4 text-base leading-7 text-muted">
                 {item.providerProfile}
@@ -377,10 +377,10 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                 <Icon name="file" />
               </div>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-                Alur validasi admin
+                Alur informasi
               </p>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                Pilot dikelola admin/pengurus sebelum diperluas.
+                Informasi katalog dikelola agar tetap rapi dan mudah dibaca.
               </h2>
               <div className="mt-6 grid gap-4 sm:grid-cols-3">
                 {validationSteps.map((step, index) => (
@@ -404,7 +404,7 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                     Mini katalog
                   </p>
                   <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                    Contoh item lain untuk alur tinjauan.
+                    Item lain dalam katalog warga.
                   </h2>
                 </div>
                 <Link
@@ -428,10 +428,10 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                         alt={related.imageAlt}
                         fill
                         sizes="(min-width: 1024px) 240px, 30vw"
-                        className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                        className="object-cover transition-opacity duration-200 group-hover:opacity-95"
                       />
                       <span className="absolute left-3 top-3 rounded-full bg-accent-soft px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-foreground shadow-sm">
-                        Contoh
+                        Katalog
                       </span>
                     </div>
                     <div className="p-4">

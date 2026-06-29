@@ -1,7 +1,6 @@
 import Image from "next/image";
 import {
   Icon,
-  PageHero,
   PageShell,
   PlaceholderNotice,
   SectionHeading,
@@ -12,16 +11,61 @@ import { contacts, pengurusRoles } from "@/lib/portal-data";
 export default function PengurusPage() {
   return (
     <PageShell>
-      <PageHero
-        eyebrow="Mode Tinjauan Pengurus"
-        title="Struktur pengurus untuk review publikasi."
-        text="Halaman ini menampilkan contoh susunan pengurus dengan data Ketua RT yang sudah diberikan, sementara peran lain disiapkan sebagai kartu persetujuan publikasi."
-      />
-      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-24 xl:px-10">
+      <section className="relative overflow-hidden border-b border-border bg-primary text-white">
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,#002d27_0%,#003d34_50%,#006d5b_100%)]" />
+        <div className="absolute inset-0 opacity-[0.13] [background-image:linear-gradient(90deg,rgba(255,255,255,0.14)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,0.1)_1px,transparent_1px)] [background-size:42px_42px]" />
+        <div className="relative mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[0.88fr_1.12fr] lg:px-8 lg:py-20 xl:px-10">
+          <div className="flex flex-col justify-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-accent-soft">
+              Struktur Pengurus
+            </p>
+            <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
+              Wajah pengurus dibuat jelas, terhormat, dan mudah dikenali.
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-white/84 sm:text-lg sm:leading-8">
+              Halaman ini menampilkan struktur peran pengurus dengan data Ketua
+              RT yang sudah diberikan. Peran lain tetap ditata rapi sebagai
+              struktur resmi yang mudah dipahami warga.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-white/14 bg-white/10 p-4 shadow-[0_22px_70px_rgba(0,0,0,0.24)]">
+            <div className="grid gap-3 sm:grid-cols-3">
+              {[
+                ["1", "Ketua RT terpublikasi"],
+                ["4", "Peran pengurus lain"],
+                ["1", "Direktori kontak terpadu"],
+              ].map(([value, label]) => (
+                <div
+                  key={label}
+                  className="rounded-xl border border-white/14 bg-white/10 p-4"
+                >
+                  <p className="text-3xl font-semibold text-accent-soft">
+                    {value}
+                  </p>
+                  <p className="mt-2 text-sm font-semibold text-white">
+                    {label}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 rounded-xl border border-white/14 bg-white/10 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent-soft">
+                Prinsip publikasi
+              </p>
+              <p className="mt-2 text-sm leading-6 text-white/76">
+                Struktur pengurus membantu warga memahami jalur koordinasi
+                lingkungan.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20 xl:px-10">
         <PlaceholderNotice>
-          Mode Tinjauan Pengurus: profil Ketua RT ditampilkan sesuai data yang
-          diberikan. Nama pengurus lain, seksi, dan koordinator cluster tetap
-          menunggu persetujuan publikasi.
+          Struktur pengurus memudahkan warga mengenali peran, tanggung jawab,
+          dan jalur komunikasi lingkungan.
         </PlaceholderNotice>
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           {pengurusRoles.map((role) => (
@@ -40,14 +84,14 @@ export default function PengurusPage() {
                     alt={role.imageAlt ?? role.name ?? role.title}
                     title={role.name ?? role.title}
                     caption={`${role.title} - ${role.location ?? "CGV10"}`}
-                    className="group/photo w-auto rounded-2xl border border-border bg-background shadow-[0_14px_35px_rgba(20,90,58,0.16)] transition-shadow duration-300 hover:shadow-[0_18px_48px_rgba(20,90,58,0.22)]"
+                    className="group/photo w-auto rounded-2xl border border-border bg-background shadow-sm"
                   >
                     <Image
                       src={role.imageSrc}
                       alt={role.imageAlt ?? ""}
                       width="96"
                       height="96"
-                      className="h-20 w-20 object-cover transition-transform duration-300 ease-out group-hover/photo:scale-105 sm:h-24 sm:w-24"
+                      className="h-20 w-20 object-cover transition-opacity duration-200 group-hover/photo:opacity-95 sm:h-24 sm:w-24"
                     />
                   </ImagePreview>
                 ) : (
@@ -66,7 +110,7 @@ export default function PengurusPage() {
               <p className="mb-3 inline-flex rounded-full bg-accent-soft px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-foreground">
                 {role.name
                   ? "Data resmi tersedia"
-                  : "Menunggu persetujuan publikasi"}
+                  : "Struktur pengurus"}
               </p>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
                 {role.title}
@@ -95,12 +139,11 @@ export default function PengurusPage() {
               <SectionHeading
                 eyebrow="Kontak resmi pengurus"
                 title="Status publikasi kontak dan QR."
-                text="Kontak resmi digabung di halaman Pengurus agar struktur peran dan jalur komunikasi berada dalam satu konteks yang jelas untuk review."
+                text="Kontak resmi digabung di halaman Pengurus agar struktur peran dan jalur komunikasi berada dalam satu konteks yang jelas."
               />
               <div className="mt-8 rounded-2xl border border-accent/35 bg-accent-soft/55 p-5 text-sm leading-6 text-foreground">
-                Nomor telepon dan QR tidak ditampilkan sampai kontak resmi
-                disetujui untuk publikasi. Halaman ini tidak memuat formulir
-                atau pengiriman data.
+                Nomor telepon dan QR dikelola melalui kanal resmi pengurus.
+                Halaman ini tidak memuat formulir atau pengiriman data.
               </div>
             </div>
 
@@ -123,7 +166,7 @@ export default function PengurusPage() {
                     />
                   </div>
                   <p className="mb-3 inline-flex rounded-full bg-accent-soft px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-foreground">
-                    Persetujuan publikasi
+                    Kontak pengurus
                   </p>
                   <h2 className="text-lg font-semibold">{contact.role}</h2>
                   <p className="mt-3 text-sm leading-6 text-muted">

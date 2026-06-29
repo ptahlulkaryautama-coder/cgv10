@@ -50,18 +50,18 @@ export function Icon({ name }: { name: IconName }) {
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-30 border-b border-border/80 bg-background/94 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-border/80 bg-background/96 backdrop-blur print:static print:bg-background print:backdrop-blur-none">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-5 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-foreground focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
       >
         Lewati navigasi
       </a>
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8 xl:px-10">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-6 lg:px-8 lg:py-4 xl:px-10">
         <details className="group/details relative shrink-0">
           <summary
-            aria-label="Lihat pratinjau identitas portal CGV10"
-            className="flex min-h-11 cursor-pointer list-none items-center gap-3 rounded-xl outline-none transition-colors marker:hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background [&::-webkit-details-marker]:hidden"
+            aria-label="Lihat identitas portal CGV10"
+            className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-xl outline-none transition-colors marker:hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:gap-3 [&::-webkit-details-marker]:hidden"
           >
             <span className="grid h-11 w-11 place-items-center rounded-2xl border border-border bg-surface shadow-sm sm:h-12 sm:w-12">
               <Image
@@ -73,7 +73,7 @@ export function SiteHeader() {
               />
             </span>
             <span className="flex flex-col leading-none">
-              <span className="text-xl font-semibold tracking-tight text-primary sm:text-2xl">
+              <span className="text-lg font-semibold tracking-tight text-primary sm:text-2xl">
                 CGV10
               </span>
               <span className="mt-1 hidden text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-muted min-[430px]:block">
@@ -92,14 +92,14 @@ export function SiteHeader() {
               />
             </div>
             <p className="mt-4 text-sm font-semibold text-foreground">
-              CGV10 Portal Digital Warga
+              CGV10 — Portal Digital Warga
             </p>
             <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-              Preview identitas portal
+              Identitas portal warga
             </p>
             <p className="mt-2 text-xs leading-5 text-muted">
-              Menampilkan logo lengkap Portal Warga CGV sebagai pratinjau
-              identitas.
+              Menampilkan logo lengkap Portal Warga CGV sebagai identitas
+              resmi.
             </p>
             <Link
               href="/"
@@ -110,7 +110,7 @@ export function SiteHeader() {
           </div>
         </details>
 
-        {/* Keep identity badges separate from the proposal-based CGV10 header mark. */}
+        {/* Keep identity badges separate from the compact CGV10 header mark. */}
         <div className="hidden items-center gap-2 rounded-full border border-border bg-surface px-3 py-2 text-xs font-semibold text-muted shadow-sm xl:flex">
           <span className="grid h-7 min-w-16 place-items-center whitespace-nowrap rounded-full border border-dashed border-border bg-primary-soft px-3 text-primary">
             Cipta Greenville
@@ -165,14 +165,14 @@ export function SiteHeader() {
 
         <Link
           href="/pengurus/#kontak-pengurus"
-          className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-primary px-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-[380px]:hidden sm:px-4"
         >
           Hubungi Pengurus
         </Link>
       </div>
       <nav
         aria-label="Navigasi utama mobile"
-        className="mx-auto flex w-full max-w-7xl gap-2 overflow-x-auto px-4 pb-3 text-sm font-semibold text-muted sm:px-6 lg:hidden"
+        className="mx-auto flex w-full max-w-7xl gap-2 overflow-x-auto px-4 pb-3 text-sm font-semibold text-muted [-ms-overflow-style:none] [scrollbar-width:none] sm:px-6 lg:hidden [&::-webkit-scrollbar]:hidden"
       >
         {navItems.map(([label, href]) => (
           <ActiveNavLink key={label} href={href} mobile>
@@ -187,15 +187,15 @@ export function SiteHeader() {
 export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-surface">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-muted sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8 xl:px-10">
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-5 text-sm text-muted sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8 xl:px-10">
         <div className="flex items-center gap-3">
-          <div className="grid h-14 w-28 place-items-center overflow-hidden rounded-2xl border border-border bg-background px-2">
+          <div className="grid h-12 w-24 place-items-center overflow-hidden rounded-2xl border border-border bg-background px-2">
             <Image
               src="/assets/brand/official-cgv-logo.png"
               alt="Portal Warga CGV"
               width="140"
               height="72"
-              className="h-12 w-auto object-contain"
+              className="h-10 w-auto object-contain"
             />
           </div>
           <div>
@@ -217,7 +217,7 @@ export function PageShell({ children }: { children: React.ReactNode }) {
   return (
     <main
       id="main-content"
-      className="min-h-screen overflow-hidden bg-background text-foreground"
+      className="overflow-x-clip bg-background text-foreground"
     >
       <SiteHeader />
       {children}

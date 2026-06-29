@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f3ea;
-  --foreground: #10251b;
+  --background: #f8f5f0;
+  --foreground: #1a1a1a;
   --surface: #ffffff;
-  --cream: #f1ebdd;
-  --primary: #145a3a;
-  --primary-hover: #0f472e;
-  --primary-soft: #e6f2ea;
-  --accent: #c89b3c;
-  --accent-soft: #f4e7c4;
+  --cream: #f1eadf;
+  --primary: #003d34;
+  --primary-hover: #002d27;
+  --primary-soft: #e4f0ed;
+  --accent: #d4af37;
+  --accent-soft: #f2e5bd;
   --muted: #5f6f67;
-  --border: #ddd5c7;
+  --border: #ded4c4;
 }
 
 @theme inline {
@@ -38,6 +38,7 @@ body {
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 9.5rem;
 }
 
 ::selection {
@@ -53,5 +54,70 @@ html {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+  }
+}
+
+.hero-slide {
+  animation: hero-slide-fade 24s ease-in-out infinite;
+  opacity: 0;
+  will-change: opacity;
+}
+
+.hero-slide:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.hero-slide:nth-child(2) {
+  animation-delay: 8s;
+}
+
+.hero-slide:nth-child(3) {
+  animation-delay: 16s;
+}
+
+.community-pulse {
+  animation: community-pulse 3.6s ease-in-out infinite;
+}
+
+@keyframes hero-slide-fade {
+  0%,
+  7% {
+    opacity: 0;
+  }
+  12%,
+  35% {
+    opacity: 1;
+  }
+  40%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes community-pulse {
+  0%,
+  100% {
+    opacity: 0.58;
+  }
+  50% {
+    opacity: 0.98;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-slide,
+  .community-pulse {
+    animation: none;
+  }
+
+  .hero-slide:first-child {
+    opacity: 1;
+  }
+}
+
+@media print {
+  html,
+  body {
+    min-height: auto;
   }
 }

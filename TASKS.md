@@ -1,19 +1,483 @@
 ## CURRENT ACTIVE DIRECTION
 
-CGV10 public website is in presentation demo mode for pengurus review.
+CGV10 public website is live as a presentation preview for pengurus review.
 
-The website must feel premium, alive, executive, and consistent.
+Core modules already exist. Stop adding new modules.
 
-Roadmap remains internal only and must not appear on the public website.
+The current problem is not missing features. The problem is homepage visual impact.
+
+The homepage still feels too dashboard-like, generic, and stiff.
+
+Roadmap remains internal only and must not appear publicly.
 
 PALUGADA CGV uses Ma'niez Donut as the first pilot lapak.
 
 Approved WA pilot for Ma'niez Donut:
 +62 812-9125-4064
 
-Keuangan page uses simulation dashboard data and must remain clearly labeled as demo/review data.
+Keuangan page uses simulation dashboard data:
+Saldo Kas RT / saldo akhir simulation: Rp 5.500.000
 
 Do not add backend, database, login, payment, checkout, CMS, upload system, real form submission, or active admin dashboard.
+
+## Task 42 — Homepage Visual Rebuild for Premium Presentation Impact
+
+Use the ui-ux-pro-max skill.
+
+Goal:
+Make the homepage look significantly more premium, alive, residential, and presentation-ready.
+
+This task allows a major homepage layout rebuild.
+
+Scope:
+Homepage only.
+
+Do not redesign the entire website.
+Do not change routes.
+Do not remove existing modules.
+Do not add new backend features.
+Do not add roadmap.
+
+Important:
+This must not be minor copy polish.
+This must visibly change the homepage layout and first impression.
+
+Part A — Rebuild hero section
+
+Create a stronger premium hero experience.
+
+Hero should feel like:
+
+* official resident portal
+* premium residential community
+* civic concierge
+* trusted RT digital gateway
+
+Hero should not feel like:
+
+* generic SaaS dashboard
+* plain cards
+* placeholder board
+
+Required hero structure:
+
+1. Left side:
+
+   * premium editorial headline
+   * concise subtitle
+   * identity badge: Cipta Greenville • RT 010 / RW 021
+   * CTA buttons:
+
+     * Buka Layanan Warga → /layanan/
+     * Lihat PALUGADA → /palugada/
+
+2. Right side:
+   Replace the current stiff portal board with a premium visual composition:
+
+   * large residential/community image panel using available local image assets
+   * layered mini cards floating over the image
+   * mini cards for:
+
+     * Saldo Kas RT Rp 5.500.000
+     * PALUGADA Pilot Ma'niez Donut
+     * Kegiatan Warga
+   * use images if available:
+
+     * /assets/palugada/maniez-donut-main.png
+     * /assets/kegiatan/kerja-bakti.png
+     * /assets/kegiatan/kegiatan-keluarga.png
+     * /assets/kegiatan/keamanan-kebersihan.png
+
+3. Add subtle premium atmosphere:
+
+   * deep emerald gradient
+   * champagne/gold accent
+   * soft cream background
+   * layered glass cards
+   * subtle ornamental shapes
+   * no heavy animation
+
+Part B — Replace “Fokus Tahap Awal” feeling
+
+Current Fokus Tahap Awal feels like generic cards.
+
+Rebuild it into “Akses Utama Warga” or “Ruang Utama Portal”.
+
+It should show 4 premium action tiles:
+
+1. Layanan Warga → /layanan/
+2. PALUGADA CGV → /palugada/
+3. Dokumentasi Kegiatan → /kegiatan/
+4. Transparansi Keuangan → /keuangan/
+
+Each tile should include:
+
+* visual thumbnail or icon motif
+* short benefit
+* clear CTA
+* hover lift subtle
+* premium visual treatment
+
+Part C — Rebuild Info Cepat
+
+Make Info Cepat look like a premium civic dashboard snapshot.
+
+Keep values:
+
+* Saldo Kas RT: Rp 5.500.000
+* Jumlah KK: 128 KK
+* Pengaduan Aktif: 2 laporan
+* Kegiatan Terdekat: Kerja bakti lingkungan
+
+Make it feel less stiff:
+
+* larger hierarchy
+* premium stat cards
+* visual indicators
+* concise simulation note only once:
+  “Data simulasi untuk review — bukan data resmi.”
+
+Part D — Rebuild Highlight Portal
+
+Make Highlight Portal more visual and emotional.
+
+Cards:
+
+1. Ma'niez Donut Pilot
+
+   * use Ma'niez image
+   * link to /palugada/donat-kentang-warga/
+
+2. Dokumentasi Kegiatan
+
+   * use kegiatan image
+   * link to /kegiatan/
+
+3. Keuangan Transparan
+
+   * use mini finance dashboard visual
+   * link to /keuangan/
+
+This section should feel like proof that the portal is alive.
+
+Part E — Reduce stiffness
+
+1. Remove overly repeated labels and warning blocks.
+2. Keep honesty but make labels compact.
+3. Use more visual rhythm and fewer plain text blocks.
+4. Improve spacing and section contrast.
+5. Keep transitions fast and subtle.
+
+Part F — Quality requirements
+
+1. The homepage must look significantly different from the previous version.
+2. The first screen must feel more premium and residential.
+3. The site must remain static export compatible.
+4. Run npm.cmd run lint.
+5. Run npm.cmd run build.
+6. Confirm out folder is generated.
+
+Recommended commit message:
+rebuild homepage premium presentation impact
+
+
+## Task 41 — Premium Civic Portal Experience Direction
+
+Use the ui-ux-pro-max skill.
+
+Goal:
+Refine the CGV10 homepage and key entry experience so it feels more like a premium residential civic portal for Cipta Greenville RT 010 / RW 021.
+
+This is not a feature task.
+This is a storytelling, hierarchy, UX, and visual experience direction pass.
+
+Do not redesign from zero.
+Do not remove existing modules.
+Do not add roadmap.
+Do not add backend.
+
+Experience target:
+CGV10 should feel like:
+
+* a trusted official resident portal
+* a premium community gateway
+* a civic concierge for warga
+* a clear place to access information, services, PALUGADA, kegiatan, and transparency
+
+It should not feel like:
+
+* a generic SaaS dashboard
+* a plain template
+* a collection of disconnected cards
+* a placeholder-heavy demo
+
+Part A — Homepage storytelling restructure
+
+Improve homepage narrative flow into:
+
+1. Welcome / identity
+
+   * Cipta Greenville • RT 010 / RW 021
+   * CGV10 as Portal Digital Warga
+   * concise explanation
+
+2. Portal snapshot
+
+   * Saldo Kas RT: Rp 5.500.000
+   * Jumlah KK: 128 KK
+   * Pengaduan Aktif: 2 laporan
+   * Kegiatan Terdekat: Kerja bakti lingkungan
+
+3. Aksi warga
+
+   * Layanan Warga
+   * PALUGADA CGV
+   * Dokumentasi Kegiatan
+
+4. Trust and transparency
+
+   * Pengurus
+   * Keuangan
+   * Kontak resmi
+
+5. Community proof
+
+   * Ma'niez Donut pilot
+   * Kegiatan warga
+   * Keuangan demo
+
+Part B — Make hero feel more residential
+
+1. Keep portal preview board, but make it feel like supporting proof, not the only hero personality.
+2. Add more warmth and residential/community feeling using existing visual assets where appropriate:
+
+   * kegiatan images
+   * security/lingkungan image
+   * PALUGADA image
+3. Add subtle premium visual atmosphere:
+
+   * soft gradient
+   * layered cards
+   * gentle ornamental background
+   * warm green / cream / champagne gold accents
+4. Avoid making hero too crowded.
+
+Part C — Reduce demo-label fatigue
+
+1. Keep honesty, but reduce repeated warning feel.
+2. Prefer one global note per page or section:
+   “Mode Tinjauan Pengurus — Data simulasi untuk review, bukan data resmi.”
+3. On cards, use smaller badges:
+
+   * Simulasi
+   * Contoh
+   * Pilot
+4. Remove repeated long warning text where it makes pages feel dry.
+
+Part D — Upgrade Layanan entry feeling
+
+1. Make Layanan feel like resident quick actions, not static service cards.
+2. Use wording like:
+
+   * Ajukan pengaduan
+   * Daftar warga
+   * Tinjau iuran
+   * Kontribusi warga
+   * Administrasi
+   * Usulan warga
+3. Keep all actions as static demo links.
+4. Do not add working submit behavior.
+
+Part E — Upgrade visual proof cards
+
+Improve homepage Highlight Portal cards so each has visual proof:
+
+1. Ma'niez Donut pilot:
+
+   * use product image
+   * link to PALUGADA detail
+2. Dokumentasi Kegiatan:
+
+   * use kegiatan image
+   * link to Kegiatan
+3. Transparansi Kas:
+
+   * use mini finance dashboard/charts
+   * link to Keuangan
+
+Part F — Consistency and premium feeling
+
+1. Keep typography, spacing, shadows, badges, and image ratios consistent.
+2. Avoid excessive card density.
+3. Keep transitions subtle and fast.
+4. Keep mobile layout clean.
+5. Maintain Rp 5.500.000 across all finance references.
+
+Quality checks:
+
+1. Run npm.cmd run lint
+2. Run npm.cmd run build
+3. Confirm out folder is generated
+4. Summarize changed files and UX improvements
+
+Recommended commit message:
+refine premium civic portal experience
+
+
+## Task 40 — Premium Experience and Motion Performance Pass
+
+Use the ui-ux-pro-max skill.
+
+Goal:
+Upgrade the perceived quality of CGV10 so it feels more premium, smoother, lighter, and more presentation-ready.
+
+This is not a feature task.
+This is an experience, motion, performance, and homepage refinement pass.
+
+Focus areas:
+
+* app/page.tsx
+* app/components/portal.tsx
+* app/globals.css
+* shared data files such as lib/portal-data.ts if needed
+
+Do not redesign the entire website from zero.
+Do not add new sections unless needed to improve homepage experience.
+Do not remove existing important modules.
+Do not add roadmap.
+
+Part A — Reduce heavy transitions
+
+1. Audit CSS/classes/components for heavy motion:
+
+   * transition-all
+   * long duration animations
+   * layout-shifting hover effects
+   * popovers that feel slow or janky
+   * image hover effects that feel excessive
+
+2. Replace heavy motion with premium subtle motion:
+
+   * transition opacity, transform, box-shadow only
+   * duration around 150ms–200ms
+   * small translate or scale only
+   * no aggressive movement
+   * no layout jump
+
+3. Ensure prefers-reduced-motion is respected in CSS.
+
+4. Header popovers and image previews should feel calm and immediate, not heavy.
+
+Part B — Homepage premium residential refinement
+
+1. Make the homepage feel less like an internal dashboard and more like a premium residential public portal.
+
+2. Keep the portal preview board, but make it feel like proof/supporting visual, not the only hero personality.
+
+3. Add more emotional residential character using existing local visual assets if suitable:
+
+   * kegiatan images
+   * security/lingkungan images
+   * PALUGADA pilot image
+   * subtle ornamental residential shapes
+
+4. Improve hero visual hierarchy:
+
+   * strong editorial headline
+   * concise subtitle
+   * clear CTA
+   * supporting portal preview board
+   * softer spatial rhythm
+
+5. Reduce stiffness:
+
+   * less repeated demo warnings
+   * less generic card text
+   * stronger section rhythm
+   * more visual proof
+   * more premium spacing
+
+Part C — Make homepage sections feel alive
+
+1. Fokus Tahap Awal:
+
+   * keep cards clickable
+   * make them feel like premium entry points, not plain cards
+   * add subtle visual previews or richer motifs
+   * make CTA labels clearer
+
+2. Info Cepat:
+
+   * keep values:
+     Saldo Kas RT: Rp 5.500.000
+     Jumlah KK: 128 KK
+     Pengaduan Aktif: 2 laporan
+     Kegiatan Terdekat: Kerja bakti lingkungan
+   * make it feel like a polished public dashboard snapshot
+   * reduce repetitive labels
+   * keep simulation label concise
+
+3. Highlight Portal:
+
+   * use visual thumbnails
+   * reduce generic wording
+   * make Ma'niez, Kegiatan, and Keuangan feel like real preview cards
+
+Part D — Brand identity consistency
+
+1. Keep main brand as:
+   CGV10 — Portal Digital Warga
+
+2. Fix the portal logo popover so it does not feel like a different brand from the header.
+
+3. Preferred behavior:
+
+   * Header remains compact CGV10 mark + text.
+   * Popover title: CGV10 — Portal Digital Warga.
+   * Full Portal Warga CGV logo can appear as supporting preview, but label it clearly:
+     “Preview identitas portal warga”
+   * Do not make it feel like a separate competing logo.
+
+4. Keep RT official logo popover as currently working.
+
+Part E — Data consistency
+
+1. Search the project for:
+   Rp 23.000.000
+   23.000.000
+
+2. Ensure no outdated finance value remains.
+
+3. Keep homepage, portal preview board, Info Cepat, Highlight Portal, and Keuangan page aligned with:
+   Rp 5.500.000
+
+4. If possible, centralize key demo stats in one shared data object so future mismatch is less likely.
+
+Part F — Performance and static export
+
+1. Keep static export compatible with Netlify publish directory out.
+2. Avoid adding large unnecessary scripts.
+3. Avoid adding animation libraries.
+4. Use existing CSS/React only.
+5. Keep images efficient and avoid excessive eager loading.
+6. Run build successfully.
+
+Quality checks:
+
+1. Run npm.cmd run lint
+2. Run npm.cmd run build
+3. Confirm out folder is generated
+4. Summarize:
+
+   * motion changes
+   * homepage visual changes
+   * brand consistency changes
+   * data consistency check
+   * changed files
+
+Recommended commit message:
+polish premium experience and motion performance
+
 
 ## Task 39 — Premium Brand Popover and Image Preview System
 
