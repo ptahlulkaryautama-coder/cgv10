@@ -1,0 +1,98 @@
+{
+  "name": "CGV10 - Portal Digital Warga",
+  "short_name": "CGV10",
+  "description": "Portal digital warga Cipta Greenville RT 010 / RW 021.",
+  "id": "/portal/?source=pwa",
+  "start_url": "/portal/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8f5f0",
+  "theme_color": "#003d34",
+  "categories": ["productivity", "utilities", "community"],
+  "lang": "id",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/assets/pwa/cgv10-pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/pwa/cgv10-maskable-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/pwa/cgv10-screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "CGV10 portal desktop overview"
+    },
+    {
+      "src": "/assets/pwa/cgv10-screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "label": "CGV10 portal mobile overview"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Portal Warga",
+      "short_name": "Portal",
+      "description": "Buka beranda aplikasi warga CGV10.",
+      "url": "/portal/?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/assets/pwa/cgv10-pwa-icon-512.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Layanan Warga",
+      "short_name": "Layanan",
+      "description": "Buka kanal layanan warga CGV10.",
+      "url": "/layanan/?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/assets/pwa/cgv10-pwa-icon-512.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Kabar Warga",
+      "short_name": "Kabar",
+      "description": "Lihat kabar dan kegiatan warga.",
+      "url": "/kabar-warga/?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/assets/pwa/cgv10-pwa-icon-512.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "PALUGADA CGV",
+      "short_name": "PALUGADA",
+      "description": "Buka katalog PALUGADA CGV.",
+      "url": "/palugada/?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/assets/pwa/cgv10-pwa-icon-512.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

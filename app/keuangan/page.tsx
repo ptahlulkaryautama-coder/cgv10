@@ -1,64 +1,15 @@
+import Link from "next/link";
 import {
   Icon,
   PageShell,
   PlaceholderNotice,
   SectionHeading,
 } from "../components/portal";
+import { financeTotals, financeTransactions as transactions } from "@/lib/portal-data";
 
-const transactions = [
-  {
-    description: "Dana kas RT",
-    quantity: 1,
-    unitAmount: 2000000,
-    subtotal: 2000000,
-    shortLabel: "Dana kas RT",
-    color: "#003d34",
-  },
-  {
-    description: "Pendaftaran Calon Doddy",
-    quantity: 1,
-    unitAmount: 500000,
-    subtotal: 500000,
-    shortLabel: "Calon Doddy",
-    color: "#d4af37",
-  },
-  {
-    description: "Pendaftaran Calon Fikri",
-    quantity: 1,
-    unitAmount: 500000,
-    subtotal: 500000,
-    shortLabel: "Calon Fikri",
-    color: "#006d5b",
-  },
-  {
-    description: "Pendaftaran Calon Meyer",
-    quantity: 1,
-    unitAmount: 500000,
-    subtotal: 500000,
-    shortLabel: "Calon Meyer",
-    color: "#e8c670",
-  },
-  {
-    description: "Dari KPU Sebelumnya",
-    quantity: 1,
-    unitAmount: 1000000,
-    subtotal: 1000000,
-    shortLabel: "KPU Sebelumnya",
-    color: "#002d27",
-  },
-  {
-    description: "Dari Sumbangan Warga - Mandeville 09",
-    quantity: 1,
-    unitAmount: 1000000,
-    subtotal: 1000000,
-    shortLabel: "Mandeville 09",
-    color: "#b8942f",
-  },
-] as const;
-
-const totalIncome = transactions.reduce((sum, item) => sum + item.subtotal, 0);
-const totalExpense = 0;
-const endingBalance = totalIncome - totalExpense;
+const totalIncome = financeTotals.income;
+const totalExpense = financeTotals.expense;
+const endingBalance = financeTotals.endingBalance;
 const maxContribution = Math.max(...transactions.map((item) => item.subtotal));
 
 const summaryCards = [
@@ -276,6 +227,32 @@ export default function KeuanganPage() {
       </section>
 
       <section className="bg-background">
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 xl:px-10">
+          <div className="grid gap-5 rounded-2xl border border-border bg-surface p-5 shadow-sm lg:grid-cols-[1fr_auto] lg:items-center">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">
+                Iuran Warga
+              </p>
+              <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
+                Konfirmasi iuran atau tanyakan catatan pembayaran.
+              </h2>
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
+                Warga bisa mengirim draft konfirmasi ke pengurus dengan format
+                yang rapi: nama, cluster, nomor WhatsApp, nominal, dan catatan
+                pembayaran.
+              </p>
+            </div>
+            <Link
+              href="/layanan/#form-layanan"
+              className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+            >
+              Konfirmasi iuran
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-background">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 xl:px-10">
           <SectionHeading
             eyebrow="Detail Grafik"
@@ -436,7 +413,7 @@ export default function KeuanganPage() {
             </PlaceholderNotice>
             <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-surface">
               <div className="overflow-x-auto">
-                <table className="min-w-[760px] w-full border-collapse text-left text-sm">
+                <table className="w-full table-fixed border-collapse text-left text-sm">
                   <thead className="bg-primary text-white">
                     <tr>
                       <th scope="col" className="px-4 py-4 font-semibold">
@@ -465,7 +442,7 @@ export default function KeuanganPage() {
                         <td className="px-4 py-4 font-semibold text-primary">
                           {index + 1}
                         </td>
-                        <td className="px-4 py-4 font-semibold text-foreground">
+                        <td className="break-words px-4 py-4 font-semibold text-foreground">
                           {item.description}
                         </td>
                         <td className="px-4 py-4 text-muted">

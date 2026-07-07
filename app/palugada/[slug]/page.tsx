@@ -24,6 +24,21 @@ function getDetailItem(slug: string) {
   return palugadaDetailItems.find((item) => item.detailSlug === slug);
 }
 
+function getTrustBadges({
+  hasWhatsappContact,
+  isPrimaryListing,
+}: {
+  hasWhatsappContact: boolean;
+  isPrimaryListing: boolean;
+}) {
+  return [
+    isPrimaryListing ? "Lapak pilot" : "Lapak warga",
+    hasWhatsappContact ? "Kontak WhatsApp tersedia" : "Kontak via pengurus",
+    "Katalog aktif",
+    "Perlu konfirmasi penyedia",
+  ];
+}
+
 export async function generateMetadata({
   params,
 }: DetailPageProps): Promise<Metadata> {
@@ -79,18 +94,22 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
   const catalogNote =
     item.catalogNote ??
     "Detail katalog membantu warga mengenal usaha dan layanan di lingkungan.";
+  const trustBadges = getTrustBadges({
+    hasWhatsappContact,
+    isPrimaryListing,
+  });
 
   return (
     <PageShell>
       <section className="border-b border-border bg-primary text-white">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.08fr_0.92fr] lg:px-8 lg:py-16 xl:px-10">
-          <div className="relative min-h-[320px] overflow-hidden rounded-2xl border border-white/14 bg-foreground/20 shadow-[0_22px_70px_rgba(7,35,23,0.24)] sm:min-h-[460px]">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-16 xl:px-10">
+          <div className="relative min-h-[330px] overflow-hidden rounded-2xl border border-white/14 bg-foreground/20 shadow-[0_22px_70px_rgba(7,35,23,0.24)] sm:min-h-[480px]">
             <ImagePreview
               src={item.imageSrc}
               alt={item.imageAlt}
               title={item.name}
               caption="Foto utama detail PALUGADA"
-              className="h-full min-h-[320px] sm:min-h-[460px]"
+              className="h-full min-h-[330px] sm:min-h-[480px]"
             >
               <Image
                 src={item.imageSrc}
@@ -101,9 +120,17 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                 className="object-cover"
               />
             </ImagePreview>
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-primary/72 via-primary/12 to-transparent" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-primary/78 via-primary/14 to-transparent" />
             <div className="pointer-events-none absolute left-4 top-4 rounded-full bg-accent-soft px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-foreground shadow-sm">
-              {hasWhatsappContact ? whatsappLabel : "Katalog warga"}
+              {isPrimaryListing ? "Lapak pilot" : item.category}
+            </div>
+            <div className="pointer-events-none absolute bottom-4 left-4 right-4 rounded-xl border border-white/18 bg-primary/78 p-4 backdrop-blur">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-soft">
+                {item.category} - {item.cluster}
+              </p>
+              <p className="mt-2 text-sm leading-6 text-white/86">
+                {item.price}
+              </p>
             </div>
           </div>
 
@@ -123,31 +150,59 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
             <p className="mt-5 text-base leading-7 text-white/84 sm:text-lg sm:leading-8">
               {item.detailDescription}
             </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white">
-                Katalog Warga
-              </span>
-              <span className="inline-flex rounded-full border border-accent-soft/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-foreground">
-                {hasWhatsappContact ? whatsappLabel : "Kontak via pengurus"}
-              </span>
+            <div className="mt-7 flex flex-wrap gap-2">
+              {trustBadges.map((badge) => (
+                <span
+                  key={badge}
+                  className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white"
+                >
+                  {badge}
+                </span>
+              ))}
+            </div>
+            <div className="mt-7 grid gap-3 sm:grid-cols-2">
+              {item.whatsappHref ? (
+                <Link
+                  href={item.whatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-12 items-center justify-center rounded-xl bg-accent px-5 text-sm font-semibold text-foreground shadow-sm transition-colors hover:bg-accent/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  aria-label={`${whatsappLabel} untuk ${item.name}`}
+                >
+                  {whatsappLabel}
+                </Link>
+              ) : (
+                <Link
+                  href="/kontak/"
+                  className="inline-flex min-h-12 items-center justify-center rounded-xl bg-accent px-5 text-sm font-semibold text-foreground shadow-sm transition-colors hover:bg-accent/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  Tanya kontak
+                </Link>
+              )}
+              <Link
+                href="/palugada/daftar/"
+                className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/18 bg-white/10 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
+              >
+                Daftar lapak
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20 xl:px-10">
-        <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
-          <aside className="space-y-4">
+        <div className="grid gap-8 lg:grid-cols-[0.34fr_0.66fr] lg:items-start">
+          <aside className="space-y-5 lg:sticky lg:top-32">
             <PlaceholderNotice>
               {catalogNote}{" "}
               {hasWhatsappContact
-                ? "Warga dapat menggunakan kontak PALUGADA untuk konfirmasi awal."
-                : "Informasi kontak dapat diarahkan melalui pengurus atau kanal PALUGADA."}
+                ? "Gunakan WhatsApp untuk konfirmasi awal langsung ke penyedia."
+                : "Kontak dapat diarahkan melalui pengurus atau kanal PALUGADA."}
             </PlaceholderNotice>
 
             <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-                Status katalog
+                Ringkasan kontak
               </p>
               <div className="mt-5 space-y-4 text-sm">
                 <div className="flex items-center justify-between gap-4 border-b border-border pb-4">
@@ -169,7 +224,7 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted">WA</span>
+                  <span className="text-muted">Kontak</span>
                   <span className="text-right font-semibold text-foreground">
                     {item.whatsappStatus ?? "Kontak via pengurus"}
                   </span>
@@ -194,14 +249,22 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                   {whatsappLabel}
                 </Link>
               ) : (
-                <button
-                  type="button"
-                  disabled
-                  className="mt-6 inline-flex min-h-11 w-full cursor-not-allowed items-center justify-center rounded-xl bg-primary-soft px-4 text-sm font-semibold text-primary/70"
+                <Link
+                  href="/kontak/"
+                  className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
                 >
-                  Kontak via pengurus
-                </button>
+                  Tanya kontak
+                </Link>
               )}
+            </div>
+
+            <div className="rounded-2xl border border-accent/40 bg-accent-soft/65 p-5 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                Catatan transaksi
+              </p>
+              <p className="mt-3 text-sm leading-6 text-foreground/78">
+                {transactionStatus}
+              </p>
             </div>
           </aside>
 
@@ -212,11 +275,11 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
               </p>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
                 {isPrimaryListing
-                  ? "Lapak awal untuk format katalog PALUGADA."
-                  : "Ringkasan katalog PALUGADA."}
+                  ? "Lapak pilot untuk format PALUGADA."
+                  : "Listing katalog PALUGADA."}
               </h2>
               <p className="mt-4 text-base leading-7 text-foreground">
-                {item.detailDescription}
+                {item.productDetail}
               </p>
               <div className="mt-6 grid gap-3 text-sm sm:grid-cols-3">
                 <div className="rounded-xl border border-accent/30 bg-surface/80 p-4">
@@ -226,39 +289,34 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                   </p>
                 </div>
                 <div className="rounded-xl border border-accent/30 bg-surface/80 p-4">
-                  <span className="text-muted">Cluster</span>
+                  <span className="text-muted">Area</span>
                   <p className="mt-2 font-semibold text-foreground">
                     {item.cluster}
                   </p>
                 </div>
                 <div className="rounded-xl border border-accent/30 bg-surface/80 p-4">
-                  <span className="text-muted">Kontak</span>
+                  <span className="text-muted">Status</span>
                   <p className="mt-2 font-semibold text-foreground">
-                    {item.whatsappStatus ?? "Kontak via pengurus"}
+                    {item.catalogStatusNote}
                   </p>
-                  {item.whatsappDisplayNumber ? (
-                    <p className="mt-1 text-sm font-semibold text-primary">
-                      {item.whatsappDisplayNumber}
-                    </p>
-                  ) : null}
                 </div>
               </div>
             </article>
 
             <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
-              <div className="mb-5 grid h-12 w-12 place-items-center rounded-xl bg-primary-soft text-primary">
-                <Icon name={item.icon} />
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                    Galeri
+                  </p>
+                  <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
+                    Foto dan konteks listing.
+                  </h2>
+                </div>
+                <span className="w-fit rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary">
+                  {galleryImages.length} foto
+                </span>
               </div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-                Detail Produk
-              </p>
-              <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                Informasi katalog untuk warga.
-              </h2>
-              <p className="mt-4 text-base leading-7 text-muted">
-                {item.productDetail}
-              </p>
-
               <div className="mt-6 grid gap-4 sm:grid-cols-3">
                 {galleryImages.map((image) => (
                   <ImagePreview
@@ -279,44 +337,49 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                   </ImagePreview>
                 ))}
               </div>
-
-              <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_0.9fr]">
-                <div className="rounded-2xl border border-border bg-background p-4">
-                  <p className="text-sm font-semibold text-foreground">
-                    Varian
-                  </p>
-                  <ul className="mt-4 space-y-3 text-sm leading-6 text-muted">
-                    {variants.map((scope) => (
-                      <li key={scope} className="flex gap-3">
-                        <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-accent" />
-                        <span>{scope}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="rounded-2xl border border-border bg-cream p-4">
-                    <p className="text-sm font-semibold text-foreground">
-                      Format pesanan
-                    </p>
-                    <ul className="mt-3 space-y-2 text-sm leading-6 text-muted">
-                      {orderFormats.map((format) => (
-                        <li key={format}>{format}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="rounded-2xl border border-accent/35 bg-accent-soft/55 p-4">
-                    <p className="text-sm font-semibold text-foreground">
-                      Catatan ketersediaan
-                    </p>
-                    <p className="mt-3 text-sm leading-6 text-foreground">
-                      {item.availabilityNote}
-                    </p>
-                  </div>
-                </div>
-              </div>
             </article>
+
+            <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
+              <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
+                <div className="mb-5 grid h-12 w-12 place-items-center rounded-xl bg-primary-soft text-primary">
+                  <Icon name={item.icon} />
+                </div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                  Pilihan atau cakupan
+                </p>
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
+                  Informasi utama untuk warga.
+                </h2>
+                <ul className="mt-5 space-y-3 text-sm leading-6 text-muted">
+                  {variants.map((scope) => (
+                    <li key={scope} className="flex gap-3">
+                      <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-accent" />
+                      <span>{scope}</span>
+                    </li>
+                  ))}
+                </ul>
+              </article>
+
+              <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
+                <div className="mb-5 grid h-12 w-12 place-items-center rounded-xl bg-primary-soft text-primary">
+                  <Icon name="message" />
+                </div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                  Format pesanan
+                </p>
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
+                  Cara warga memahami order awal.
+                </h2>
+                <ul className="mt-5 space-y-3 text-sm leading-6 text-muted">
+                  {orderFormats.map((format) => (
+                    <li key={format} className="flex gap-3">
+                      <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-accent" />
+                      <span>{format}</span>
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
               <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
@@ -327,7 +390,7 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                   Area layanan
                 </p>
                 <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                  Area layanan mengikuti informasi penyedia.
+                  Area mengikuti informasi penyedia.
                 </h2>
                 <ul className="mt-5 space-y-3 text-sm leading-6 text-muted">
                   {serviceAreas.map((area) => (
@@ -341,46 +404,29 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
 
               <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
                 <div className="mb-5 grid h-12 w-12 place-items-center rounded-xl bg-primary-soft text-primary">
-                  <Icon name="shield" />
+                  <Icon name="calendar" />
                 </div>
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-                  Status transaksi
+                  Ketersediaan
                 </p>
                 <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                  {hasWhatsappContact
-                    ? "WhatsApp untuk konfirmasi awal pesanan."
-                    : "Kontak dapat diarahkan melalui pengurus."}
+                  Konfirmasi sebelum memesan.
                 </h2>
                 <p className="mt-5 text-sm leading-6 text-muted">
-                  {transactionStatus}
+                  {item.availabilityNote}
                 </p>
               </article>
             </div>
 
             <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
               <div className="mb-5 grid h-12 w-12 place-items-center rounded-xl bg-accent-soft text-foreground">
-                <Icon name={item.icon} />
+                <Icon name="shield" />
               </div>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-                Profil penyedia
+                Trust layer
               </p>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                Informasi profil untuk membantu warga mengenal penyedia.
-              </h2>
-              <p className="mt-4 text-base leading-7 text-muted">
-                {item.providerProfile}
-              </p>
-            </article>
-
-            <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
-              <div className="mb-5 grid h-12 w-12 place-items-center rounded-xl bg-accent-soft text-foreground">
-                <Icon name="file" />
-              </div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-                Alur informasi
-              </p>
-              <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                Informasi katalog dikelola agar tetap rapi dan mudah dibaca.
+                Informasi dibuat jelas sebelum warga menghubungi penyedia.
               </h2>
               <div className="mt-6 grid gap-4 sm:grid-cols-3">
                 {validationSteps.map((step, index) => (
@@ -395,6 +441,21 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                   </div>
                 ))}
               </div>
+            </article>
+
+            <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
+              <div className="mb-5 grid h-12 w-12 place-items-center rounded-xl bg-accent-soft text-foreground">
+                <Icon name={item.icon} />
+              </div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                Profil penyedia
+              </p>
+              <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
+                Siapa yang ada di balik listing ini.
+              </h2>
+              <p className="mt-4 text-base leading-7 text-muted">
+                {item.providerProfile}
+              </p>
             </article>
 
             <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
@@ -431,14 +492,11 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                         className="object-cover transition-opacity duration-200 group-hover:opacity-95"
                       />
                       <span className="absolute left-3 top-3 rounded-full bg-accent-soft px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-foreground shadow-sm">
-                        Katalog
+                        {related.category}
                       </span>
                     </div>
                     <div className="p-4">
-                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-                        {related.category}
-                      </p>
-                      <h3 className="mt-2 text-base font-semibold leading-snug text-foreground">
+                      <h3 className="text-base font-semibold leading-snug text-foreground">
                         {related.name}
                       </h3>
                       <p className="mt-2 text-sm text-muted">

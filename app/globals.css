@@ -97,3 +97,23 @@ html {
     min-height: auto;
   }
 }
+
+.hydrated-only {
+  display: none;
+}
+
+html[data-cgv10-hydrated="true"] .hydrated-only {
+  display: block;
+}
+
+html[data-cgv10-hydrated="true"] .not-hydrated-only {
+  display: none;
+}
+
+.target-modal {
+  display: none;
+}
+
+.target-modal:target {
+  display: flex;
+}

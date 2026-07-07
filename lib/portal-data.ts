@@ -1,3 +1,8 @@
+import {
+  pengurusClusterCoordinators,
+  pengurusLeadership,
+} from "./cgv10-master-data";
+
 export type IconName =
   | "home"
   | "users"
@@ -32,6 +37,15 @@ export type FinanceRow = {
   value: string;
 };
 
+export type FinanceTransaction = {
+  description: string;
+  quantity: number;
+  unitAmount: number;
+  subtotal: number;
+  shortLabel: string;
+  color: string;
+};
+
 export type MarketplaceItem = {
   name: string;
   category: string;
@@ -64,6 +78,20 @@ export type MarketplaceItem = {
   whatsappLabel?: string;
   whatsappDisplayNumber?: string;
   whatsappStatus?: string;
+};
+
+export type PalugadaDraftItem = {
+  id: string;
+  name: string;
+  owner: string;
+  category: string;
+  cluster: string;
+  submittedAt: string;
+  status: "Draft diterima" | "Perlu verifikasi" | "Siap tayang";
+  priority: "Normal" | "Tinggi";
+  contactStatus: string;
+  nextAction: string;
+  completeness: string;
 };
 
 export type ContactEntry = {
@@ -226,45 +254,87 @@ export const kegiatanItems: KegiatanItem[] = [
 ];
 
 // Public pengurus structure shown in the portal.
-export const pengurusRoles: IconCard[] = [
-  {
-    title: "Ketua RT",
-    name: "Doddy Dharma",
-    text: "Ketua RT yang berdomisili di Cipta Greenville, Blok Greenwich.",
-    icon: "users",
-    location: "Cipta Greenville, Blok Greenwich",
-    imageSrc: "/assets/pengurus/doddy-dharma.png",
-    imageAlt: "Doddy Dharma, Ketua RT",
-  },
-  {
-    title: "Sekretaris",
-    text: "Peran sekretaris mendukung administrasi dan dokumentasi warga.",
-    icon: "users",
-  },
-  {
-    title: "Bendahara",
-    text: "Peran bendahara mendukung transparansi kas dan pencatatan iuran.",
-    icon: "users",
-  },
-  {
-    title: "Semua seksi",
-    text: "Struktur seksi membantu pembagian peran pengurus.",
-    icon: "users",
-  },
-  {
-    title: "Koordinator cluster",
-    text: "Koordinator cluster membantu jalur komunikasi antarwarga.",
-    icon: "users",
-  },
-];
+export const pengurusRoles: IconCard[] = pengurusLeadership.map((member) => ({
+  title: member.jabatan,
+  name: member.nama,
+  text: `${member.jabatan} dalam Struktur Kepengurusan RT 010 / RW 021 Cipta Greenville.`,
+  icon: "users",
+  location: "Cipta Greenville",
+  imageSrc:
+    member.id === "ketua-rt-doddy-dharma"
+      ? "/assets/pengurus/doddy-dharma.png"
+      : undefined,
+  imageAlt:
+    member.id === "ketua-rt-doddy-dharma"
+      ? "Doddy Dharma, Ketua RT"
+      : undefined,
+}));
 
 // Public finance summary shown in the portal.
 export const financeRows: FinanceRow[] = [
-  { label: "Saldo awal", value: "Rp 8.500.000" },
-  { label: "Pemasukan", value: "Rp 20.250.000" },
-  { label: "Pengeluaran", value: "Rp 5.750.000" },
+  { label: "Saldo awal", value: "Rp 0" },
+  { label: "Pemasukan", value: "Rp 5.500.000" },
+  { label: "Pengeluaran", value: "Rp 0" },
   { label: "Saldo akhir", value: "Rp 5.500.000" },
 ];
+
+export const financeTransactions: FinanceTransaction[] = [
+  {
+    description: "Dana kas RT",
+    quantity: 1,
+    unitAmount: 2000000,
+    subtotal: 2000000,
+    shortLabel: "Dana kas RT",
+    color: "#003d34",
+  },
+  {
+    description: "Pendaftaran Calon Doddy",
+    quantity: 1,
+    unitAmount: 500000,
+    subtotal: 500000,
+    shortLabel: "Calon Doddy",
+    color: "#d4af37",
+  },
+  {
+    description: "Pendaftaran Calon Fikri",
+    quantity: 1,
+    unitAmount: 500000,
+    subtotal: 500000,
+    shortLabel: "Calon Fikri",
+    color: "#006d5b",
+  },
+  {
+    description: "Pendaftaran Calon Meyer",
+    quantity: 1,
+    unitAmount: 500000,
+    subtotal: 500000,
+    shortLabel: "Calon Meyer",
+    color: "#e8c670",
+  },
+  {
+    description: "Dari KPU Sebelumnya",
+    quantity: 1,
+    unitAmount: 1000000,
+    subtotal: 1000000,
+    shortLabel: "KPU Sebelumnya",
+    color: "#002d27",
+  },
+  {
+    description: "Dari Sumbangan Warga - Mandeville 09",
+    quantity: 1,
+    unitAmount: 1000000,
+    subtotal: 1000000,
+    shortLabel: "Mandeville 09",
+    color: "#b8942f",
+  },
+];
+
+export const financeTotals = {
+  openingBalance: 0,
+  income: financeTransactions.reduce((sum, item) => sum + item.subtotal, 0),
+  expense: 0,
+  endingBalance: financeTransactions.reduce((sum, item) => sum + item.subtotal, 0),
+};
 
 // Public announcement content for residents.
 export const announcements: IconCard[] = [
@@ -296,6 +366,109 @@ export const palugadaCategories: { title: string; icon: IconName }[] = [
   { title: "Jasa", icon: "briefcase" },
   { title: "Properti", icon: "building" },
   { title: "Lainnya", icon: "file" },
+];
+
+export const palugadaOnboardingSteps: {
+  title: string;
+  text: string;
+  icon: IconName;
+}[] = [
+  {
+    title: "Isi draft lapak",
+    text: "Warga menyiapkan nama usaha, kategori, cluster, kontak, harga/status, dan deskripsi singkat.",
+    icon: "file",
+  },
+  {
+    title: "Kirim ke pengurus",
+    text: "Draft dikirim melalui WhatsApp agar data awal bisa dicek tanpa membuat akun baru.",
+    icon: "message",
+  },
+  {
+    title: "Masuk kurasi",
+    text: "Pengurus memeriksa kelengkapan, foto, dan catatan kontak sebelum listing ditampilkan.",
+    icon: "shield",
+  },
+];
+
+export const palugadaReviewStages: {
+  title: string;
+  status: string;
+  text: string;
+  icon: IconName;
+}[] = [
+  {
+    title: "Draft diterima",
+    status: "Intake",
+    text: "Data lapak sudah masuk sebagai draft awal dan siap dicek kelengkapannya.",
+    icon: "file",
+  },
+  {
+    title: "Perlu verifikasi",
+    status: "Review",
+    text: "Kontak, foto, kategori, area, dan catatan harga dicek agar jelas untuk warga.",
+    icon: "shield",
+  },
+  {
+    title: "Siap tayang",
+    status: "Publish",
+    text: "Listing dapat dipindahkan ke katalog aktif setelah informasi utama cukup rapi.",
+    icon: "store",
+  },
+];
+
+export const palugadaDraftItems: PalugadaDraftItem[] = [
+  {
+    id: "PLG-001",
+    name: "Ma'niez Donut",
+    owner: "Warga Cluster Colloseum",
+    category: "Kuliner",
+    cluster: "Cluster Colloseum",
+    submittedAt: "27 Jun 2026",
+    status: "Siap tayang",
+    priority: "Normal",
+    contactStatus: "WhatsApp tersedia",
+    nextAction: "Jaga sebagai listing pilot aktif.",
+    completeness: "100%",
+  },
+  {
+    id: "PLG-002",
+    name: "Laundry Kiloan Pinnata",
+    owner: "Warga Cluster Pinnata",
+    category: "Jasa",
+    cluster: "Cluster Pinnata",
+    submittedAt: "29 Jun 2026",
+    status: "Perlu verifikasi",
+    priority: "Tinggi",
+    contactStatus: "Nomor perlu dicek",
+    nextAction: "Validasi nomor WhatsApp dan jam operasional.",
+    completeness: "72%",
+  },
+  {
+    id: "PLG-003",
+    name: "Tanaman Hias Rumah",
+    owner: "Warga Cluster Greenwich",
+    category: "Barang",
+    cluster: "Cluster Greenwich",
+    submittedAt: "30 Jun 2026",
+    status: "Draft diterima",
+    priority: "Normal",
+    contactStatus: "Kontak via pengurus",
+    nextAction: "Minta foto produk dan kisaran harga.",
+    completeness: "48%",
+  },
+  {
+    id: "PLG-004",
+    name: "Catering Rumahan",
+    owner: "Warga Cluster Meteora",
+    category: "Kuliner",
+    cluster: "Cluster Meteora",
+    submittedAt: "30 Jun 2026",
+    status: "Perlu verifikasi",
+    priority: "Normal",
+    contactStatus: "Kontak perlu konfirmasi",
+    nextAction: "Lengkapi menu, batas PO, dan area layanan.",
+    completeness: "68%",
+  },
 ];
 
 // Public PALUGADA catalog content.
@@ -497,24 +670,14 @@ export const palugadaDetailItems = marketplaceItems.filter(
 
 // Public contact entries for residents.
 export const contacts: ContactEntry[] = [
+  ...pengurusLeadership.map((member) => ({
+    role: member.jabatan,
+    text: `${member.nama} tercatat dalam struktur resmi pengurus. Kontak pribadi tidak dipublikasikan di portal.`,
+    qrStatus: "Kontak dikelola melalui kanal resmi pengurus",
+  })),
   {
-    role: "Ketua RT",
-    text: "Kontak pengurus tersedia melalui kanal resmi lingkungan.",
-    qrStatus: "QR dikelola melalui pengurus",
-  },
-  {
-    role: "Sekretaris",
-    text: "Kontak pengurus tersedia melalui kanal resmi lingkungan.",
-    qrStatus: "QR dikelola melalui pengurus",
-  },
-  {
-    role: "Bendahara",
-    text: "Kontak pengurus tersedia melalui kanal resmi lingkungan.",
-    qrStatus: "QR dikelola melalui pengurus",
-  },
-  {
-    role: "Keamanan",
-    text: "Kontak pengurus tersedia melalui kanal resmi lingkungan.",
-    qrStatus: "QR dikelola melalui pengurus",
+    role: "Koordinator Cluster",
+    text: `${pengurusClusterCoordinators.length} koordinator cluster tercatat untuk jalur komunikasi warga.`,
+    qrStatus: "Kontak dikelola melalui kanal resmi pengurus",
   },
 ];

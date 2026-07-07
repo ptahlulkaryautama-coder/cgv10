@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Icon, PageShell, PlaceholderNotice } from "../components/portal";
+import { Icon, PageShell } from "../components/portal";
+import { ContactRoutingForm } from "./contact-routing-form";
 
 export default function KontakPage() {
   return (
@@ -19,18 +20,20 @@ export default function KontakPage() {
               Kontak pengurus ditempatkan bersama struktur resmi.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-white/84 sm:text-lg sm:leading-8">
-              Rute ini tetap tersedia agar tautan lama tidak rusak, tetapi
-              direktori kontak resmi sekarang dipusatkan di halaman Pengurus.
+              Warga bisa memilih kanal kontak, menulis pesan singkat, lalu
+              mengirim draft WhatsApp yang sudah rapi ke pengurus.
             </p>
             <Link
-              href="/pengurus/#kontak-pengurus"
+              href="#kontak-cepat"
               className="mt-8 inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl bg-accent px-5 text-base font-semibold text-foreground shadow-[0_18px_42px_rgba(212,175,55,0.24)] transition-colors duration-200 hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
             >
-              Buka Kontak Pengurus
+              Pilih kanal kontak
             </Link>
           </div>
         </div>
       </section>
+
+      <ContactRoutingForm />
 
       <section className="mx-auto max-w-5xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
         <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
@@ -43,20 +46,21 @@ export default function KontakPage() {
                 Halaman transisi
               </p>
               <h2 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
-                Buka kontak melalui halaman Pengurus.
+                Direktori peran tetap tersedia di halaman Pengurus.
               </h2>
               <p className="mt-3 text-sm leading-6 text-muted">
-                Kontak pengurus dipusatkan di halaman Pengurus agar warga
-                menemukan jalur komunikasi yang tepat dalam satu konteks.
+                Untuk melihat struktur peran dan konteks tanggung jawab, warga
+                tetap bisa membuka halaman Pengurus. Untuk pesan cepat, gunakan
+                form kontak di atas.
               </p>
+              <Link
+                href="/pengurus/#kontak-pengurus"
+                className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-background px-4 text-sm font-semibold text-primary transition-colors duration-200 hover:border-primary/35 hover:bg-primary-soft"
+              >
+                Buka direktori pengurus
+              </Link>
             </div>
           </div>
-        </div>
-        <div className="mt-6">
-          <PlaceholderNotice>
-            Gunakan halaman Pengurus sebagai direktori utama untuk informasi
-            peran dan jalur komunikasi lingkungan.
-          </PlaceholderNotice>
         </div>
       </section>
     </PageShell>

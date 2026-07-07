@@ -63,32 +63,24 @@ export function SiteHeader() {
             aria-label="Lihat identitas portal CGV10"
             className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-xl outline-none transition-colors marker:hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:gap-3 [&::-webkit-details-marker]:hidden"
           >
-            <span className="grid h-11 w-11 place-items-center rounded-2xl border border-border bg-surface shadow-sm sm:h-12 sm:w-12">
+            <span className="grid h-12 w-32 place-items-center overflow-hidden rounded-2xl border border-border bg-surface px-2 shadow-sm sm:h-14 sm:w-40">
               <Image
-                src="/assets/brand/cgv10-header-mark.svg"
-                alt="CGV10"
-                width="48"
-                height="48"
-                className="h-10 w-10 rounded-[0.9rem] sm:h-11 sm:w-11"
+                src="/assets/brand/official-cgv-logo-trimmed.png"
+                alt="Portal Warga CGV"
+                width="220"
+                height="98"
+                className="h-full w-full object-contain"
               />
-            </span>
-            <span className="flex flex-col leading-none">
-              <span className="text-lg font-semibold tracking-tight text-primary sm:text-2xl">
-                CGV10
-              </span>
-              <span className="mt-1 hidden text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-muted min-[430px]:block">
-                Portal Digital Warga
-              </span>
             </span>
           </summary>
           <div className="absolute left-0 top-full z-40 mt-3 w-72 rounded-2xl border border-border bg-surface p-4 text-center shadow-[0_24px_70px_rgba(20,90,58,0.18)]">
             <div className="mx-auto grid h-36 w-full place-items-center overflow-hidden rounded-2xl border border-border bg-background p-3">
               <Image
-                src="/assets/brand/official-cgv-logo.png"
+                src="/assets/brand/official-cgv-logo-trimmed.png"
                 alt="Portal Warga CGV"
-                width="230"
-                height="150"
-                className="h-28 w-auto object-contain"
+                width="300"
+                height="134"
+                className="h-full w-full object-contain"
               />
             </div>
             <p className="mt-4 text-sm font-semibold text-foreground">
@@ -189,13 +181,13 @@ export function SiteFooter() {
     <footer className="border-t border-border bg-surface">
       <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-5 text-sm text-muted sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8 xl:px-10">
         <div className="flex items-center gap-3">
-          <div className="grid h-12 w-24 place-items-center overflow-hidden rounded-2xl border border-border bg-background px-2">
+          <div className="grid h-16 w-36 place-items-center overflow-hidden rounded-2xl border border-border bg-background px-2 sm:w-44">
             <Image
-              src="/assets/brand/official-cgv-logo.png"
+              src="/assets/brand/official-cgv-logo-trimmed.png"
               alt="Portal Warga CGV"
-              width="140"
-              height="72"
-              className="h-10 w-auto object-contain"
+              width="240"
+              height="108"
+              className="h-full w-full object-contain"
             />
           </div>
           <div>
