@@ -156,10 +156,10 @@ export function SiteHeader() {
         </nav>
 
         <Link
-          href="/pengurus/#kontak-pengurus"
-          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-primary px-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-[380px]:hidden sm:px-4"
+          href="/masuk/"
+          className="hidden min-h-11 shrink-0 items-center justify-center rounded-xl bg-primary px-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:inline-flex sm:px-4"
         >
-          Hubungi Pengurus
+          Masuk Warga
         </Link>
       </div>
       <nav
@@ -274,5 +274,68 @@ export function PlaceholderNotice({ children }: { children: React.ReactNode }) {
     <div className="rounded-2xl border border-accent/35 bg-accent-soft/55 p-5 text-sm leading-6 text-foreground">
       {children}
     </div>
+  );
+}
+
+export function PwaInstallGuide({ compact = false }: { compact?: boolean }) {
+  const steps = [
+    {
+      title: "Android Chrome",
+      text: "Buka menu tiga titik, pilih Install app atau Add to Home screen, lalu konfirmasi ikon CGV10.",
+      icon: "phone" as IconName,
+    },
+    {
+      title: "iPhone Safari",
+      text: "Buka tombol Share, pilih Add to Home Screen, lalu simpan Portal Warga di layar utama.",
+      icon: "home" as IconName,
+    },
+  ];
+
+  return (
+    <section
+      id="install-portal"
+      className={compact ? "mt-8" : "border-y border-border bg-surface"}
+    >
+      <div
+        className={
+          compact
+            ? "rounded-2xl border border-border bg-surface p-5 shadow-sm"
+            : "mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12 xl:px-10"
+        }
+      >
+        <div className="grid gap-6 lg:grid-cols-[0.36fr_0.64fr] lg:items-start">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">
+              Install Portal
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
+              Simpan CGV10 seperti aplikasi mobile.
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-muted">
+              Warga bisa membuka portal dari home screen tanpa mencari ulang
+              link WhatsApp.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {steps.map((step) => (
+              <article
+                key={step.title}
+                className="rounded-2xl border border-border bg-background p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary">
+                    <Icon name={step.icon} />
+                  </span>
+                  <div>
+                    <h3 className="font-semibold text-foreground">{step.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-muted">{step.text}</p>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

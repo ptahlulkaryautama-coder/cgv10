@@ -14,6 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://portalwargacgv.id"),
   applicationName: "CGV10",
   title: "CGV10 — Portal Digital Warga",
   description:

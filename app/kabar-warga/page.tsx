@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Icon, PageShell } from "../components/portal";
-import { announcements, kegiatanItems } from "@/lib/portal-data";
+import { announcements, kabarArticles, kegiatanItems } from "@/lib/portal-data";
 
 type NewsItem = {
-  category: "Agenda" | "Pengumuman" | "Dokumentasi";
+  category: "Agenda" | "Pengumuman" | "Dokumentasi" | "Artikel";
   title: string;
   text: string;
   href: string;
@@ -60,6 +60,8 @@ function CategoryBadge({ category }: { category: NewsItem["category"] }) {
   const className =
     category === "Agenda"
       ? "bg-primary text-white"
+      : category === "Artikel"
+        ? "bg-white text-primary"
       : category === "Dokumentasi"
         ? "bg-accent-soft text-foreground"
         : "bg-primary-soft text-primary";
@@ -95,6 +97,8 @@ function NewsListCard({ item }: { item: NewsItem }) {
 }
 
 export default function KabarWargaPage() {
+  const featuredArticle = kabarArticles[0];
+
   return (
     <PageShell>
       <section className="border-b border-border bg-primary text-white">
@@ -121,6 +125,56 @@ export default function KabarWargaPage() {
                 <ArrowIcon />
               </Link>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-border bg-surface">
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12 xl:px-10">
+          <div className="grid gap-5 lg:grid-cols-[0.32fr_0.68fr] lg:items-start">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">
+                Artikel Warga
+              </p>
+              <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
+                Format artikel untuk pengumuman panjang.
+              </h2>
+              <p className="mt-3 text-sm leading-6 text-muted">
+                Selain foto dokumentasi, pengurus bisa menyiapkan naskah
+                editorial yang lebih lengkap.
+              </p>
+            </div>
+
+            <article className="overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
+              {featuredArticle.coverImageSrc ? (
+                <div className="relative aspect-[16/7] bg-cream">
+                  <Image
+                    src={featuredArticle.coverImageSrc}
+                    alt={featuredArticle.coverImageAlt ?? featuredArticle.title}
+                    fill
+                    sizes="(min-width: 1024px) 760px, 92vw"
+                    className="object-cover"
+                  />
+                </div>
+              ) : null}
+              <div className="p-5 sm:p-6">
+                <div className="flex flex-wrap items-center gap-3">
+                  <CategoryBadge category={featuredArticle.category} />
+                  <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                    {featuredArticle.publishedAt} - {featuredArticle.readTime}
+                  </span>
+                </div>
+                <h3 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
+                  {featuredArticle.title}
+                </h3>
+                <p className="mt-3 text-base leading-7 text-muted">
+                  {featuredArticle.excerpt}
+                </p>
+                <p className="mt-4 text-sm leading-7 text-foreground/78">
+                  {featuredArticle.body}
+                </p>
+              </div>
+            </article>
           </div>
         </div>
       </section>

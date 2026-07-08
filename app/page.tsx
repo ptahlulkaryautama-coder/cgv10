@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Icon, PageShell } from "./components/portal";
+import { Icon, PageShell, PwaInstallGuide } from "./components/portal";
 import { HeroImageRotator } from "./components/hero-image-rotator";
 import { quickInfo, type IconName } from "@/lib/portal-data";
 
@@ -91,11 +91,11 @@ export default function Home() {
         <div className="absolute inset-x-0 bottom-0 h-px bg-white/18" />
 
         <div className="relative mx-auto grid w-full max-w-7xl gap-8 px-4 pb-12 pt-10 sm:px-6 lg:min-h-[calc(100vh-92px)] lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:px-8 lg:pb-16 lg:pt-14 xl:px-10">
-          <div className="max-w-3xl">
+          <div className="min-w-0 max-w-3xl">
             <p className="inline-flex rounded-full border border-white/18 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-accent-soft shadow-sm backdrop-blur">
               Cipta Greenville - RT 010 / RW 021
             </p>
-            <h1 className="mt-6 text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
+            <h1 className="mt-6 max-w-full text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
               Portal Digital Warga CGV10
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-white/78 sm:text-lg sm:leading-8">
@@ -190,6 +190,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <PwaInstallGuide />
 
       <section className="border-y border-border bg-surface">
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12 xl:px-10">

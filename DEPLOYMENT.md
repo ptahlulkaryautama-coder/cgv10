@@ -49,6 +49,17 @@ Recommended settings:
 - Output / publish directory: use the platform default for Next.js unless the hosting provider requires specific configuration.
 - Environment variables: none required at this stage.
 
+## Approved Domain
+
+Primary public domain:
+
+```text
+https://portalwargacgv.id/
+```
+
+Keep HTTPS enabled and point DNS to the selected hosting provider before
+sharing the production address.
+
 ## Public Routes
 
 The preview should expose these static public routes:
@@ -59,6 +70,9 @@ The preview should expose these static public routes:
 - `/pengumuman`
 - `/palugada`
 - `/kontak`
+- `/masuk`
+- `/portal`
+- `/portal/profil-rumah`
 
 ## Asset And Metadata Notes
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Icon } from "../components/portal";
+import { Icon, PwaInstallGuide } from "../components/portal";
 import type { IconName } from "@/lib/portal-data";
 
 type PortalAction = {
@@ -12,11 +12,18 @@ type PortalAction = {
 
 const primaryActions: PortalAction[] = [
   {
+    title: "Profil Rumah",
+    text: "Lihat rancangan data rumah, status verifikasi, anggota, dan kendaraan.",
+    href: "/portal/profil-rumah/",
+    icon: "home",
+    tone: "primary",
+  },
+  {
     title: "Layanan Warga",
     text: "Ajukan keluhan, administrasi, keamanan, atau konfirmasi iuran.",
     href: "/layanan/#form-layanan",
     icon: "message",
-    tone: "primary",
+    tone: "surface",
   },
   {
     title: "PALUGADA CGV",
@@ -43,6 +50,13 @@ const primaryActions: PortalAction[] = [
 
 const secondaryActions: PortalAction[] = [
   {
+    title: "Masuk Warga",
+    text: "Gerbang akses fase login.",
+    href: "/masuk/",
+    icon: "shield",
+    tone: "surface",
+  },
+  {
     title: "Pengurus",
     text: "Struktur koordinasi warga.",
     href: "/pengurus/",
@@ -66,9 +80,9 @@ const secondaryActions: PortalAction[] = [
 ];
 
 const statusItems = [
-  ["Saldo Kas RT", "Rp 5.500.000"],
-  ["Laporan aktif", "2 laporan"],
-  ["Pilot PALUGADA", "Ma'niez Donut"],
+  ["Status portal", "Phase 2 preview"],
+  ["Profil rumah", "Siap dirancang"],
+  ["Akses warga", "Belum aktif"],
 ] as const;
 
 function ArrowIcon() {
@@ -154,9 +168,23 @@ export default function PortalWargaPage() {
               Akses cepat untuk kebutuhan warga harian.
             </p>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-white/72 sm:text-base">
-              Buka layanan, pantau kabar, cek transparansi iuran, dan masuk ke
+              Buka profil rumah, layanan, kabar, transparansi iuran, dan
               PALUGADA dari satu layar ringan yang siap dipasang di mobile.
             </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/masuk/"
+                className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-accent px-5 text-sm font-semibold text-foreground transition-colors duration-200 hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+              >
+                Masuk Warga
+              </Link>
+              <Link
+                href="/portal/profil-rumah/"
+                className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-white/18 bg-white/10 px-5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-white/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+              >
+                Lihat Profil Rumah
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -216,10 +244,13 @@ export default function PortalWargaPage() {
             </p>
             <p className="mt-2 text-sm leading-6 text-muted">
               Ini adalah shell Portal Warga untuk akses cepat. Data masih
-              prototype statis; login, database, dan notifikasi warga bisa masuk
-              fase berikutnya setelah alur mobile disetujui.
+              prototype statis; login, profil rumah, database, dan notifikasi
+              warga bisa masuk produksi setelah backend dan aturan akses
+              disetujui.
             </p>
           </div>
+
+          <PwaInstallGuide compact />
         </div>
       </section>
     </main>

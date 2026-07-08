@@ -56,6 +56,19 @@
       ]
     },
     {
+      "name": "Profil Rumah",
+      "short_name": "Profil",
+      "description": "Buka preview profil rumah warga CGV10.",
+      "url": "/portal/profil-rumah/?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/assets/pwa/cgv10-pwa-icon-512.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
       "name": "Layanan Warga",
       "short_name": "Layanan",
       "description": "Buka kanal layanan warga CGV10.",

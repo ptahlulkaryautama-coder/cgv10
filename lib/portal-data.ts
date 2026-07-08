@@ -114,8 +114,21 @@ export type KegiatanItem = {
   archiveNote: string;
 };
 
+export type KabarArticle = {
+  title: string;
+  category: "Artikel" | "Pengumuman" | "Agenda";
+  excerpt: string;
+  body: string;
+  author: string;
+  publishedAt: string;
+  readTime: string;
+  coverImageSrc?: string;
+  coverImageAlt?: string;
+};
+
 export const navItems = [
   ["Beranda", "/"],
+  ["Portal", "/portal/"],
   ["Layanan", "/layanan/"],
   ["Kabar Warga", "/kabar-warga/"],
   ["Pengurus", "/pengurus/"],
@@ -357,6 +370,22 @@ export const announcements: IconCard[] = [
     title: "Pengingat administrasi warga",
     text: "Pengingat administrasi warga agar kebutuhan lingkungan berjalan tertib.",
     icon: "file",
+  },
+];
+
+export const kabarArticles: KabarArticle[] = [
+  {
+    title: "Portal Warga CGV10 siap dikenalkan ke lingkungan",
+    category: "Artikel",
+    excerpt:
+      "Ringkasan pengantar untuk warga tentang fungsi Portal CGV10, kanal layanan, Kabar Warga, transparansi, dan PALUGADA.",
+    body:
+      "Portal Warga CGV10 disiapkan sebagai pintu informasi lingkungan yang ringkas. Warga dapat membuka kabar terbaru, mengakses layanan, melihat struktur pengurus, memantau ringkasan kas, dan mengenal katalog PALUGADA dalam satu tempat. Pada tahap awal, pengurus dapat memakai artikel ini sebagai materi pengantar sebelum modul login dan database warga ditambahkan.",
+    author: "Pengurus CGV10",
+    publishedAt: "07 Jul 2026",
+    readTime: "2 menit baca",
+    coverImageSrc: "/assets/kegiatan/keamanan-kebersihan.png",
+    coverImageAlt: "Ilustrasi lingkungan CGV10 untuk artikel Portal Warga",
   },
 ];
 

@@ -2,6 +2,7 @@ import {
   announcements,
   contacts,
   financeTransactions,
+  kabarArticles,
   kegiatanItems,
   marketplaceItems,
 } from "./portal-data";
@@ -9,6 +10,7 @@ import {
 export type PublishStatus = "Published" | "Review" | "Draft" | "Tahan";
 
 export type PortalContentChannel =
+  | "Artikel"
   | "Pengumuman"
   | "Agenda"
   | "Keuangan"
@@ -24,12 +26,34 @@ export type PortalContentItem = {
   visibility: "Publik" | "Internal" | "Terbatas";
   updated: string;
   summary: string;
+  excerpt?: string;
+  body?: string;
+  coverImageSrc?: string;
+  coverImageAlt?: string;
   readiness: number;
   portalPath: string;
   source: string;
 };
 
 const publishedDate = "03 Jul 2026";
+
+const articleItems: PortalContentItem[] = kabarArticles.map((item, index) => ({
+  id: `PUB-ART-${String(index + 1).padStart(2, "0")}`,
+  title: item.title,
+  channel: "Artikel",
+  status: "Review",
+  owner: item.author,
+  visibility: "Publik",
+  updated: item.publishedAt,
+  summary: item.excerpt,
+  excerpt: item.excerpt,
+  body: item.body,
+  coverImageSrc: item.coverImageSrc,
+  coverImageAlt: item.coverImageAlt,
+  readiness: 88,
+  portalPath: "/kabar-warga/",
+  source: "lib/portal-data.ts",
+}));
 
 const announcementItems: PortalContentItem[] = announcements.map((item, index) => ({
   id: `PUB-ANN-${String(index + 1).padStart(2, "0")}`,
@@ -120,6 +144,7 @@ const contactItems: PortalContentItem[] = [
 ];
 
 export const portalContentItems: PortalContentItem[] = [
+  ...articleItems,
   ...announcementItems,
   ...agendaItems,
   ...financeItems,

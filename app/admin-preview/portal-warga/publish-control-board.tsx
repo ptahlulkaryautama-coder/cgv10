@@ -18,6 +18,7 @@ const statuses: Array<PublishStatus | "Semua"> = [
 
 const channels = [
   "Semua",
+  "Artikel",
   "Pengumuman",
   "Agenda",
   "Keuangan",
@@ -259,6 +260,47 @@ export function PublishControlBoard() {
                   </dl>
                 </div>
 
+                {item.channel === "Artikel" ? (
+                  <div className="rounded-[16px] border border-black/8 bg-white p-4">
+                    <p className="text-xs font-bold uppercase tracking-[0.12em] text-accent">
+                      Field artikel
+                    </p>
+                    <div className="mt-4 grid gap-3">
+                      <label className="grid gap-1 text-xs font-bold uppercase tracking-[0.12em] text-muted">
+                        Kutipan artikel
+                        <input
+                          defaultValue={item.excerpt ?? item.summary}
+                          className="min-h-11 rounded-[10px] border border-black/10 bg-white px-4 text-sm normal-case tracking-normal text-foreground outline-none transition-colors focus:border-primary"
+                        />
+                      </label>
+                      <label className="grid gap-1 text-xs font-bold uppercase tracking-[0.12em] text-muted">
+                        Isi artikel
+                        <textarea
+                          defaultValue={item.body ?? ""}
+                          rows={7}
+                          className="resize-y rounded-[10px] border border-black/10 bg-white px-4 py-3 text-sm normal-case leading-6 tracking-normal text-foreground outline-none transition-colors focus:border-primary"
+                        />
+                      </label>
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <label className="grid gap-1 text-xs font-bold uppercase tracking-[0.12em] text-muted">
+                          Cover image path
+                          <input
+                            defaultValue={item.coverImageSrc ?? ""}
+                            className="min-h-11 rounded-[10px] border border-black/10 bg-white px-4 text-sm normal-case tracking-normal text-foreground outline-none transition-colors focus:border-primary"
+                          />
+                        </label>
+                        <label className="grid gap-1 text-xs font-bold uppercase tracking-[0.12em] text-muted">
+                          Cover alt text
+                          <input
+                            defaultValue={item.coverImageAlt ?? ""}
+                            className="min-h-11 rounded-[10px] border border-black/10 bg-white px-4 text-sm normal-case tracking-normal text-foreground outline-none transition-colors focus:border-primary"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
                 <div className="flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:flex-wrap">
                   <button
                     type="button"
@@ -381,6 +423,45 @@ export function PublishControlBoard() {
                     className="resize-y rounded-[10px] border border-black/10 bg-white px-4 py-3 text-sm normal-case leading-6 tracking-normal text-foreground outline-none transition-colors focus:border-primary"
                   />
                 </label>
+                <label className="grid gap-1 text-xs font-bold uppercase tracking-[0.12em] text-muted">
+                  Kutipan artikel
+                  <input
+                    value={draftItem.excerpt ?? ""}
+                    onChange={(event) => updateDraft("excerpt", event.target.value)}
+                    placeholder="Ringkasan pendek untuk kartu artikel"
+                    className="min-h-11 rounded-[10px] border border-black/10 bg-white px-4 text-sm normal-case tracking-normal text-foreground outline-none transition-colors focus:border-primary"
+                  />
+                </label>
+                <label className="grid gap-1 text-xs font-bold uppercase tracking-[0.12em] text-muted">
+                  Isi artikel
+                  <textarea
+                    value={draftItem.body ?? ""}
+                    onChange={(event) => updateDraft("body", event.target.value)}
+                    rows={8}
+                    placeholder="Tulis naskah artikel atau pengumuman panjang untuk Kabar Warga."
+                    className="resize-y rounded-[10px] border border-black/10 bg-white px-4 py-3 text-sm normal-case leading-6 tracking-normal text-foreground outline-none transition-colors focus:border-primary"
+                  />
+                </label>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="grid gap-1 text-xs font-bold uppercase tracking-[0.12em] text-muted">
+                    Cover image path
+                    <input
+                      value={draftItem.coverImageSrc ?? ""}
+                      onChange={(event) => updateDraft("coverImageSrc", event.target.value)}
+                      placeholder="/assets/kegiatan/..."
+                      className="min-h-11 rounded-[10px] border border-black/10 bg-white px-4 text-sm normal-case tracking-normal text-foreground outline-none transition-colors focus:border-primary"
+                    />
+                  </label>
+                  <label className="grid gap-1 text-xs font-bold uppercase tracking-[0.12em] text-muted">
+                    Cover alt text
+                    <input
+                      value={draftItem.coverImageAlt ?? ""}
+                      onChange={(event) => updateDraft("coverImageAlt", event.target.value)}
+                      placeholder="Deskripsi gambar untuk aksesibilitas"
+                      className="min-h-11 rounded-[10px] border border-black/10 bg-white px-4 text-sm normal-case tracking-normal text-foreground outline-none transition-colors focus:border-primary"
+                    />
+                  </label>
+                </div>
                 <div className="flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:flex-wrap">
                   <button
                     type="button"
