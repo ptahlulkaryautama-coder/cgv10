@@ -46,6 +46,8 @@ Avoid:
 ### `super_admin`
 
 - Manage admin users and roles.
+- Add selected users independently through role assignment.
+- Grant or remove permissions by assigning roles.
 - View and edit all modules.
 - Configure system settings.
 - Handle deployment and technical operations.
@@ -89,6 +91,11 @@ Recommended stack:
 - Supabase Storage for future file/image uploads.
 - Static Next.js frontend for public pages and PWA.
 - Protected admin UI that reads/writes only through Supabase policies.
+
+Database foundation files:
+
+- `supabase/migrations/202607080001_initial_auth_permissions.sql`
+- `SUPABASE_SETUP.md`
 
 Reason:
 
@@ -173,4 +180,3 @@ To establish full operational control, the project also needs:
 Until production auth is implemented:
 
 `/admin-preview/` must be treated as a presentation/demo dashboard, not a secure operational dashboard.
-

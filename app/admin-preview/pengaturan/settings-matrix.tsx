@@ -39,9 +39,13 @@ const initialSettings: SettingItem[] = [
 
 export function SettingsMatrix() {
   const [settings, setSettings] = useState(initialSettings);
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
 
   return (
-    <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.72fr)]">
+    <section
+      id="settings-matrix"
+      className="grid scroll-mt-24 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.72fr)]"
+    >
       <Panel>
         <PanelHeader
           title="Settings Matrix"
@@ -90,6 +94,36 @@ export function SettingsMatrix() {
               </button>
             </div>
           ))}
+          <div className="flex flex-col gap-3 rounded-[16px] border border-accent/35 bg-accent-soft p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-bold text-foreground">
+                Update setting preview
+              </p>
+              <p className="mt-1 text-sm leading-6 text-muted">
+                Perubahan toggle disimpan di sesi browser untuk kebutuhan demo.
+              </p>
+              {lastSaved ? (
+                <p className="mt-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
+                  Terakhir disimpan: {lastSaved}
+                </p>
+              ) : null}
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setLastSaved(
+                  new Intl.DateTimeFormat("id-ID", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                  }).format(new Date()),
+                )
+              }
+              className="min-h-10 cursor-pointer rounded-[10px] border border-primary bg-primary px-4 text-[13px] font-bold text-accent transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              Update Setting
+            </button>
+          </div>
         </div>
       </Panel>
 

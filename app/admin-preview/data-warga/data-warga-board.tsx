@@ -14,7 +14,7 @@ type ResidentRecord = {
   lastUpdate: string;
 };
 
-const records: ResidentRecord[] = [
+const initialRecords: ResidentRecord[] = [
   {
     id: "WRG-0101",
     family: "Keluarga Dharma",
@@ -61,10 +61,17 @@ const clusters = ["Semua", "Colloseum", "Pinnata", "Aurora", "Greenwich"];
 const statuses = ["Semua", "Terverifikasi", "Perlu update", "Baru"];
 
 export function DataWargaBoard() {
+  const [records, setRecords] = useState(initialRecords);
   const [query, setQuery] = useState("");
   const [cluster, setCluster] = useState("Semua");
   const [status, setStatus] = useState("Semua");
-  const [selectedId, setSelectedId] = useState(records[0].id);
+  const [selectedId, setSelectedId] = useState(initialRecords[0].id);
+  const [draft, setDraft] = useState({
+    family: "",
+    cluster: "Colloseum",
+    contact: "Perlu cek",
+    vehicles: "",
+  });
 
   const filteredRecords = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -81,12 +88,36 @@ export function DataWargaBoard() {
 
       return matchesQuery && matchesCluster && matchesStatus;
     });
-  }, [cluster, query, status]);
+  }, [cluster, query, records, status]);
 
   const selectedRecord =
     filteredRecords.find((record) => record.id === selectedId) ??
     filteredRecords[0] ??
-    records[0];
+    records[0] ?? initialRecords[0];
+
+  function addResidentRecord() {
+    if (!draft.family.trim()) return;
+
+    const record: ResidentRecord = {
+      id: `WRG-${String(records.length + 101).padStart(4, "0")}`,
+      family: draft.family.trim(),
+      cluster: draft.cluster,
+      contact: draft.contact,
+      vehicles: draft.vehicles.trim() || "Belum diisi",
+      status: "Baru",
+      owner: "Sekretariat",
+      lastUpdate: "Preview sesi",
+    };
+
+    setRecords((current) => [record, ...current]);
+    setSelectedId(record.id);
+    setDraft({
+      family: "",
+      cluster: "Colloseum",
+      contact: "Perlu cek",
+      vehicles: "",
+    });
+  }
 
   return (
     <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.72fr)]">
@@ -96,6 +127,55 @@ export function DataWargaBoard() {
           subtitle="Cari KK, cluster, status kontak, dan catatan update."
           action={<ActionButton>Export</ActionButton>}
         />
+        <div
+          id="tambah-data-warga"
+          className="grid gap-3 border-t border-border bg-white px-5 py-4 md:grid-cols-[minmax(0,1fr)_150px_150px_minmax(0,0.8fr)_auto]"
+        >
+          <input
+            value={draft.family}
+            onChange={(event) =>
+              setDraft((current) => ({ ...current, family: event.target.value }))
+            }
+            placeholder="Nama keluarga / rumah"
+            className="min-h-11 rounded-[10px] border border-black/10 bg-white px-4 text-sm outline-none transition-colors duration-200 focus:border-primary"
+          />
+          <select
+            value={draft.cluster}
+            onChange={(event) =>
+              setDraft((current) => ({ ...current, cluster: event.target.value }))
+            }
+            className="min-h-11 cursor-pointer rounded-[10px] border border-black/10 bg-white px-3 text-sm font-semibold text-muted outline-none focus:border-primary"
+          >
+            {clusters.filter((item) => item !== "Semua").map((item) => (
+              <option key={item}>{item}</option>
+            ))}
+          </select>
+          <select
+            value={draft.contact}
+            onChange={(event) =>
+              setDraft((current) => ({ ...current, contact: event.target.value }))
+            }
+            className="min-h-11 cursor-pointer rounded-[10px] border border-black/10 bg-white px-3 text-sm font-semibold text-muted outline-none focus:border-primary"
+          >
+            <option>Perlu cek</option>
+            <option>Aktif</option>
+          </select>
+          <input
+            value={draft.vehicles}
+            onChange={(event) =>
+              setDraft((current) => ({ ...current, vehicles: event.target.value }))
+            }
+            placeholder="Kendaraan"
+            className="min-h-11 rounded-[10px] border border-black/10 bg-white px-4 text-sm outline-none transition-colors duration-200 focus:border-primary"
+          />
+          <button
+            type="button"
+            onClick={addResidentRecord}
+            className="min-h-11 cursor-pointer rounded-[10px] border border-primary bg-primary px-4 text-sm font-bold text-accent transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            Tambah
+          </button>
+        </div>
         <div className="grid gap-3 border-y border-border bg-[#f8f6f0] px-5 py-4 md:grid-cols-[minmax(0,1fr)_180px_180px]">
           <input
             value={query}

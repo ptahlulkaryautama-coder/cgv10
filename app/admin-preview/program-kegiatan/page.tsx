@@ -43,7 +43,7 @@ export default function AdminProgramPage() {
       active="program"
       title="Program & Kegiatan"
       subtitle="Manajemen konten portal"
-      action={<ActionButton primary>Tambah Program</ActionButton>}
+      action={<ActionButton primary href="#tambah-kegiatan">Tambah Kegiatan</ActionButton>}
     >
       <PageIntro
         eyebrow="Pengelolaan Konten"
@@ -53,7 +53,7 @@ export default function AdminProgramPage() {
           </>
         }
         text="Halaman ini mengelola sumber data agenda, kegiatan, dan konten yang akan tampil di Website Publik dan Portal Warga. Dashboard hanya mengambil ringkasannya."
-        side={<ActionButton primary>Tambah Program</ActionButton>}
+        side={<ActionButton primary href="#tambah-kegiatan">Tambah Kegiatan</ActionButton>}
       />
 
       <section className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">

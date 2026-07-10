@@ -52,6 +52,9 @@ export type MarketplaceItem = {
   cluster: string;
   price: string;
   status: string;
+  sellerStatus: "online" | "offline";
+  sellerStatusLabel: string;
+  sellerStatusNote: string;
   icon: IconName;
   imageSrc?: string;
   imageAlt?: string;
@@ -110,15 +113,37 @@ export type KegiatanItem = {
   tone: "primary" | "accent" | "cream";
   imageSrc: string;
   imageAlt: string;
+  articleSections?: {
+    paragraphs: string[];
+    image?: {
+      src: string;
+      alt: string;
+      caption: string;
+    };
+  }[];
   captions: string[];
   archiveNote: string;
 };
 
 export type KabarArticle = {
   title: string;
-  category: "Artikel" | "Pengumuman" | "Agenda";
+  seoTitle?: string;
+  slug?: string;
+  category: "Artikel" | "Pengumuman" | "Agenda" | "Kabar Lingkungan";
   excerpt: string;
   body: string;
+  bodySections?: {
+    heading?: string;
+    paragraphs?: string[];
+    list?: string[];
+    signature?: string[];
+    image?: {
+      src: string;
+      alt: string;
+      caption: string;
+    };
+  }[];
+  tags?: string[];
   author: string;
   publishedAt: string;
   readTime: string;
@@ -174,23 +199,55 @@ export const quickInfo: IconCard[] = [
 
 export const kegiatanItems: KegiatanItem[] = [
   {
-    title: "Kerja bakti lingkungan",
+    title:
+      "Primatama FC CGV U12 Lolos ke Babak 16 Besar NFA Cup Futsal Piala Gubernur & Wakil Gubernur Kepri 2026",
     slug: "kerja-bakti-lingkungan",
     href: "/kegiatan/kerja-bakti-lingkungan/",
-    text: "Dokumentasi kegiatan kebersihan bersama warga lingkungan.",
+    text:
+      "Kabar membanggakan datang dari anak-anak warga CGV yang tergabung dalam Primatama FC CGV U12.",
     detailDescription:
-      "Dokumentasi kerja bakti lingkungan untuk memperlihatkan suasana gotong royong dan arsip kegiatan warga.",
+      "Primatama FC CGV U12 berhasil melangkah ke babak 16 besar dalam ajang NFA Cup Futsal Piala Gubernur dan Wakil Gubernur Kepri 2026.",
     icon: "users",
     tone: "primary",
-    imageSrc: "/assets/kegiatan/kerja-bakti.png",
-    imageAlt: "Dokumentasi kerja bakti lingkungan warga CGV10",
+    imageSrc: "/assets/kegiatan/primatama-fc1.png",
+    imageAlt:
+      "Primatama FC CGV U12 dalam NFA Cup Futsal Piala Gubernur dan Wakil Gubernur Kepri 2026",
+    articleSections: [
+      {
+        paragraphs: [
+          "Kabar membanggakan datang dari anak-anak warga CGV yang tergabung dalam Primatama FC CGV U12. Berdasarkan informasi dari official tim, Primatama FC CGV U12 berhasil melangkah ke babak 16 besar dalam ajang NFA Cup Futsal Piala Gubernur dan Wakil Gubernur Kepri 2026.",
+          "Turnamen ini menjadi salah satu ajang penting bagi pembinaan futsal usia muda di Kepulauan Riau. Melalui kompetisi seperti ini, anak-anak tidak hanya belajar mengejar kemenangan, tetapi juga membangun mental bertanding, kerja sama tim, disiplin, sportivitas, dan keberanian tampil di arena kompetitif.",
+          "Dalam keterangan yang dibagikan official, klasemen akhir U12 menunjukkan bahwa tim-tim yang diberi tanda warna berhak lolos ke babak 16 besar. Warna kuning menunjukkan juara grup, warna biru menunjukkan runner-up, dan warna merah menunjukkan peringkat tiga terbaik. Seluruh tim yang masuk dalam penanda warna tersebut berhak melanjutkan perjuangan ke fase berikutnya.",
+        ],
+        image: {
+          src: "/assets/kegiatan/primatama-fc2.png",
+          alt: "Dokumentasi Primatama FC CGV U12 bersama official tim",
+          caption: "Dokumentasi Primatama FC CGV U12.",
+        },
+      },
+      {
+        paragraphs: [
+          "Official tim juga menyampaikan permohonan doa kepada warga:",
+          "Doakan ya Bapak Ibu, anak-anak kita Primatama U12 masuk ke babak 16 besar.",
+          "Capaian ini tentu menjadi kebanggaan bagi warga CGV. Di balik setiap pertandingan, ada proses latihan, dukungan orang tua, arahan pelatih, kekompakan tim, dan semangat anak-anak untuk terus berjuang membawa nama baik lingkungan.",
+          "Semoga langkah Primatama FC CGV U12 di babak 16 besar diberikan kelancaran, kesehatan, kekuatan, dan hasil terbaik. Apa pun hasil akhirnya nanti, perjuangan anak-anak ini sudah menjadi contoh positif bahwa lingkungan yang baik dapat melahirkan semangat, prestasi, dan kebersamaan.",
+          "Mari warga CGV bersama-sama memberikan doa dan dukungan terbaik untuk anak-anak Primatama FC CGV U12.",
+          "Semangat Primatama FC CGV. Tetap kompak, percaya diri, dan bermain dengan sportivitas.",
+        ],
+        image: {
+          src: "/assets/kegiatan/primatama-klasemen.jpeg",
+          alt: "Klasemen akhir U12 NFA Cup Futsal yang menandai tim lolos babak 16 besar",
+          caption: "Klasemen akhir U12 untuk penentuan peserta babak 16 besar.",
+        },
+      },
+    ],
     captions: [
-      "Suasana gotong royong warga dalam kegiatan kebersihan lingkungan.",
-      "Catatan kebersihan area bersama ditulis singkat dan mudah dibaca.",
-      "Dokumentasi disusun sebagai arsip kegiatan warga.",
+      "Primatama FC CGV U12 lolos ke babak 16 besar.",
+      "Turnamen menjadi ruang pembinaan mental, kerja sama tim, dan sportivitas.",
+      "Warga CGV diajak memberi doa dan dukungan terbaik untuk anak-anak.",
     ],
     archiveNote:
-      "Dokumentasi kegiatan warga untuk arsip lingkungan.",
+      "Artikel warga tentang capaian Primatama FC CGV U12.",
   },
   {
     title: "Rapat warga",
@@ -375,6 +432,147 @@ export const announcements: IconCard[] = [
 
 export const kabarArticles: KabarArticle[] = [
   {
+    title:
+      "Wajah Lingkungan Cipta Green Ville: Hunian Modern, Rapi, dan Terus Bertumbuh",
+    seoTitle:
+      "Wajah Lingkungan Cipta Green Ville: Hunian Modern dan Komunitas Warga yang Terus Bertumbuh",
+    slug: "wajah-lingkungan-cipta-green-ville",
+    category: "Kabar Lingkungan",
+    excerpt:
+      "Cipta Green Ville terus berkembang sebagai kawasan hunian modern yang nyaman, tertata, dan memiliki semangat komunitas warga yang kuat.",
+    body:
+      "Cipta Green Ville terus menunjukkan perkembangan sebagai kawasan hunian yang nyaman, tertata, dan memiliki karakter lingkungan yang kuat.",
+    bodySections: [
+      {
+        paragraphs: [
+          "Cipta Green Ville terus menunjukkan perkembangan sebagai kawasan hunian yang nyaman, tertata, dan memiliki karakter lingkungan yang kuat. Dari area masuk kawasan, fasilitas umum, jalan lingkungan, hingga deretan rumah warga, suasana Cipta Green Ville menghadirkan kesan modern, bersih, dan layak menjadi ruang tinggal yang aman bagi keluarga.",
+          "Melalui dokumentasi visual terbaru, terlihat bahwa kawasan ini memiliki identitas yang cukup kuat sebagai lingkungan hunian modern. Bangunan rumah dengan desain kontemporer, perpaduan warna cerah, area jalan yang terbuka, serta penataan taman di sekitar hunian memberikan kesan kawasan yang aktif dirawat dan terus berkembang.",
+        ],
+        image: {
+          src: "/assets/kegiatan/2026-06-28_lingkungan_signage-cgv_web_v1.webp",
+          alt: "Signage kawasan Cipta Green Ville sebagai identitas lingkungan",
+          caption:
+            "Identitas kawasan Cipta Green Ville sebagai lingkungan hunian yang terus berkembang.",
+        },
+      },
+      {
+        heading: "Lingkungan Hunian yang Nyaman untuk Keluarga",
+        paragraphs: [
+          "Salah satu kekuatan utama sebuah perumahan bukan hanya terletak pada bangunannya, tetapi juga pada suasana lingkungannya. Cipta Green Ville memiliki potensi besar sebagai kawasan tempat tinggal keluarga karena menghadirkan ruang yang cukup lega, akses jalan yang memadai, serta suasana lingkungan yang tenang.",
+          "Deretan rumah dengan desain modern memberi kesan rapi dan tertata. Hal ini menjadi nilai tambah bagi warga, karena lingkungan yang baik dapat membantu menciptakan rasa nyaman dalam aktivitas sehari-hari.",
+        ],
+        image: {
+          src: "/assets/kegiatan/2026-06-28_lingkungan_rumah-cluster-cgv_web_v1.webp",
+          alt: "Tampilan rumah cluster modern di kawasan Cipta Green Ville",
+          caption:
+            "Tampilan hunian modern di kawasan Cipta Green Ville dengan desain rapi, bersih, dan nyaman untuk keluarga.",
+        },
+      },
+      {
+        heading: "Fasilitas dan Ruang Bersama sebagai Nilai Tambah Kawasan",
+        paragraphs: [
+          "Selain hunian, fasilitas bersama juga menjadi bagian penting dalam membangun kualitas hidup warga. Area seperti kolam renang dan ruang terbuka dapat menjadi tempat warga beraktivitas, bersantai, sekaligus mempererat hubungan sosial antarwarga.",
+          "Fasilitas seperti ini tidak hanya berfungsi sebagai pelengkap kawasan, tetapi juga menjadi ruang interaksi. Anak-anak, keluarga, dan warga dapat memiliki tempat untuk menikmati waktu bersama dalam suasana yang lebih santai dan positif.",
+        ],
+        image: {
+          src: "/assets/kegiatan/2026-06-28_fasilitas_kolam-cgv_web_v1.webp",
+          alt: "Fasilitas kolam renang kawasan Cipta Green Ville",
+          caption:
+            "Fasilitas kawasan yang dapat menjadi ruang bersama bagi warga dan keluarga.",
+        },
+      },
+      {
+        heading: "Keamanan dan Penerangan Lingkungan",
+        paragraphs: [
+          "Dokumentasi suasana malam di jalan lingkungan menunjukkan pentingnya penerangan dan pengawasan kawasan. Jalan yang terang dan terpantau menjadi salah satu faktor utama dalam membangun rasa aman bagi warga.",
+          "Keberadaan dokumentasi dari petugas keamanan juga menunjukkan adanya perhatian terhadap kondisi lingkungan. Hal ini perlu terus dijaga agar warga merasa lebih tenang, terutama pada malam hari.",
+        ],
+        image: {
+          src: "/assets/kegiatan/2026-06-28_security_jalan-malam-cgv-01_web_v1.webp",
+          alt: "Suasana jalan lingkungan Cipta Green Ville pada malam hari",
+          caption:
+            "Suasana jalan lingkungan pada malam hari sebagai bagian dari perhatian terhadap keamanan dan kenyamanan warga.",
+        },
+      },
+      {
+        heading: "Membangun Identitas Digital Warga CGV",
+        paragraphs: [
+          "Melalui Portal Warga CGV, dokumentasi seperti ini dapat menjadi bagian dari identitas digital lingkungan. Setiap foto, kabar, dan informasi kawasan dapat membantu warga melihat perkembangan lingkungan secara lebih terbuka.",
+          "Ke depan, dokumentasi lingkungan tidak hanya menjadi arsip visual, tetapi juga dapat menjadi sarana komunikasi warga, publikasi kegiatan, laporan kondisi lingkungan, dan penguatan rasa memiliki terhadap kawasan Cipta Green Ville.",
+        ],
+        image: {
+          src: "/assets/kegiatan/2026-06-28_security_jalan-malam-cgv-02_web_v1.webp",
+          alt: "Dokumentasi jalan lingkungan Cipta Green Ville saat malam",
+          caption:
+            "Dokumentasi lingkungan membantu warga melihat kondisi kawasan secara lebih terbuka.",
+        },
+      },
+      {
+        heading: "Bersama Menjaga Lingkungan",
+        paragraphs: [
+          "Cipta Green Ville bukan hanya kumpulan rumah, tetapi sebuah komunitas warga. Karena itu, kenyamanan lingkungan perlu dijaga bersama, baik melalui kebersihan, keamanan, kepedulian antarwarga, maupun komunikasi yang baik antara warga dan pengurus.",
+          "Dengan semangat kebersamaan, Cipta Green Ville dapat terus tumbuh menjadi lingkungan yang lebih rapi, aman, nyaman, dan membanggakan bagi seluruh warga.",
+        ],
+      },
+    ],
+    tags: [
+      "Cipta Green Ville",
+      "CGV",
+      "Portal Warga",
+      "Lingkungan Warga",
+      "Keamanan",
+      "Fasilitas Perumahan",
+      "Hunian Modern",
+    ],
+    author: "Pengurus CGV10",
+    publishedAt: "10 Jul 2026",
+    readTime: "4 menit baca",
+    coverImageSrc:
+      "/assets/kegiatan/2026-06-28_lingkungan_signage-cgv_web_v1.webp",
+    coverImageAlt:
+      "Identitas kawasan Cipta Green Ville sebagai lingkungan hunian yang terus berkembang",
+  },
+  {
+    title: "Pengumuman Susunan Kepengurusan RT 010 Periode Baru",
+    category: "Pengumuman",
+    excerpt:
+      "Pernyataan Ketua RT 010 tentang amanah kepengurusan baru, susunan organisasi, dan serah terima dari pengurus sebelumnya.",
+    body:
+      "Tim Kepengurusan RT 010 menyampaikan terima kasih atas kepercayaan warga, memohon doa serta kerja sama, dan melampirkan susunan kepengurusan baru sebagai bentuk keterbukaan kepada seluruh warga.",
+    bodySections: [
+      {
+        paragraphs: [
+          "Assalamualaikum warahmatullahi wabarakatuh.",
+          "Salam sejahtera untuk semuanya,",
+          "Bapak/Ibu dan seluruh warga RT 010 yang kami hormati,",
+          "Dengan penuh rasa syukur, kami dari Tim Kepengurusan RT 010 mengucapkan terima kasih atas kepercayaan yang telah diberikan kepada kami untuk mengemban amanah sebagai pengurus RT yang baru.",
+          "Amanah ini bukanlah tugas yang ringan. Kami menyadari bahwa membangun lingkungan yang nyaman, rukun, dan harmonis hanya dapat terwujud dengan kebersamaan, kepedulian, serta dukungan dari seluruh warga. Oleh karena itu, kami memohon doa, masukan, dan kerja sama dari Bapak/Ibu sekalian agar kami dapat menjalankan tugas ini dengan sebaik-baiknya.",
+          "Bersama pengumuman ini, kami juga menyampaikan susunan Kepengurusan RT 010 periode yang baru sebagai bentuk keterbukaan kepada seluruh warga.",
+          "Sebagai bagian dari proses pergantian kepengurusan, telah dilaksanakan serah terima dari pengurus RT sebelumnya. Adapun rincian serah terima yang kami terima adalah sebagai berikut:",
+        ],
+        list: [
+          "Inventaris RT, dengan daftar inventaris terlampir.",
+          "Saldo uang kas RT yang tersisa sebesar Rp10.000, dengan keterangan uang kas terlampir.",
+        ],
+      },
+      {
+        paragraphs: [
+          "Seluruh rincian tersebut kami lampirkan sebagai bentuk transparansi dan pertanggungjawaban kepada seluruh warga.",
+          "Kami juga mengucapkan terima kasih yang sebesar-besarnya kepada pengurus RT sebelumnya atas segala pengabdian, waktu, tenaga, dan kontribusi yang telah diberikan untuk kemajuan lingkungan RT 010. Semoga segala kebaikan yang telah dilakukan menjadi amal ibadah dan membawa manfaat bagi kita semua.",
+          "Mari kita jadikan RT 010 sebagai lingkungan yang semakin kompak, peduli, dan penuh semangat gotong royong. Bersama, kita bisa menciptakan lingkungan yang lebih baik untuk kita dan generasi yang akan datang.",
+          "Atas perhatian, dukungan, dan kerja sama Bapak/Ibu sekalian, kami ucapkan terima kasih.",
+          "Wassalamualaikum warahmatullahi wabarakatuh.",
+        ],
+        signature: ["Ketua RT 010", "Doddy Dharma"],
+      },
+    ],
+    author: "Ketua RT 010",
+    publishedAt: "10 Jul 2026",
+    readTime: "4 menit baca",
+    coverImageSrc: "/assets/pengurus/RT10-Official-Pengurus.jpeg",
+    coverImageAlt: "Bagan susunan Kepengurusan RT 010 periode baru",
+  },
+  {
     title: "Portal Warga CGV10 siap dikenalkan ke lingkungan",
     category: "Artikel",
     excerpt:
@@ -508,6 +706,9 @@ export const marketplaceItems: MarketplaceItem[] = [
     cluster: "Cluster Colloseum",
     price: "Mulai Rp 20.000",
     status: "Kanal WhatsApp tersedia",
+    sellerStatus: "online",
+    sellerStatusLabel: "Online",
+    sellerStatusNote: "Menerima konfirmasi pesanan melalui WhatsApp.",
     icon: "utensils",
     imageSrc: "/assets/palugada/maniez-donut-main.png",
     imageAlt: "Ma'niez Donut untuk katalog PALUGADA CGV",
@@ -574,6 +775,9 @@ export const marketplaceItems: MarketplaceItem[] = [
     cluster: "Cluster Pinnata",
     price: "Harga sesuai berat cucian",
     status: "Katalog warga",
+    sellerStatus: "offline",
+    sellerStatusLabel: "Offline",
+    sellerStatusNote: "Lapak belum membuka kontak langsung di katalog.",
     icon: "briefcase",
     imageSrc: "/assets/palugada/palugada-laundry.jpg",
     imageAlt:
@@ -602,6 +806,9 @@ export const marketplaceItems: MarketplaceItem[] = [
     cluster: "Cluster Greenwich",
     price: "Mulai Rp 25.000",
     status: "Katalog warga",
+    sellerStatus: "offline",
+    sellerStatusLabel: "Offline",
+    sellerStatusNote: "Ketersediaan masih menunggu konfirmasi pengurus.",
     icon: "store",
   },
   {
@@ -610,6 +817,9 @@ export const marketplaceItems: MarketplaceItem[] = [
     cluster: "Cluster Aurora",
     price: "Informasi menyusul",
     status: "Katalog warga",
+    sellerStatus: "offline",
+    sellerStatusLabel: "Offline",
+    sellerStatusNote: "Informasi properti belum aktif untuk kontak langsung.",
     icon: "building",
   },
   {
@@ -618,6 +828,9 @@ export const marketplaceItems: MarketplaceItem[] = [
     cluster: "Cluster Meteora",
     price: "Harga menu saat rilis",
     status: "Katalog warga",
+    sellerStatus: "offline",
+    sellerStatusLabel: "Offline",
+    sellerStatusNote: "Menu dan jadwal pemesanan belum dibuka di katalog.",
     icon: "utensils",
     imageSrc: "/assets/palugada/palugada-catering.jpg",
     imageAlt:
@@ -646,6 +859,9 @@ export const marketplaceItems: MarketplaceItem[] = [
     cluster: "Cluster Aurora",
     price: "Harga sesuai konfirmasi",
     status: "Katalog warga",
+    sellerStatus: "offline",
+    sellerStatusLabel: "Offline",
+    sellerStatusNote: "Jadwal layanan belum aktif untuk kontak langsung.",
     icon: "briefcase",
     imageSrc: "/assets/palugada/palugada-servis-ac.jpg",
     imageAlt:

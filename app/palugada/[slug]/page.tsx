@@ -70,6 +70,7 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
     .slice(0, 3);
   const isPrimaryListing = item.detailSlug === "donat-kentang-warga";
   const hasWhatsappContact = Boolean(item.whatsappHref);
+  const isSellerOnline = item.sellerStatus === "online";
   const whatsappLabel = item.whatsappLabel ?? "Hubungi WhatsApp";
   const variants = item.variants ?? item.exampleScope;
   const orderFormats =
@@ -123,6 +124,20 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-primary/78 via-primary/14 to-transparent" />
             <div className="pointer-events-none absolute left-4 top-4 rounded-full bg-accent-soft px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-foreground shadow-sm">
               {isPrimaryListing ? "Lapak pilot" : item.category}
+            </div>
+            <div
+              className={`pointer-events-none absolute right-4 top-4 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold shadow-sm ${
+                isSellerOnline
+                  ? "border-emerald-200 bg-emerald-50 text-primary"
+                  : "border-white/30 bg-white/88 text-muted"
+              }`}
+            >
+              <span
+                className={`h-2 w-2 rounded-full ${
+                  isSellerOnline ? "bg-emerald-600" : "bg-stone-400"
+                }`}
+              />
+              {item.sellerStatusLabel}
             </div>
             <div className="pointer-events-none absolute bottom-4 left-4 right-4 rounded-xl border border-white/18 bg-primary/78 p-4 backdrop-blur">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-soft">
@@ -229,6 +244,21 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                     {item.whatsappStatus ?? "Kontak via pengurus"}
                   </span>
                 </div>
+                <div className="flex items-center justify-between gap-4 border-t border-border pt-4">
+                  <span className="text-muted">Status seller</span>
+                  <span
+                    className={`inline-flex items-center gap-2 text-right font-semibold ${
+                      isSellerOnline ? "text-primary" : "text-muted"
+                    }`}
+                  >
+                    <span
+                      className={`h-2 w-2 rounded-full ${
+                        isSellerOnline ? "bg-emerald-600" : "bg-stone-400"
+                      }`}
+                    />
+                    {item.sellerStatusLabel}
+                  </span>
+                </div>
                 {item.whatsappDisplayNumber ? (
                   <div className="flex items-center justify-between gap-4 border-t border-border pt-4">
                     <span className="text-muted">Nomor</span>
@@ -264,6 +294,9 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
               </p>
               <p className="mt-3 text-sm leading-6 text-foreground/78">
                 {transactionStatus}
+              </p>
+              <p className="mt-3 rounded-xl border border-accent/35 bg-surface/80 px-3 py-2 text-sm font-semibold text-foreground">
+                {item.sellerStatusNote}
               </p>
             </div>
           </aside>

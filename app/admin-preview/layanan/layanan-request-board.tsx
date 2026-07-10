@@ -393,13 +393,16 @@ export function LayananRequestBoard() {
                     <td className="px-5 py-4 text-muted">{request.owner}</td>
                     <td className="px-5 py-4"><PriorityPill value={request.priority} /></td>
                     <td className="px-5 py-4 text-right">
-                      <Link
-                        href={`#layanan-request-${request.id}`}
-                        onClick={(event) => event.stopPropagation()}
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openRequest(request);
+                        }}
                         className="inline-flex min-h-8 cursor-pointer items-center rounded-full border border-border bg-white px-3 text-xs font-bold text-muted transition-colors hover:border-primary/30 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       >
-                        Buka
-                      </Link>
+                        Edit status
+                      </button>
                     </td>
                   </tr>
                 );

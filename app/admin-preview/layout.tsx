@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AdminPreviewGate } from "./admin-preview-gate";
 
 export const metadata: Metadata = {
   robots: {
@@ -21,5 +22,5 @@ export default function AdminPreviewLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return children;
+  return <AdminPreviewGate>{children}</AdminPreviewGate>;
 }

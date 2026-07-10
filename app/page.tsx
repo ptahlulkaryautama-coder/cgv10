@@ -1,7 +1,13 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Icon, PageShell, PwaInstallGuide } from "./components/portal";
 import { HeroImageRotator } from "./components/hero-image-rotator";
-import { quickInfo, type IconName } from "@/lib/portal-data";
+import {
+  kabarArticles,
+  kegiatanItems,
+  quickInfo,
+  type IconName,
+} from "@/lib/portal-data";
 
 const actionTiles: {
   title: string;
@@ -40,47 +46,41 @@ const actionTiles: {
   },
 ];
 
-const heroMiniCards: {
-  title: string;
-  value: string;
-  icon: IconName;
-  badge: string;
-}[] = [
+const rhythmCards = [
   {
-    title: "PALUGADA",
-    value: "Ma'niez Donut",
-    icon: "store",
-    badge: "WhatsApp",
+    title: kabarArticles[0].title,
+    text: kabarArticles[0].excerpt,
+    href: "/kabar-warga/#artikel-terbaru",
+    imageSrc:
+      kabarArticles[0].coverImageSrc ?? "/assets/kegiatan/keamanan-kebersihan.png",
+    imageAlt: kabarArticles[0].coverImageAlt ?? kabarArticles[0].title,
+    badge: kabarArticles[0].category,
   },
   {
-    title: "Kegiatan Warga",
-    value: "Kerja bakti",
-    icon: "calendar",
-    badge: "Agenda",
-  },
-];
-
-const heroSlides = [
-  {
-    src: "/assets/kegiatan/keamanan-kebersihan.png",
-    alt: "Dokumentasi keamanan dan kebersihan lingkungan CGV10",
+    title: kegiatanItems[0].title,
+    text: kegiatanItems[0].text,
+    href: kegiatanItems[0].href,
+    imageSrc: kegiatanItems[0].imageSrc,
+    imageAlt: kegiatanItems[0].imageAlt,
+    badge: "Dokumentasi",
   },
   {
-    src: "/assets/kegiatan/kerja-bakti.png",
-    alt: "Dokumentasi kerja bakti lingkungan CGV10",
-  },
-  {
-    src: "/assets/kegiatan/kegiatan-sosial.png",
-    alt: "Dokumentasi kegiatan sosial warga CGV10",
+    title: kabarArticles[1].title,
+    text: kabarArticles[1].excerpt,
+    href: "/kabar-warga/#semua-kabar",
+    imageSrc:
+      kabarArticles[1].coverImageSrc ?? "/assets/kegiatan/keamanan-kebersihan.png",
+    imageAlt: kabarArticles[1].coverImageAlt ?? kabarArticles[1].title,
+    badge: kabarArticles[1].category,
   },
 ];
 
-const liveSignals = [
-  "Kabar Warga",
-  "Agenda",
-  "PALUGADA",
-  "Layanan",
-];
+const heroSlides = rhythmCards.map((item) => ({
+  src: item.imageSrc,
+  alt: item.imageAlt,
+}));
+
+const liveSignals = ["Kabar Warga", "Agenda", "PALUGADA", "Layanan"];
 
 export default function Home() {
   return (
@@ -123,10 +123,7 @@ export default function Home() {
               </p>
               <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold text-white/82">
                 {liveSignals.map((signal, index) => (
-                  <span
-                    key={signal}
-                    className="inline-flex items-center gap-2"
-                  >
+                  <span key={signal} className="inline-flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-accent-soft community-pulse" />
                     <span className="text-white/44">0{index + 1}</span>
                     {signal}
@@ -155,7 +152,7 @@ export default function Home() {
                 </div>
                 <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4">
                   <p className="max-w-[15rem] text-sm font-semibold leading-6 text-white/88">
-                    Suasana warga, kegiatan, dan lingkungan Cipta Greenville.
+                    Kabar, pengumuman, dan dokumentasi aktual warga CGV10.
                   </p>
                   <span className="rounded-full border border-white/22 bg-white/14 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
                     Visual utama
@@ -164,27 +161,38 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="relative mt-3 grid gap-3 sm:grid-cols-2">
-              {heroMiniCards.map((card) => (
-                <div
+            <div className="relative mt-3 grid gap-3 sm:grid-cols-3">
+              {rhythmCards.map((card) => (
+                <Link
                   key={card.title}
-                  className="rounded-2xl border border-white/14 bg-white/10 p-4 text-white shadow-sm backdrop-blur"
+                  href={card.href}
+                  className="group overflow-hidden rounded-2xl border border-white/14 bg-white/10 text-white shadow-sm backdrop-blur transition-colors duration-200 hover:bg-white/14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
                 >
-                  <div className="mb-4 flex items-center justify-between gap-3">
-                    <div className="grid h-10 w-10 place-items-center rounded-xl bg-accent-soft text-foreground">
-                      <Icon name={card.icon} />
-                    </div>
-                    <span className="rounded-full border border-white/14 bg-white/10 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-white">
+                  <div className="relative aspect-[16/9] bg-primary">
+                    <Image
+                      src={card.imageSrc}
+                      alt={card.imageAlt}
+                      fill
+                      sizes="(min-width: 1024px) 300px, (min-width: 640px) 45vw, 92vw"
+                      className="object-cover transition-opacity duration-200 group-hover:opacity-95"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-primary/70 via-primary/12 to-transparent" />
+                    <span className="absolute left-3 top-3 rounded-full border border-white/14 bg-white/14 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-white backdrop-blur">
                       {card.badge}
                     </span>
                   </div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent-soft">
-                    {card.title}
-                  </p>
-                  <p className="mt-2 text-lg font-semibold leading-tight text-white">
-                    {card.value}
-                  </p>
-                </div>
+                  <div className="p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent-soft">
+                      Ritme Warga
+                    </p>
+                    <p className="mt-2 line-clamp-2 text-base font-semibold leading-tight text-white">
+                      {card.title}
+                    </p>
+                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-white/70">
+                      {card.text}
+                    </p>
+                  </div>
+                </Link>
               ))}
             </div>
           </div>

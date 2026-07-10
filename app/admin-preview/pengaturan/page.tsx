@@ -20,7 +20,7 @@ export default function PengaturanAdminPage() {
       active="pengaturan"
       title="Pengaturan"
       subtitle="Konfigurasi portal"
-      action={<ActionButton primary>Update Setting</ActionButton>}
+      action={<ActionButton primary href="#settings-matrix">Update Setting</ActionButton>}
     >
       <PageIntro
         eyebrow="System Settings"
@@ -31,7 +31,7 @@ export default function PengaturanAdminPage() {
           </>
         }
         text="Modul pengaturan menjadi tempat konfigurasi identitas portal, pengurus, akses admin, preferensi publikasi, dan integrasi masa depan."
-        side={<ActionButton primary>Update Setting</ActionButton>}
+        side={<ActionButton primary href="#settings-matrix">Update Setting</ActionButton>}
       />
 
       <section className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">

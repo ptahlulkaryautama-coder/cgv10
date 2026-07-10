@@ -114,7 +114,7 @@ export function SiteHeader() {
               className="grid h-10 w-10 cursor-pointer list-none place-items-center overflow-hidden rounded-full border border-border bg-surface shadow-sm transition-colors duration-200 marker:hidden hover:border-primary/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface [&::-webkit-details-marker]:hidden"
             >
               <Image
-                src="/assets/brand/official-rt-logo.png"
+                src="/assets/brand/official-rt-logo02.png"
                 alt="Logo RT 010"
                 width="40"
                 height="40"
@@ -124,7 +124,7 @@ export function SiteHeader() {
             <div className="absolute left-1/2 top-full z-40 mt-3 w-64 -translate-x-1/2 rounded-2xl border border-border bg-surface p-4 text-center shadow-[0_24px_70px_rgba(20,90,58,0.18)]">
               <div className="mx-auto grid h-44 w-44 place-items-center overflow-hidden rounded-2xl border border-border bg-background p-3">
                 <Image
-                  src="/assets/brand/official-rt-logo.png"
+                  src="/assets/brand/official-rt-logo02.png"
                   alt="Logo resmi RT 010 / RW 021"
                   width="190"
                   height="190"

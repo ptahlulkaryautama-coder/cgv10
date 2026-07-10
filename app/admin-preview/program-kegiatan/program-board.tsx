@@ -54,15 +54,22 @@ function CheckMark({ enabled }: { enabled: boolean }) {
 }
 
 export function ProgramBoard() {
+  const [programs, setPrograms] = useState(programItems);
   const [query, setQuery] = useState("");
   const [pillar, setPillar] = useState("Semua");
   const [status, setStatus] = useState<(typeof statuses)[number]>("Semua");
   const [selectedId, setSelectedId] = useState(programItems[0].id);
+  const [draft, setDraft] = useState({
+    name: "",
+    category: "Kegiatan",
+    pillar: "Lingkungan",
+    schedule: "",
+  });
 
   const filteredPrograms = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
-    return programItems.filter((program) => {
+    return programs.filter((program) => {
       const matchesQuery = normalizedQuery
         ? [program.id, program.name, program.category, program.owner]
             .join(" ")
@@ -74,12 +81,40 @@ export function ProgramBoard() {
 
       return matchesQuery && matchesPillar && matchesStatus;
     });
-  }, [pillar, query, status]);
+  }, [pillar, programs, query, status]);
 
   const selectedProgram =
     filteredPrograms.find((program) => program.id === selectedId) ??
     filteredPrograms[0] ??
+    programs[0] ??
     programItems[0];
+
+  function addProgram() {
+    if (!draft.name.trim()) return;
+
+    const program = {
+      id: `PRG-${String(programs.length + 1).padStart(3, "0")}`,
+      name: draft.name.trim(),
+      category: draft.category,
+      pillar: draft.pillar,
+      schedule: draft.schedule.trim() || "Jadwal menyusul",
+      owner: "Pengurus",
+      status: "Draft" as ProgramStatus,
+      web: false,
+      portal: true,
+      portalPath: "/kegiatan/",
+      source: "Input preview admin",
+    };
+
+    setPrograms((current) => [program, ...current]);
+    setSelectedId(program.id);
+    setDraft({
+      name: "",
+      category: "Kegiatan",
+      pillar: "Lingkungan",
+      schedule: "",
+    });
+  }
 
   return (
     <section className="mb-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.72fr)]">
@@ -89,6 +124,57 @@ export function ProgramBoard() {
           subtitle="Filter agenda, cek channel publikasi, dan pilih program untuk review."
           action={<ActionButton>Export Agenda</ActionButton>}
         />
+        <div
+          id="tambah-kegiatan"
+          className="grid gap-3 border-t border-border bg-white px-5 py-4 md:grid-cols-[minmax(0,1fr)_150px_150px_minmax(0,0.8fr)_auto]"
+        >
+          <input
+            value={draft.name}
+            onChange={(event) =>
+              setDraft((current) => ({ ...current, name: event.target.value }))
+            }
+            placeholder="Nama kegiatan"
+            className="min-h-11 rounded-[10px] border border-black/10 bg-white px-4 text-sm outline-none transition-colors duration-200 focus:border-primary"
+          />
+          <select
+            value={draft.category}
+            onChange={(event) =>
+              setDraft((current) => ({ ...current, category: event.target.value }))
+            }
+            className="min-h-11 cursor-pointer rounded-[10px] border border-black/10 bg-white px-3 text-sm font-semibold text-muted outline-none focus:border-primary"
+          >
+            <option>Kegiatan</option>
+            <option>Program</option>
+            <option>Agenda</option>
+            <option>Publikasi</option>
+          </select>
+          <select
+            value={draft.pillar}
+            onChange={(event) =>
+              setDraft((current) => ({ ...current, pillar: event.target.value }))
+            }
+            className="min-h-11 cursor-pointer rounded-[10px] border border-black/10 bg-white px-3 text-sm font-semibold text-muted outline-none focus:border-primary"
+          >
+            {pillars.filter((item) => item !== "Semua").map((item) => (
+              <option key={item}>{item}</option>
+            ))}
+          </select>
+          <input
+            value={draft.schedule}
+            onChange={(event) =>
+              setDraft((current) => ({ ...current, schedule: event.target.value }))
+            }
+            placeholder="Jadwal"
+            className="min-h-11 rounded-[10px] border border-black/10 bg-white px-4 text-sm outline-none transition-colors duration-200 focus:border-primary"
+          />
+          <button
+            type="button"
+            onClick={addProgram}
+            className="min-h-11 cursor-pointer rounded-[10px] border border-primary bg-primary px-4 text-sm font-bold text-accent transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            Tambah
+          </button>
+        </div>
         <div className="grid gap-3 border-y border-border bg-[#f8f6f0] px-5 py-4 md:grid-cols-[minmax(0,1fr)_170px_150px]">
           <input
             value={query}

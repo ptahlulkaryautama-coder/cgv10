@@ -35,6 +35,7 @@ function getTrustBadges(item: MarketplaceItem) {
     "Lapak warga",
     item.whatsappHref ? "Kontak tersedia" : "Kontak via pengurus",
     item.detailHref ? "Detail aktif" : "Detail segera hadir",
+    item.sellerStatus === "online" ? "Seller online" : "Seller offline",
   ];
 }
 
@@ -83,6 +84,7 @@ function sortItems(items: MarketplaceItem[], sort: SortValue) {
 
 function ListingCard({ item }: { item: MarketplaceItem }) {
   const badges = getTrustBadges(item);
+  const isOnline = item.sellerStatus === "online";
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-colors duration-200 hover:border-primary/35">
@@ -120,6 +122,20 @@ function ListingCard({ item }: { item: MarketplaceItem }) {
         <div className="absolute left-3 top-3 rounded-full bg-accent-soft px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-foreground shadow-sm">
           {item.category}
         </div>
+        <div
+          className={`absolute right-3 top-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold shadow-sm ${
+            isOnline
+              ? "border-emerald-200 bg-emerald-50 text-primary"
+              : "border-white/45 bg-white/90 text-muted"
+          }`}
+        >
+          <span
+            className={`h-2 w-2 rounded-full ${
+              isOnline ? "bg-emerald-600" : "bg-stone-400"
+            }`}
+          />
+          {item.sellerStatusLabel}
+        </div>
         <div className="absolute bottom-3 right-3 rounded-full border border-white/45 bg-primary/86 px-3 py-1 text-xs font-semibold text-white shadow-sm">
           {item.status}
         </div>
@@ -148,6 +164,21 @@ function ListingCard({ item }: { item: MarketplaceItem }) {
             <span className="text-muted">Kontak</span>
             <span className="text-right font-semibold text-foreground">
               {item.whatsappStatus ?? "Via pengurus"}
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-4 border-t border-border pt-4">
+            <span className="text-muted">Status seller</span>
+            <span
+              className={`inline-flex items-center gap-2 text-right font-semibold ${
+                isOnline ? "text-primary" : "text-muted"
+              }`}
+            >
+              <span
+                className={`h-2 w-2 rounded-full ${
+                  isOnline ? "bg-emerald-600" : "bg-stone-400"
+                }`}
+              />
+              {item.sellerStatusLabel}
             </span>
           </div>
         </div>
@@ -188,14 +219,14 @@ function ListingCard({ item }: { item: MarketplaceItem }) {
               className="inline-flex min-h-11 items-center justify-center rounded-xl bg-accent px-4 text-sm font-semibold text-foreground shadow-sm transition-colors hover:bg-accent/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
               aria-label={`${item.whatsappLabel ?? "Hubungi WhatsApp"} untuk ${item.name}`}
             >
-              Hubungi
+              {isOnline ? "Hubungi" : "Cek kontak"}
             </Link>
           ) : (
             <Link
               href="/kontak/"
               className="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-background px-4 text-sm font-semibold text-primary transition-colors hover:border-primary/35 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             >
-              Tanya kontak
+              {isOnline ? "Tanya kontak" : "Seller offline"}
             </Link>
           )}
         </div>

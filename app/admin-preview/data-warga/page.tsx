@@ -20,7 +20,7 @@ export default function DataWargaAdminPage() {
       active="warga"
       title="Data Warga"
       subtitle="KK, cluster, dan validasi"
-      action={<ActionButton primary>Tambah Data</ActionButton>}
+      action={<ActionButton primary href="#tambah-data-warga">Tambah Data</ActionButton>}
     >
       <PageIntro
         eyebrow="Data Internal"
@@ -31,7 +31,7 @@ export default function DataWargaAdminPage() {
           </>
         }
         text="Modul ini disiapkan untuk pendataan keluarga, cluster, kendaraan, status hunian, dan jalur komunikasi internal. Data sensitif tidak ditampilkan ke portal publik."
-        side={<ActionButton primary>Tambah Data</ActionButton>}
+        side={<ActionButton primary href="#tambah-data-warga">Tambah Data</ActionButton>}
       />
 
       <section className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">

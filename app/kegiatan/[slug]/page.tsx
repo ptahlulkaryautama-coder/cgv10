@@ -53,8 +53,37 @@ export default async function KegiatanDetailPage({
   }
 
   const galleryPreview = [
-    item,
-    ...kegiatanItems.filter((entry) => entry.slug !== item.slug),
+    {
+      slug: item.slug,
+      title: item.title,
+      imageSrc: item.imageSrc,
+      imageAlt: item.imageAlt,
+    },
+    ...(item.articleSections ?? [])
+      .map((section, index) =>
+        section.image
+          ? {
+              slug: `${item.slug}-${index}`,
+              title: section.image.caption,
+              imageSrc: section.image.src,
+              imageAlt: section.image.alt,
+            }
+          : undefined,
+      )
+      .filter((entry): entry is {
+        slug: string;
+        title: string;
+        imageSrc: string;
+        imageAlt: string;
+      } => Boolean(entry)),
+    ...kegiatanItems
+      .filter((entry) => entry.slug !== item.slug)
+      .map((entry) => ({
+        slug: entry.slug,
+        title: entry.title,
+        imageSrc: entry.imageSrc,
+        imageAlt: entry.imageAlt,
+      })),
   ].slice(0, 3);
 
   return (
@@ -148,6 +177,64 @@ export default async function KegiatanDetailPage({
                 {item.text}
               </p>
             </article>
+
+            {item.articleSections ? (
+              <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-7">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                  Artikel warga
+                </p>
+                <div className="mt-5 space-y-6 text-base leading-8 text-foreground sm:text-lg sm:leading-9">
+                  {item.articleSections.map((section, sectionIndex) => (
+                    <div key={`${item.slug}-article-${sectionIndex}`} className="space-y-6">
+                      {section.paragraphs.map((paragraph, paragraphIndex) => {
+                        const isQuote = paragraph.startsWith("Doakan ya");
+                        const isClosing = paragraph.startsWith("Semangat Primatama");
+
+                        return (
+                          <p
+                            key={paragraph}
+                            className={
+                              isQuote
+                                ? "rounded-2xl border-l-4 border-primary bg-primary-soft px-5 py-4 text-base font-semibold leading-7 text-primary sm:text-lg"
+                                : isClosing
+                                  ? "font-semibold text-primary"
+                                  : paragraphIndex === 0 && sectionIndex === 0
+                                    ? "text-lg font-medium leading-8 text-foreground sm:text-xl sm:leading-9"
+                                    : undefined
+                            }
+                          >
+                            {paragraph}
+                          </p>
+                        );
+                      })}
+
+                      {section.image ? (
+                        <figure className="overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
+                          <ImagePreview
+                            src={section.image.src}
+                            alt={section.image.alt}
+                            title={section.image.caption}
+                            caption="Dokumentasi artikel"
+                            className="aspect-[4/3] bg-cream sm:aspect-[16/10]"
+                          >
+                            <Image
+                              src={section.image.src}
+                              alt={section.image.alt}
+                              fill
+                              sizes="(min-width: 1024px) 760px, 92vw"
+                              className="object-cover"
+                            />
+                          </ImagePreview>
+                          <figcaption className="border-t border-border px-4 py-3 text-sm leading-6 text-muted sm:px-5">
+                            {section.image.caption}
+                          </figcaption>
+                        </figure>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ) : null}
 
             <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
