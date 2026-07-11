@@ -40,11 +40,11 @@ const kabarItems: KabarItem[] = [
     icon: "shield",
   },
   {
-    title: "Dokumentasi kerja bakti",
-    text: "Arsip visual kegiatan kebersihan bersama warga lingkungan.",
+    title: "Dokumentasi Primatama FC CGV U12",
+    text: "Arsip capaian Primatama FC CGV U12 di NFA Cup Futsal Kepri 2026.",
     category: "Dokumentasi",
-    status: "Review",
-    href: "/kegiatan/kerja-bakti-lingkungan/",
+    status: "Published",
+    href: "/kegiatan/primatama-fc-cgv-u12-babak-16-besar/",
     icon: "users",
   },
 ];

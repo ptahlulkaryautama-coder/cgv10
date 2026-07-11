@@ -69,10 +69,10 @@ const activities: Activity[] = [
 const moduleSummaries = [
   {
     title: "Portal Warga",
-    description: "Publish queue, visibility audit, dan preview output publik.",
+    description: "Demo publish queue, visibility audit, dan preview output publik.",
     href: "/admin-preview/portal-warga/",
     icon: "shield" as IconName,
-    status: "Live",
+    status: "Static",
     value: `${portalPublishSummary.published} published`,
   },
   {
@@ -167,8 +167,8 @@ const commandQueue = [
     status: "Validasi",
   },
   {
-    title: "Review konten publik",
-    meta: "4 item menunggu keputusan publish",
+    title: "Review demo konten publik",
+    meta: `${portalPublishSummary.review} item berada di antrean demo browser`,
     href: "/admin-preview/portal-warga/",
     icon: "shield" as IconName,
     status: "Review",
@@ -180,7 +180,7 @@ const operations = [
   ["Konfirmasi iuran", "4", "2 cocokkan", "/admin-preview/keuangan/"],
   ["Draft PALUGADA", "4", "1 validasi", "/admin-preview/palugada/"],
   [
-    "Publish queue",
+    "Demo publish queue",
     String(portalPublishSummary.total),
     `${portalPublishSummary.review} review`,
     "/admin-preview/portal-warga/",
@@ -196,7 +196,7 @@ const ecosystem = [
   },
   {
     title: "Portal Warga",
-    text: "Konten published dari dashboard tampil untuk warga.",
+    text: "Konten published berasal dari data statis portal.",
     href: "/kabar-warga/",
     icon: "shield" as IconName,
   },

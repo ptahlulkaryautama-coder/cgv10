@@ -26,7 +26,7 @@ type SidebarItem = {
 
 const primaryNav: SidebarItem[] = [
   { id: "dashboard", label: "Dashboard", href: "/admin-preview/", icon: "home" },
-  { id: "portal", label: "Portal Warga", href: "/admin-preview/portal-warga/", icon: "shield", badge: "Live" },
+  { id: "portal", label: "Portal Warga", href: "/admin-preview/portal-warga/", icon: "shield", badge: "Static" },
   { id: "warga", label: "Data Warga", href: "/admin-preview/data-warga/", icon: "users", badge: "250" },
   { id: "layanan", label: "Layanan", href: "/admin-preview/layanan/", icon: "message", badge: "5" },
   { id: "keuangan", label: "Keuangan", href: "/admin-preview/keuangan/", icon: "wallet" },
@@ -143,13 +143,13 @@ export function AdminShell({
                 />
               </div>
               <div className="min-w-0">
-                <p className="truncate text-sm font-bold text-white">CGV10 Admin</p>
+                <p className="truncate text-sm font-bold text-white">CGV10 Admin Preview</p>
                 <p className="mt-0.5 truncate text-[11px] font-semibold tracking-[0.04em] text-accent">
-                  app.cgv10.id
+                  Static prototype
                 </p>
               </div>
               <span className="absolute right-4 top-5 rounded-full border border-accent/25 bg-accent/14 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-accent">
-                RT
+                Demo
               </span>
             </div>
 
@@ -192,7 +192,7 @@ export function AdminShell({
 
         <div className="min-w-0 flex-1">
           <div className="h-7 border-b border-accent/10 bg-primary text-center text-[11px] font-semibold leading-7 tracking-[0.04em] text-accent/75">
-            Portal Warga CGV10
+            Admin Preview CGV10 - prototype statis
           </div>
           <header className="sticky top-0 z-30 border-b border-black/8 bg-[#f3efe6]/90 backdrop-blur-xl">
             <div className="flex min-h-[60px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -226,6 +226,10 @@ export function AdminShell({
             <div className="not-hydrated-only mb-5 rounded-[14px] border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold leading-6 text-red-700">
               Mode interaktif admin belum aktif. Jalankan dari dev/static
               server agar tombol, filter, modal, dan update status bisa bekerja.
+            </div>
+            <div className="mb-5 rounded-[14px] border border-accent/35 bg-accent-soft px-4 py-3 text-sm font-semibold leading-6 text-foreground">
+              Mode preview statis belum terhubung ke database Supabase. Aksi,
+              perubahan status, dan edit konten hanya simulasi di state browser.
             </div>
             {children}
           </div>

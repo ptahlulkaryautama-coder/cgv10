@@ -99,9 +99,9 @@ export function PublishControlBoard() {
     <section>
       <Panel className="overflow-hidden">
         <PanelHeader
-          title="Publish Control"
-          subtitle="Filter konten publik, lalu buka item untuk edit preview, publish, review, atau tahan."
-          action={<ActionButton href="#public-preview">Preview Feed</ActionButton>}
+          title="Demo Publish Control"
+          subtitle="Filter konten publik statis, lalu buka item untuk simulasi edit, publish, review, atau tahan di browser."
+          action={<ActionButton href="#public-preview">Preview Demo</ActionButton>}
         />
         <div className="grid gap-3 border-y border-border bg-[#f8f6f0] px-5 py-4 md:grid-cols-[minmax(0,1fr)_170px_170px]">
           <input
@@ -247,6 +247,7 @@ export function PublishControlBoard() {
                       ["Visibility", item.visibility],
                       ["Update", item.updated],
                       ["Readiness", `${item.readiness}%`],
+                      ["Portal path", item.portalPath],
                       ["Sumber", item.source],
                     ].map(([label, value]) => (
                       <div
@@ -254,7 +255,7 @@ export function PublishControlBoard() {
                         className="flex items-center justify-between gap-4 border-t border-border pt-3"
                       >
                         <dt className="text-muted">{label}</dt>
-                        <dd className="text-right font-bold text-foreground">{value}</dd>
+                        <dd className="break-words text-right font-bold text-foreground">{value}</dd>
                       </div>
                     ))}
                   </dl>
@@ -307,21 +308,21 @@ export function PublishControlBoard() {
                     onClick={() => updateItemById(item.id, { status: "Published" })}
                     className="min-h-10 cursor-pointer rounded-[10px] border border-emerald-200 bg-emerald-50 px-4 text-[13px] font-bold text-primary transition-colors hover:border-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
-                    Publish
+                    Demo: set Published
                   </button>
                   <button
                     type="button"
                     onClick={() => updateItemById(item.id, { status: "Review" })}
                     className="min-h-10 cursor-pointer rounded-[10px] border border-black/10 bg-white px-4 text-[13px] font-bold text-muted transition-colors hover:border-primary/30 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
-                    Kirim review
+                    Demo: kirim Review
                   </button>
                   <button
                     type="button"
                     onClick={() => updateItemById(item.id, { status: "Tahan" })}
                     className="min-h-10 cursor-pointer rounded-[10px] border border-red-200 bg-red-50 px-4 text-[13px] font-bold text-red-700 transition-colors hover:border-red-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
                   >
-                    Tahan publikasi
+                    Demo: tahan publikasi
                   </button>
                 </div>
               </div>
@@ -329,7 +330,7 @@ export function PublishControlBoard() {
               <aside className="rounded-[16px] border border-black/8 bg-white p-4 self-start">
                 <p className="text-sm leading-6 text-muted">
                   Detail ini bisa terbuka tanpa JavaScript. Perubahan status
-                  tetap membutuhkan mode interaktif aktif.
+                  hanya simulasi di browser dan tidak tersimpan ke database.
                 </p>
               </aside>
             </div>
@@ -468,28 +469,28 @@ export function PublishControlBoard() {
                     onClick={saveDraft}
                     className="min-h-10 cursor-pointer rounded-[10px] border border-primary bg-primary px-4 text-[13px] font-bold text-accent transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
-                    Simpan preview
+                    Simpan preview browser
                   </button>
                   <button
                     type="button"
                     onClick={() => updateSelectedStatus("Published")}
                     className="min-h-10 cursor-pointer rounded-[10px] border border-emerald-200 bg-emerald-50 px-4 text-[13px] font-bold text-primary transition-colors hover:border-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
-                    Publish
+                    Demo: set Published
                   </button>
                   <button
                     type="button"
                     onClick={() => updateSelectedStatus("Review")}
                     className="min-h-10 cursor-pointer rounded-[10px] border border-black/10 bg-white px-4 text-[13px] font-bold text-muted transition-colors hover:border-primary/30 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
-                    Kirim review
+                    Demo: kirim Review
                   </button>
                   <button
                     type="button"
                     onClick={() => updateSelectedStatus("Tahan")}
                     className="min-h-10 cursor-pointer rounded-[10px] border border-red-200 bg-red-50 px-4 text-[13px] font-bold text-red-700 transition-colors hover:border-red-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
                   >
-                    Tahan publikasi
+                    Demo: tahan publikasi
                   </button>
                 </div>
               </div>
@@ -501,14 +502,16 @@ export function PublishControlBoard() {
                     ["Update", draftItem.updated],
                     ["Readiness", `${draftItem.readiness}%`],
                     ["Status", draftItem.status],
+                    ["Portal path", draftItem.portalPath],
                     ["Sumber", draftItem.source],
+                    ["Penyimpanan", "Browser state demo"],
                   ].map(([label, value]) => (
                     <div
                       key={label}
                       className="flex items-center justify-between gap-4 border-t border-border pt-3 first:border-t-0 first:pt-0"
                     >
                       <dt className="text-muted">{label}</dt>
-                      <dd className="text-right font-bold text-foreground">{value}</dd>
+                      <dd className="break-words text-right font-bold text-foreground">{value}</dd>
                     </div>
                   ))}
                 </dl>

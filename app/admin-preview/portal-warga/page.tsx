@@ -20,39 +20,39 @@ export default function PortalWargaAdminPage() {
     <AdminShell
       active="portal"
       title="Portal Warga"
-      subtitle="Publikasi konten"
-      action={<ActionButton primary href="#public-preview">Preview Publish</ActionButton>}
+      subtitle="Preview publikasi statis"
+      action={<ActionButton primary href="#public-preview">Preview Demo</ActionButton>}
     >
       <PageIntro
         eyebrow="Output Publik"
         title={
           <>
-            Kontrol konten yang tampil di{" "}
+            Preview konten yang tampil di{" "}
             <span className="italic">Portal Warga</span>
           </>
         }
-        text="Modul ini menjadi tempat pengurus meninjau konten yang akan tampil ke warga: pengumuman, agenda, ringkasan kas, PALUGADA, dan kontak resmi."
-        side={<ActionButton primary href="#public-preview">Preview Publish</ActionButton>}
+        text="Modul ini membaca data statis yang sama dengan portal publik untuk presentasi. Tombol publish, review, dan tahan hanya mengubah state browser, bukan menyimpan ke backend."
+        side={<ActionButton primary href="#public-preview">Preview Demo</ActionButton>}
       />
 
       <section className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Published"
           value={`${portalPublishSummary.published} item`}
-          helper="Konten aktif di portal"
+          helper="Tampil di portal statis"
           icon="megaphone"
         />
         <MetricCard
           label="Review"
           value={`${portalPublishSummary.review} item`}
-          helper="Menunggu validasi pengurus"
+          helper="Demo antrean validasi"
           icon="shield"
           tone="gold"
         />
         <MetricCard
           label="Draft"
           value={`${portalPublishSummary.draft} item`}
-          helper="Belum tampil publik"
+          helper="Tidak tampil publik"
           icon="file"
           tone="blue"
         />
@@ -69,8 +69,8 @@ export default function PortalWargaAdminPage() {
 
       <section className="mt-5 grid gap-4 md:grid-cols-3">
         {[
-          ["Preview public feed", "Cek urutan konten yang akan tampil di halaman warga."],
-          ["Publish queue", "Tinjau item yang menunggu approval sebelum live."],
+          ["Preview public feed", "Cek urutan konten yang tampil dari data statis portal."],
+          ["Demo publish queue", "Tinjau simulasi approval tanpa menyimpan ke backend."],
           ["Visibility audit", "Pastikan konten internal tidak ikut tampil publik."],
         ].map(([title, text]) => (
           <Panel key={title}>
