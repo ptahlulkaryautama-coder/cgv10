@@ -16,25 +16,25 @@ const trialAdminRoles: TrialAdminRole[] = [
   {
     label: "Super Admin",
     shortLabel: "Super",
-    hash: "08748ead0efb0e58ddefc7794f692c1244453d48ccc4825bd458c26d40f8b3d2",
+    hash: "e63d07777ad1c3d0862172bc4d866c731becb441316a44d38d8b7e0b49f0e7b1",
     scope: "Full preview access untuk seluruh modul admin.",
   },
   {
     label: "Ketua RT",
     shortLabel: "Ketua",
-    hash: "e70bc9eb447eedf1d60b78e1f3ca1c9f5a84fccba41dd208a2faf8bc23bc0a7c",
+    hash: "714360542fbd8d80f88febe2f2c9e66c8ba8bb1c5bb587d054093dae313fcef2",
     scope: "Review dashboard, layanan, publikasi, dan ringkasan pengurus.",
   },
   {
     label: "Sekretaris",
     shortLabel: "Sekretaris",
-    hash: "23d6074843293825d5c1e1abcce9260403574303fa7f3051de8967550fd124b8",
+    hash: "806a8dd494f87b16007857ac6346b1d466e28d6a022a40f10a96ee9e2aa18697",
     scope: "Review data warga, dokumen, layanan, dan konten portal.",
   },
   {
     label: "Bendahara",
     shortLabel: "Bendahara",
-    hash: "1a281b76cac79a1ed5460a3544af83c1a804c2cbee9e5ed5b2340f39c7dc8b08",
+    hash: "60eea3dd25dc3c536675a8e378ca4fcb49b115fd079bfa3be1f71d2d988b70e2",
     scope: "Review keuangan, iuran, dan ringkasan kas publik.",
   },
 ];
