@@ -29,7 +29,7 @@ const allNews: KabarItem[] = [
     category: item.category,
     title: item.title,
     text: item.excerpt,
-    href: index === 0 ? "#artikel-terbaru" : "#semua-kabar",
+    href: item.slug ? `/kabar-warga/${item.slug}/` : index === 0 ? "#artikel-terbaru" : "#semua-kabar",
     imageSrc: item.coverImageSrc,
     imageAlt: item.coverImageAlt ?? item.title,
     meta: `${item.publishedAt} - ${item.readTime}`,

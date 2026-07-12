@@ -52,7 +52,8 @@ const rhythmCards = [
     text: kabarArticles[0].excerpt,
     href: "/kabar-warga/#artikel-terbaru",
     imageSrc:
-      kabarArticles[0].coverImageSrc ?? "/assets/kegiatan/keamanan-kebersihan.png",
+      kabarArticles[0].coverImageSrc ??
+      "/assets/kegiatan/keamanan-kebersihan-optimized.jpg",
     imageAlt: kabarArticles[0].coverImageAlt ?? kabarArticles[0].title,
     badge: kabarArticles[0].category,
   },
@@ -69,7 +70,8 @@ const rhythmCards = [
     text: kabarArticles[1].excerpt,
     href: "/kabar-warga/#semua-kabar",
     imageSrc:
-      kabarArticles[1].coverImageSrc ?? "/assets/kegiatan/keamanan-kebersihan.png",
+      kabarArticles[1].coverImageSrc ??
+      "/assets/kegiatan/keamanan-kebersihan-optimized.jpg",
     imageAlt: kabarArticles[1].coverImageAlt ?? kabarArticles[1].title,
     badge: kabarArticles[1].category,
   },

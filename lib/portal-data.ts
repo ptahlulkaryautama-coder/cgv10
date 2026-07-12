@@ -149,6 +149,12 @@ export type KabarArticle = {
   readTime: string;
   coverImageSrc?: string;
   coverImageAlt?: string;
+  video?: {
+    src: string;
+    posterSrc: string;
+    title: string;
+    durationLabel: string;
+  };
 };
 
 export const navItems = [
@@ -201,15 +207,15 @@ export const kegiatanItems: KegiatanItem[] = [
   {
     title:
       "Primatama FC CGV U12 Lolos ke Babak 16 Besar NFA Cup Futsal Piala Gubernur & Wakil Gubernur Kepri 2026",
-    slug: "kerja-bakti-lingkungan",
-    href: "/kegiatan/kerja-bakti-lingkungan/",
+    slug: "primatama-fc-cgv-u12-babak-16-besar",
+    href: "/kegiatan/primatama-fc-cgv-u12-babak-16-besar/",
     text:
       "Kabar membanggakan datang dari anak-anak warga CGV yang tergabung dalam Primatama FC CGV U12.",
     detailDescription:
       "Primatama FC CGV U12 berhasil melangkah ke babak 16 besar dalam ajang NFA Cup Futsal Piala Gubernur dan Wakil Gubernur Kepri 2026.",
     icon: "users",
     tone: "primary",
-    imageSrc: "/assets/kegiatan/primatama-fc1.png",
+    imageSrc: "/assets/kegiatan/primatama-fc1-optimized.jpg",
     imageAlt:
       "Primatama FC CGV U12 dalam NFA Cup Futsal Piala Gubernur dan Wakil Gubernur Kepri 2026",
     articleSections: [
@@ -220,7 +226,7 @@ export const kegiatanItems: KegiatanItem[] = [
           "Dalam keterangan yang dibagikan official, klasemen akhir U12 menunjukkan bahwa tim-tim yang diberi tanda warna berhak lolos ke babak 16 besar. Warna kuning menunjukkan juara grup, warna biru menunjukkan runner-up, dan warna merah menunjukkan peringkat tiga terbaik. Seluruh tim yang masuk dalam penanda warna tersebut berhak melanjutkan perjuangan ke fase berikutnya.",
         ],
         image: {
-          src: "/assets/kegiatan/primatama-fc2.png",
+          src: "/assets/kegiatan/primatama-fc2-optimized.jpg",
           alt: "Dokumentasi Primatama FC CGV U12 bersama official tim",
           caption: "Dokumentasi Primatama FC CGV U12.",
         },
@@ -258,7 +264,7 @@ export const kegiatanItems: KegiatanItem[] = [
       "Dokumentasi rapat warga yang menampilkan suasana forum dan koordinasi lingkungan.",
     icon: "message",
     tone: "accent",
-    imageSrc: "/assets/kegiatan/rapat-warga.png",
+    imageSrc: "/assets/kegiatan/rapat-warga-optimized.jpg",
     imageAlt: "Dokumentasi rapat warga CGV10",
     captions: [
       "Suasana diskusi warga dalam forum lingkungan.",
@@ -276,7 +282,7 @@ export const kegiatanItems: KegiatanItem[] = [
       "Arsip kegiatan sosial yang menunjukkan momen kebersamaan warga.",
     icon: "home",
     tone: "cream",
-    imageSrc: "/assets/kegiatan/kegiatan-sosial.png",
+    imageSrc: "/assets/kegiatan/kegiatan-sosial-optimized.jpg",
     imageAlt: "Dokumentasi kegiatan sosial warga CGV10",
     captions: [
       "Kegiatan sosial warga sebagai bagian dari arsip komunitas.",
@@ -294,7 +300,7 @@ export const kegiatanItems: KegiatanItem[] = [
       "Dokumentasi keamanan dan kebersihan untuk arsip visual kegiatan lingkungan.",
     icon: "shield",
     tone: "primary",
-    imageSrc: "/assets/kegiatan/keamanan-kebersihan.png",
+    imageSrc: "/assets/kegiatan/keamanan-kebersihan-optimized.jpg",
     imageAlt: "Dokumentasi keamanan dan kebersihan lingkungan CGV10",
     captions: [
       "Koordinasi keamanan dan kebersihan lingkungan.",
@@ -312,7 +318,7 @@ export const kegiatanItems: KegiatanItem[] = [
       "Dokumentasi kegiatan keluarga yang menampilkan aktivitas kebersamaan warga.",
     icon: "calendar",
     tone: "accent",
-    imageSrc: "/assets/kegiatan/kegiatan-keluarga.png",
+    imageSrc: "/assets/kegiatan/kegiatan-keluarga-optimized.jpg",
     imageAlt: "Dokumentasi kegiatan anak-anak dan keluarga CGV10",
     captions: [
       "Aktivitas keluarga sebagai bagian dari arsip komunitas.",
@@ -332,7 +338,7 @@ export const pengurusRoles: IconCard[] = pengurusLeadership.map((member) => ({
   location: "Cipta Greenville",
   imageSrc:
     member.id === "ketua-rt-doddy-dharma"
-      ? "/assets/pengurus/doddy-dharma.png"
+      ? "/assets/pengurus/doddy-dharma-optimized.jpg"
       : undefined,
   imageAlt:
     member.id === "ketua-rt-doddy-dharma"
@@ -449,7 +455,7 @@ export const kabarArticles: KabarArticle[] = [
           "Melalui dokumentasi visual terbaru, terlihat bahwa kawasan ini memiliki identitas yang cukup kuat sebagai lingkungan hunian modern. Bangunan rumah dengan desain kontemporer, perpaduan warna cerah, area jalan yang terbuka, serta penataan taman di sekitar hunian memberikan kesan kawasan yang aktif dirawat dan terus berkembang.",
         ],
         image: {
-          src: "/assets/kegiatan/2026-06-28_lingkungan_signage-cgv_web_v1.webp",
+          src: "/assets/kegiatan/2026-06-28_lingkungan_signage-cgv_web_v1-optimized.jpg",
           alt: "Signage kawasan Cipta Green Ville sebagai identitas lingkungan",
           caption:
             "Identitas kawasan Cipta Green Ville sebagai lingkungan hunian yang terus berkembang.",
@@ -462,7 +468,7 @@ export const kabarArticles: KabarArticle[] = [
           "Deretan rumah dengan desain modern memberi kesan rapi dan tertata. Hal ini menjadi nilai tambah bagi warga, karena lingkungan yang baik dapat membantu menciptakan rasa nyaman dalam aktivitas sehari-hari.",
         ],
         image: {
-          src: "/assets/kegiatan/2026-06-28_lingkungan_rumah-cluster-cgv_web_v1.webp",
+          src: "/assets/kegiatan/2026-06-28_lingkungan_rumah-cluster-cgv_web_v1-optimized.jpg",
           alt: "Tampilan rumah cluster modern di kawasan Cipta Green Ville",
           caption:
             "Tampilan hunian modern di kawasan Cipta Green Ville dengan desain rapi, bersih, dan nyaman untuk keluarga.",
@@ -475,7 +481,7 @@ export const kabarArticles: KabarArticle[] = [
           "Fasilitas seperti ini tidak hanya berfungsi sebagai pelengkap kawasan, tetapi juga menjadi ruang interaksi. Anak-anak, keluarga, dan warga dapat memiliki tempat untuk menikmati waktu bersama dalam suasana yang lebih santai dan positif.",
         ],
         image: {
-          src: "/assets/kegiatan/2026-06-28_fasilitas_kolam-cgv_web_v1.webp",
+          src: "/assets/kegiatan/2026-06-28_fasilitas_kolam-cgv_web_v1-optimized.jpg",
           alt: "Fasilitas kolam renang kawasan Cipta Green Ville",
           caption:
             "Fasilitas kawasan yang dapat menjadi ruang bersama bagi warga dan keluarga.",
@@ -488,7 +494,7 @@ export const kabarArticles: KabarArticle[] = [
           "Keberadaan dokumentasi dari petugas keamanan juga menunjukkan adanya perhatian terhadap kondisi lingkungan. Hal ini perlu terus dijaga agar warga merasa lebih tenang, terutama pada malam hari.",
         ],
         image: {
-          src: "/assets/kegiatan/2026-06-28_security_jalan-malam-cgv-01_web_v1.webp",
+          src: "/assets/kegiatan/2026-06-28_security_jalan-malam-cgv-01_web_v1-optimized.jpg",
           alt: "Suasana jalan lingkungan Cipta Green Ville pada malam hari",
           caption:
             "Suasana jalan lingkungan pada malam hari sebagai bagian dari perhatian terhadap keamanan dan kenyamanan warga.",
@@ -501,7 +507,7 @@ export const kabarArticles: KabarArticle[] = [
           "Ke depan, dokumentasi lingkungan tidak hanya menjadi arsip visual, tetapi juga dapat menjadi sarana komunikasi warga, publikasi kegiatan, laporan kondisi lingkungan, dan penguatan rasa memiliki terhadap kawasan Cipta Green Ville.",
         ],
         image: {
-          src: "/assets/kegiatan/2026-06-28_security_jalan-malam-cgv-02_web_v1.webp",
+          src: "/assets/kegiatan/2026-06-28_security_jalan-malam-cgv-02_web_v1-optimized.jpg",
           alt: "Dokumentasi jalan lingkungan Cipta Green Ville saat malam",
           caption:
             "Dokumentasi lingkungan membantu warga melihat kondisi kawasan secara lebih terbuka.",
@@ -528,12 +534,13 @@ export const kabarArticles: KabarArticle[] = [
     publishedAt: "10 Jul 2026",
     readTime: "4 menit baca",
     coverImageSrc:
-      "/assets/kegiatan/2026-06-28_lingkungan_signage-cgv_web_v1.webp",
+      "/assets/kegiatan/2026-06-28_lingkungan_signage-cgv_web_v1-optimized.jpg",
     coverImageAlt:
       "Identitas kawasan Cipta Green Ville sebagai lingkungan hunian yang terus berkembang",
   },
   {
     title: "Pengumuman Susunan Kepengurusan RT 010 Periode Baru",
+    slug: "pengumuman-susunan-kepengurusan-rt-010-periode-baru",
     category: "Pengumuman",
     excerpt:
       "Pernyataan Ketua RT 010 tentang amanah kepengurusan baru, susunan organisasi, dan serah terima dari pengurus sebelumnya.",
@@ -573,17 +580,77 @@ export const kabarArticles: KabarArticle[] = [
     coverImageAlt: "Bagan susunan Kepengurusan RT 010 periode baru",
   },
   {
-    title: "Portal Warga CGV10 siap dikenalkan ke lingkungan",
+    title:
+      "Sedekah Jumat di Lingkungan CGV: Menebar Kepedulian, Menguatkan Kebersamaan",
+    slug: "sedekah-jumat-di-lingkungan-cgv",
     category: "Artikel",
     excerpt:
-      "Ringkasan pengantar untuk warga tentang fungsi Portal CGV10, kanal layanan, Kabar Warga, transparansi, dan PALUGADA.",
+      "Dokumentasi kegiatan sosial Sedekah Jumat sebagai bentuk kepedulian warga dan penguatan kebersamaan di lingkungan sekitar Cipta Green Ville.",
     body:
-      "Portal Warga CGV10 disiapkan sebagai pintu informasi lingkungan yang ringkas. Warga dapat membuka kabar terbaru, mengakses layanan, melihat struktur pengurus, memantau ringkasan kas, dan mengenal katalog PALUGADA dalam satu tempat. Pada tahap awal, pengurus dapat memakai artikel ini sebagai materi pengantar sebelum modul login dan database warga ditambahkan.",
+      "Kegiatan sosial kembali terlihat di lingkungan sekitar Cipta Green Ville melalui agenda pembagian Sedekah Jumat.",
+    bodySections: [
+      {
+        paragraphs: [
+          "Kegiatan sosial kembali terlihat di lingkungan sekitar Cipta Green Ville melalui agenda pembagian Sedekah Jumat. Dalam dokumentasi kegiatan, tampak suasana sederhana namun penuh makna, ketika warga dan pihak yang terlibat turut berperan dalam menyalurkan kebaikan kepada masyarakat sekitar.",
+          "Sedekah Jumat menjadi salah satu bentuk kepedulian sosial yang sangat positif. Tidak hanya bernilai sebagai bantuan, kegiatan ini juga menjadi sarana untuk mempererat hubungan antarwarga, menumbuhkan rasa empati, dan membangun lingkungan yang lebih peduli terhadap sesama.",
+        ],
+        image: {
+          src: "/assets/kegiatan/2026-07-10_kabar-sosial_sedekah-jumat-cgv_panitia-01-optimized.jpg",
+          alt: "Dokumentasi kegiatan Sedekah Jumat di lingkungan sekitar Cipta Green Ville",
+          caption:
+            "Dokumentasi Sedekah Jumat sebagai kegiatan sosial warga di lingkungan sekitar CGV.",
+        },
+      },
+      {
+        heading: "Peran Sosial Warga dalam Lingkungan Sekitar",
+        paragraphs: [
+          "Sebuah lingkungan yang baik tidak hanya diukur dari kerapian kawasan dan fasilitasnya, tetapi juga dari kepedulian warganya. Melalui kegiatan seperti Sedekah Jumat, warga dapat mengambil bagian dalam aktivitas sosial yang membawa manfaat bagi orang lain.",
+          "Kegiatan ini menjadi pengingat bahwa kebersamaan warga tidak hanya hadir dalam forum, rapat, atau kegiatan lingkungan, tetapi juga dalam bentuk kepedulian nyata. Sekecil apa pun kontribusi yang diberikan, ketika dilakukan bersama-sama akan menjadi bagian dari kebaikan yang lebih besar.",
+        ],
+      },
+      {
+        heading: "Menumbuhkan Budaya Peduli dan Berbagi",
+        paragraphs: [
+          "Sedekah Jumat memiliki nilai yang kuat karena dilakukan secara rutin dan dekat dengan kehidupan masyarakat. Aktivitas seperti ini dapat menjadi contoh baik bagi keluarga, anak-anak, dan warga sekitar bahwa kepedulian sosial adalah bagian penting dari kehidupan bertetangga.",
+          "Dengan adanya kegiatan berbagi, lingkungan menjadi lebih hangat. Warga tidak hanya hidup berdampingan, tetapi juga saling memperhatikan dan mendukung.",
+        ],
+      },
+      {
+        heading: "Dokumentasi Positif untuk Portal Warga CGV",
+        paragraphs: [
+          "Melalui Portal Warga CGV, kegiatan sosial seperti ini dapat terdokumentasi dengan lebih rapi sebagai bagian dari kabar lingkungan. Dokumentasi Sedekah Jumat dapat menjadi catatan positif tentang peran warga dalam membangun budaya sosial yang aktif, peduli, dan bermanfaat.",
+          "Ke depan, kegiatan sosial warga dapat menjadi salah satu bagian penting dalam Kabar Warga CGV, agar setiap aktivitas kebaikan dapat diketahui, diapresiasi, dan menjadi inspirasi bagi warga lainnya.",
+        ],
+      },
+      {
+        heading: "Semoga Terus Menjadi Kebaikan",
+        paragraphs: [
+          "Terima kasih kepada seluruh pihak yang telah ikut mendukung kegiatan Sedekah Jumat ini. Semoga setiap bantuan yang diberikan menjadi amal kebaikan, membawa manfaat bagi penerima, dan menjadi jalan untuk memperkuat kepedulian sosial di lingkungan CGV dan sekitarnya.",
+          "Semoga kegiatan seperti ini dapat terus berjalan, semakin terorganisir, dan menjadi bagian dari budaya positif warga Cipta Green Ville.",
+        ],
+      },
+    ],
+    tags: [
+      "Sedekah Jumat",
+      "Kabar Sosial",
+      "Cipta Green Ville",
+      "Kepedulian Warga",
+      "Portal Warga",
+    ],
     author: "Pengurus CGV10",
-    publishedAt: "07 Jul 2026",
-    readTime: "2 menit baca",
-    coverImageSrc: "/assets/kegiatan/keamanan-kebersihan.png",
-    coverImageAlt: "Ilustrasi lingkungan CGV10 untuk artikel Portal Warga",
+    publishedAt: "10 Jul 2026",
+    readTime: "4 menit baca",
+    coverImageSrc:
+      "/assets/kegiatan/2026-07-10_kabar-sosial_sedekah-jumat-cgv_panitia-01-optimized.jpg",
+    coverImageAlt:
+      "Dokumentasi kegiatan Sedekah Jumat di lingkungan sekitar Cipta Green Ville",
+    video: {
+      src: "/assets/kegiatan/2026-07-10_kabar-sosial_sedekah-jumat-cgv_video-01.mp4",
+      posterSrc:
+        "/assets/kegiatan/2026-07-10_kabar-sosial_sedekah-jumat-cgv_poster-01-optimized.jpg",
+      title: "Video dokumentasi Sedekah Jumat CGV",
+      durationLabel: "27 detik",
+    },
   },
 ];
 
@@ -710,7 +777,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     sellerStatusLabel: "Online",
     sellerStatusNote: "Menerima konfirmasi pesanan melalui WhatsApp.",
     icon: "utensils",
-    imageSrc: "/assets/palugada/maniez-donut-main.png",
+    imageSrc: "/assets/palugada/maniez-donut-main-optimized.jpg",
     imageAlt: "Ma'niez Donut untuk katalog PALUGADA CGV",
     detailSlug: "donat-kentang-warga",
     detailHref: "/palugada/donat-kentang-warga/",
@@ -732,15 +799,15 @@ export const marketplaceItems: MarketplaceItem[] = [
     contactBadge: "Kanal WhatsApp",
     galleryImages: [
       {
-        src: "/assets/palugada/maniez-donut-main.png",
+        src: "/assets/palugada/maniez-donut-main-optimized.jpg",
         alt: "Ma'niez Donut sebagai foto utama PALUGADA",
       },
       {
-        src: "/assets/palugada/maniez-donut-varian01.png",
+        src: "/assets/palugada/maniez-donut-varian01-optimized.jpg",
         alt: "Varian Ma'niez Donut untuk katalog PALUGADA",
       },
       {
-        src: "/assets/palugada/maniez-donut-varian02.png",
+        src: "/assets/palugada/maniez-donut-varian02-optimized.jpg",
         alt: "Pilihan Ma'niez Donut untuk PALUGADA",
       },
     ],
@@ -779,7 +846,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     sellerStatusLabel: "Offline",
     sellerStatusNote: "Lapak belum membuka kontak langsung di katalog.",
     icon: "briefcase",
-    imageSrc: "/assets/palugada/palugada-laundry.jpg",
+    imageSrc: "/assets/palugada/palugada-laundry-optimized.jpg",
     imageAlt:
       "Jasa laundry kiloan untuk katalog PALUGADA CGV",
     detailSlug: "jasa-laundry-kiloan",
@@ -832,7 +899,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     sellerStatusLabel: "Offline",
     sellerStatusNote: "Menu dan jadwal pemesanan belum dibuka di katalog.",
     icon: "utensils",
-    imageSrc: "/assets/palugada/palugada-catering.jpg",
+    imageSrc: "/assets/palugada/palugada-catering-optimized.jpg",
     imageAlt:
       "Catering rumahan untuk katalog PALUGADA CGV",
     detailSlug: "catering-rumahan",
@@ -863,7 +930,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     sellerStatusLabel: "Offline",
     sellerStatusNote: "Jadwal layanan belum aktif untuk kontak langsung.",
     icon: "briefcase",
-    imageSrc: "/assets/palugada/palugada-servis-ac.jpg",
+    imageSrc: "/assets/palugada/palugada-servis-ac-optimized.jpg",
     imageAlt:
       "Jasa servis AC untuk katalog PALUGADA CGV",
     detailSlug: "jasa-servis-ac",

@@ -34,12 +34,12 @@ const documents: DocumentItem[] = [
   },
   {
     code: "DOC-003",
-    title: "Dokumentasi kerja bakti",
+    title: "Dokumentasi Primatama FC CGV U12",
     category: "Kegiatan",
     visibility: "Publik",
     status: "Aktif",
-    owner: "Seksi Lingkungan",
-    updated: "22 Jun 2026",
+    owner: "Program & Kegiatan",
+    updated: "10 Jul 2026",
   },
   {
     code: "DOC-004",

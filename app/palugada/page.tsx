@@ -69,7 +69,7 @@ export default function PalugadaPage() {
             <div className="grid gap-3 md:grid-cols-[1.05fr_0.95fr]">
               <div className="relative min-h-[320px] overflow-hidden rounded-xl bg-foreground/20 sm:min-h-[410px]">
                 <Image
-                  src="/assets/palugada/palugada-hero.jpg"
+                  src="/assets/palugada/palugada-hero-optimized.jpg"
                   alt="Kolase kategori PALUGADA CGV untuk katalog warga"
                   fill
                   priority

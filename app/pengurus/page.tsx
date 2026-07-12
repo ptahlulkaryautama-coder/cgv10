@@ -9,7 +9,7 @@ import {
 } from "@/lib/cgv10-master-data";
 
 const officialChart = {
-  src: "/assets/pengurus/RT10-Official-Pengurus.png",
+  src: "/assets/pengurus/RT10-Official-Pengurus.jpeg",
   alt: "Bagan resmi Pengurus RT 010 RW 021 rev.01 termasuk Penasehat",
 };
 
@@ -32,15 +32,15 @@ function getInitials(name: string) {
 function getLeadershipPhoto(member: PengurusMember) {
   const photos: Partial<Record<string, { src: string; alt: string }>> = {
     "ketua-rt-doddy-dharma": {
-      src: "/assets/pengurus/doddy-dharma.png",
+      src: "/assets/pengurus/doddy-dharma-optimized.jpg",
       alt: "Doddy Dharma, Ketua RT 010 RW 021",
     },
     "sekretaris-zulhendy-masruddin": {
-      src: "/assets/pengurus/zulhendy-masruddin.png",
+      src: "/assets/pengurus/zulhendy-masruddin-optimized.jpg",
       alt: "Zulhendy Masruddin, Sekretaris RT 010 RW 021",
     },
     "bendahara-niko-diponako": {
-      src: "/assets/pengurus/niko-diponako.png",
+      src: "/assets/pengurus/niko-diponako-optimized.jpg",
       alt: "Niko Diponako, Bendahara RT 010 RW 021",
     },
   };

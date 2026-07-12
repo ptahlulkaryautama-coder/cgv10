@@ -20,13 +20,13 @@ const programMeta: Record<
   string,
   Pick<ProgramItem, "category" | "pillar" | "schedule" | "status" | "web" | "owner">
 > = {
-  "kerja-bakti-lingkungan": {
-    category: "Kebersihan",
-    pillar: "Lingkungan",
-    schedule: "Minggu pekan ke-2 - 07.00",
+  "primatama-fc-cgv-u12-babak-16-besar": {
+    category: "Olahraga",
+    pillar: "Kemasyarakatan",
+    schedule: "Sesuai jadwal turnamen",
     status: "Aktif",
     web: true,
-    owner: "Bidang Kebersihan",
+    owner: "Program & Kegiatan",
   },
   "rapat-warga": {
     category: "Forum",
