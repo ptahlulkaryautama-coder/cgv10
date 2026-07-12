@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { ImagePreview } from "../components/image-preview";
 import { Icon, PageShell, SectionHeading } from "../components/portal";
 import {
@@ -143,6 +144,14 @@ export default function PengurusPage() {
               {pengurusIdentity.wilayah}, termasuk Penasehat, pimpinan utama,
               bidang, dan koordinator cluster.
             </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="#kontak-pengurus"
+                className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl bg-accent px-5 text-base font-semibold text-foreground shadow-[0_18px_42px_rgba(212,175,55,0.24)] transition-colors duration-200 hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+              >
+                Lihat pimpinan utama
+              </Link>
+            </div>
           </div>
 
           <div className="rounded-2xl border border-white/14 bg-white/10 p-4 shadow-[0_22px_70px_rgba(0,0,0,0.24)]">
@@ -179,7 +188,7 @@ export default function PengurusPage() {
         </div>
       </section>
 
-      <section id="kontak-pengurus" className="scroll-mt-28 border-b border-border bg-surface">
+      <section id="kontak-pengurus" className="scroll-mt-28 border-b border-border bg-background">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16 xl:px-10">
           <SectionHeading
             eyebrow="Pimpinan Utama"

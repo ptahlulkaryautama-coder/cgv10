@@ -1,4 +1,4 @@
-const CACHE_VERSION = "cgv10-pwa-v1";
+const CACHE_VERSION = "cgv10-pwa-v2";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 
@@ -25,10 +25,13 @@ function isAdminPreview(url) {
 
 function isStaticAsset(url) {
   return (
-    url.pathname.startsWith("/_next/static/") ||
     url.pathname === "/assets/brand/favicon.svg" ||
     url.pathname.startsWith("/assets/pwa/")
   );
+}
+
+function isNextStaticAsset(url) {
+  return url.pathname.startsWith("/_next/static/");
 }
 
 self.addEventListener("install", (event) => {
@@ -75,6 +78,19 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() => caches.match(request).then((cached) => cached || caches.match("/")))
+    );
+    return;
+  }
+
+  if (isNextStaticAsset(url)) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(STATIC_CACHE).then((cache) => cache.put(request, copy));
+          return response;
+        })
+        .catch(() => caches.match(request))
     );
     return;
   }

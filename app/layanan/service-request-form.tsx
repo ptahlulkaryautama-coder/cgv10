@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 import {
   FileCaptureField,
   type CaptureAttachment,
@@ -77,6 +78,24 @@ const initialForm = {
   availability: "",
 };
 
+function subscribeToUrlChanges(onStoreChange: () => void) {
+  window.addEventListener("popstate", onStoreChange);
+  window.addEventListener("hashchange", onStoreChange);
+
+  return () => {
+    window.removeEventListener("popstate", onStoreChange);
+    window.removeEventListener("hashchange", onStoreChange);
+  };
+}
+
+function getClientRequestTypeId() {
+  return new URLSearchParams(window.location.search).get("jenis");
+}
+
+function getServerRequestTypeId() {
+  return null;
+}
+
 function buildMessage(
   type: RequestType,
   form: typeof initialForm,
@@ -104,11 +123,24 @@ function buildMessage(
 }
 
 export function ServiceRequestForm() {
-  const [selectedTypeId, setSelectedTypeId] = useState(requestTypes[0].id);
+  const requestedTypeId = useSyncExternalStore(
+    subscribeToUrlChanges,
+    getClientRequestTypeId,
+    getServerRequestTypeId,
+  );
+  const routeSelectedTypeId =
+    requestedTypeId &&
+    requestTypes.some((type) => type.id === requestedTypeId)
+      ? requestedTypeId
+      : requestTypes[0].id;
+  const [manualSelectedTypeId, setManualSelectedTypeId] = useState<
+    string | null
+  >(null);
   const [form, setForm] = useState(initialForm);
   const [attachments, setAttachments] = useState<CaptureAttachment[]>([]);
   const [submitted, setSubmitted] = useState(false);
 
+  const selectedTypeId = manualSelectedTypeId ?? routeSelectedTypeId;
   const selectedType =
     requestTypes.find((type) => type.id === selectedTypeId) ?? requestTypes[0];
 
@@ -148,6 +180,30 @@ export function ServiceRequestForm() {
               dirapikan menjadi pesan WhatsApp agar bisa langsung dipakai warga
               dan mudah diproses pengurus.
             </p>
+            <div className="mt-6 rounded-2xl border border-accent/35 bg-accent-soft/55 p-5">
+              <p className="text-sm font-semibold text-foreground">
+                Perlu arahan pengurus?
+              </p>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                Jika kebutuhan belum jelas kategorinya, warga bisa melihat
+                struktur pengurus atau memakai kanal kontak cepat sebelum
+                mengirim draft layanan.
+              </p>
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                <Link
+                  href="/pengurus/#kontak-pengurus"
+                  className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-white transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-accent-soft"
+                >
+                  Hubungi pengurus
+                </Link>
+                <Link
+                  href="/kontak/#kontak-cepat"
+                  className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-border bg-background px-4 text-sm font-semibold text-primary transition-colors duration-200 hover:border-primary/35 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-accent-soft"
+                >
+                  Buka kontak cepat
+                </Link>
+              </div>
+            </div>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
               {requestTypes.map((type) => {
@@ -157,7 +213,7 @@ export function ServiceRequestForm() {
                   <button
                     key={type.id}
                     type="button"
-                    onClick={() => setSelectedTypeId(type.id)}
+                    onClick={() => setManualSelectedTypeId(type.id)}
                     className={[
                       "cursor-pointer rounded-2xl border p-4 text-left transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
                       selected
