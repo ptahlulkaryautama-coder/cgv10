@@ -196,6 +196,12 @@ export function AdminShellClient() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Link
+              href="/admin/portal-posts/"
+              className="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-4 text-sm font-bold text-primary transition-colors duration-200 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              Portal posts
+            </Link>
+            <Link
               href="/admin-preview/"
               className="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-4 text-sm font-bold text-primary transition-colors duration-200 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
@@ -299,7 +305,7 @@ export function AdminShellClient() {
             <ul className="mt-4 grid gap-3 text-sm font-semibold leading-6 text-muted">
               <li className="rounded-xl bg-cream px-3 py-2">Supabase Auth client-side.</li>
               <li className="rounded-xl bg-cream px-3 py-2">Profile and role read via RLS.</li>
-              <li className="rounded-xl bg-cream px-3 py-2">No portal_posts wiring yet.</li>
+              <li className="rounded-xl bg-cream px-3 py-2">portal_posts read-only admin check.</li>
               <li className="rounded-xl bg-cream px-3 py-2">No media upload handling yet.</li>
             </ul>
           </section>
