@@ -207,6 +207,12 @@ export function AdminShellClient() {
             >
               Login
             </Link>
+            <Link
+              href="/admin/debug/"
+              className="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-4 text-sm font-bold text-primary transition-colors duration-200 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              Debug
+            </Link>
             {user ? (
               <button
                 type="button"
