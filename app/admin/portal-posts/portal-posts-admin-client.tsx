@@ -4,6 +4,13 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import {
+  ProductionActionButton,
+  ProductionAdminShell,
+  ProductionPageIntro,
+  ProductionPanel,
+  ProductionStatusPill,
+} from "../production-admin-components";
 
 type PublishStatus = "draft" | "review" | "published" | "archived";
 type StatusFilter = "all" | PublishStatus;
@@ -315,48 +322,40 @@ export function PortalPostsAdminClient() {
 
   const roleSummary = roles.length > 0 ? roles.map((row) => row.role).join(", ") : "-";
   const canReadContent = permissions.some((row) => row.permission === "content:read");
+  const isSuperAdmin = roles.some((row) => row.role === "super_admin");
+  const visibleEmail = profile?.email ?? user?.email ?? "-";
   const isLoading =
     state === "checking" || state === "loading_access" || state === "loading_posts";
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-accent">
-              CGV10 Production Admin
-            </p>
-            <h1 className="mt-2 text-2xl font-black text-primary sm:text-3xl">
-              Portal Posts
-            </h1>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/admin/"
-              className="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-4 text-sm font-bold text-primary transition-colors duration-200 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            >
-              Admin
-            </Link>
-            <Link
-              href="/admin/debug/"
-              className="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-4 text-sm font-bold text-primary transition-colors duration-200 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            >
-              Debug
-            </Link>
-            <button
-              type="button"
-              onClick={loadPortalPosts}
-              disabled={isLoading}
-              className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-xl bg-primary px-4 text-sm font-black text-white transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isLoading ? "Memuat..." : "Refresh"}
-            </button>
-          </div>
-        </div>
-      </header>
+    <ProductionAdminShell
+      active="portal-posts"
+      title="Portal Posts"
+      subtitle="Supabase read-only"
+      userLabel={profile?.display_name || visibleEmail}
+      roleLabel={roleSummary}
+      isSuperAdmin={isSuperAdmin}
+      action={
+        <ProductionActionButton onClick={loadPortalPosts} disabled={isLoading} primary>
+          {isLoading ? "Memuat..." : "Refresh"}
+        </ProductionActionButton>
+      }
+    >
+      <ProductionPageIntro
+        eyebrow="Content management - Phase C1"
+        title={
+          <>
+            Portal Posts <br />
+            <span className="italic">Supabase Read-only</span>
+          </>
+        }
+        text="Modul ini membuktikan admin production dapat membaca portal_posts melalui Supabase Auth, RLS, dan permission content:read. Public Kabar Warga belum dihubungkan ke Supabase."
+        side={<ProductionStatusPill>{canReadContent ? "content:read OK" : "Access check"}</ProductionStatusPill>}
+      />
 
-      <div className="mx-auto grid w-full max-w-7xl gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,0.72fr)_minmax(320px,0.28fr)] lg:px-8">
-        <section className="rounded-[18px] border border-border bg-surface p-5 shadow-[0_16px_44px_rgba(18,32,24,0.08)] sm:p-6">
+      <div className="grid w-full gap-5 lg:grid-cols-[minmax(0,0.72fr)_minmax(320px,0.28fr)]">
+        <ProductionPanel>
+          <div className="p-5 sm:p-6">
           <div className="flex flex-col gap-4 border-b border-border pb-5 md:flex-row md:items-start md:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-accent">
@@ -476,20 +475,24 @@ export function PortalPostsAdminClient() {
               </div>
             </div>
           ) : null}
-        </section>
+          </div>
+        </ProductionPanel>
 
         <aside className="grid gap-5">
-          <section className="rounded-[18px] border border-border bg-surface p-5 shadow-[0_16px_44px_rgba(18,32,24,0.08)]">
+          <ProductionPanel>
+            <div className="p-5">
             <h2 className="text-lg font-black text-foreground">Access context</h2>
             <dl className="mt-4 grid gap-3 text-sm">
-              <InfoRow label="Email" value={profile?.email ?? user?.email ?? "-"} />
+              <InfoRow label="Email" value={visibleEmail} />
               <InfoRow label="Roles" value={roleSummary} />
               <InfoRow label="Permission" value={canReadContent ? "content:read OK" : "content:read tidak ada"} />
               <InfoRow label="Filter" value={filter} />
             </dl>
-          </section>
+            </div>
+          </ProductionPanel>
 
-          <section className="rounded-[18px] border border-border bg-surface p-5 shadow-[0_16px_44px_rgba(18,32,24,0.08)]">
+          <ProductionPanel>
+            <div className="p-5">
             <h2 className="text-lg font-black text-foreground">Schema audit</h2>
             <ul className="mt-4 grid gap-3 text-sm font-semibold leading-6 text-muted">
               <li className="rounded-xl bg-cream px-3 py-2">
@@ -505,10 +508,11 @@ export function PortalPostsAdminClient() {
                 Modul ini read-only. Tidak ada insert, update, upload, atau publish action.
               </li>
             </ul>
-          </section>
+            </div>
+          </ProductionPanel>
         </aside>
       </div>
-    </main>
+    </ProductionAdminShell>
   );
 }
 

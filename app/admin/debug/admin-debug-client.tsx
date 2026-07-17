@@ -1,11 +1,18 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import {
+  ProductionActionButton,
+  ProductionAdminShell,
+  ProductionPageIntro,
+  ProductionPanel,
+  ProductionPanelHeader,
+  ProductionStatusPill,
+} from "../production-admin-components";
 
-type DebugState = "checking" | "not_logged_in" | "loaded" | "error";
+type DebugState = "checking" | "not_logged_in" | "access_denied" | "loaded" | "error";
 
 type Profile = {
   id: string;
@@ -51,21 +58,6 @@ function getHostFromUrl(value: string) {
   } catch {
     return "URL tidak valid";
   }
-}
-
-function StatusPill({ state }: { state: DebugState }) {
-  const tone =
-    state === "loaded"
-      ? "border-primary/20 bg-primary-soft text-primary"
-      : state === "error"
-        ? "border-red-200 bg-red-50 text-red-700"
-        : "border-accent/30 bg-accent-soft text-foreground";
-
-  return (
-    <span className={`w-fit rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.12em] ${tone}`}>
-      {state.replaceAll("_", " ")}
-    </span>
-  );
 }
 
 function DiagnosticCard({ item }: { item: DiagnosticItem }) {
@@ -165,14 +157,22 @@ export function AdminDebugClient() {
           .order("assigned_at", { ascending: true }),
       ]);
 
+    const loadedRoles = (roleData ?? []) as RoleRow[];
+
     setProfile(profileData ?? null);
-    setRoles((roleData ?? []) as RoleRow[]);
+    setRoles(loadedRoles);
     setProfileError(loadedProfileError?.message ?? "");
     setRoleError(loadedRoleError?.message ?? "");
 
     if (loadedProfileError || loadedRoleError) {
       setState("error");
       setMessage("Session aktif, tetapi query profile atau role gagal.");
+      return;
+    }
+
+    if (!loadedRoles.some((row) => row.role === "super_admin")) {
+      setState("access_denied");
+      setMessage("Debug production hanya tersedia untuk super_admin.");
       return;
     }
 
@@ -190,6 +190,9 @@ export function AdminDebugClient() {
     };
   }, [loadDiagnostics]);
 
+  const isSuperAdmin = roles.some((row) => row.role === "super_admin");
+  const visibleEmail = profile?.email ?? user?.email ?? "-";
+  const roleSummary = roles.length > 0 ? roles.map((row) => row.role).join(", ") : "-";
   const profileHelper = profile?.email ?? (profileError || "Profile belum terbaca.");
   const roleHelper = roleError || "Role dibaca dari public.user_roles via RLS.";
 
@@ -226,111 +229,140 @@ export function AdminDebugClient() {
     },
     {
       label: "Roles",
-      value: roles.length > 0 ? roles.map((row) => row.role).join(", ") : "-",
+      value: roleSummary,
       helper: roleHelper,
       tone: roles.length > 0 ? "ok" : "warn",
     },
   ];
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-accent">
-              CGV10 Production Admin
+    <ProductionAdminShell
+      active="debug"
+      title="Debug"
+      subtitle="Super admin diagnostics"
+      userLabel={profile?.display_name || visibleEmail}
+      roleLabel={roleSummary}
+      isSuperAdmin={isSuperAdmin}
+      action={
+        <ProductionActionButton onClick={loadDiagnostics} primary>
+          Refresh
+        </ProductionActionButton>
+      }
+    >
+      <ProductionPageIntro
+        eyebrow="Runtime check"
+        title={
+          <>
+            Admin Diagnostics <br />
+            <span className="italic">Super Admin Only</span>
+          </>
+        }
+        text="Halaman ini tetap memakai Supabase Auth dan RLS untuk membaca profile serta role. Akses konten debug dibatasi untuk role super_admin."
+        side={<ProductionStatusPill>{state === "loaded" ? "Debug OK" : state.replaceAll("_", " ")}</ProductionStatusPill>}
+      />
+
+      {state === "not_logged_in" ? (
+        <ProductionPanel>
+          <div className="p-5">
+            <h2 className="text-lg font-bold text-foreground">Login diperlukan</h2>
+            <p className="mt-2 text-sm font-semibold leading-6 text-muted">
+              Debug production memerlukan session Supabase aktif dan role super_admin.
             </p>
-            <h1 className="mt-2 text-2xl font-black text-primary sm:text-3xl">
-              Admin Diagnostics
-            </h1>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/admin/"
-              className="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-4 text-sm font-bold text-primary transition-colors duration-200 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            >
-              Admin
-            </Link>
-            <Link
-              href="/admin/login/"
-              className="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-4 text-sm font-bold text-primary transition-colors duration-200 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            >
-              Login
-            </Link>
-            <button
-              type="button"
-              onClick={loadDiagnostics}
-              className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-xl bg-primary px-4 text-sm font-black text-white transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            >
-              Refresh
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div className="mx-auto grid w-full max-w-7xl gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,0.68fr)_minmax(320px,0.32fr)] lg:px-8">
-        <section className="rounded-[18px] border border-border bg-surface p-5 shadow-[0_16px_44px_rgba(18,32,24,0.08)] sm:p-6">
-          <div className="flex flex-col gap-4 border-b border-border pb-5 md:flex-row md:items-start md:justify-between">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-accent">
-                Runtime Check
-              </p>
-              <h2 className="mt-2 text-2xl font-black text-foreground">
-                {message}
-              </h2>
+            <div className="mt-4">
+              <ProductionActionButton href="/admin/login/" primary>
+                Masuk admin
+              </ProductionActionButton>
             </div>
-            <StatusPill state={state} />
           </div>
+        </ProductionPanel>
+      ) : null}
 
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
-            {diagnostics.map((item) => (
-              <DiagnosticCard key={item.label} item={item} />
-            ))}
+      {state === "access_denied" ? (
+        <ProductionPanel>
+          <div className="p-5">
+            <h2 className="text-lg font-bold text-foreground">Access denied</h2>
+            <p className="mt-2 text-sm font-semibold leading-6 text-muted">
+              Session aktif, tetapi role super_admin tidak ditemukan di user_roles.
+              Navigasi Debug juga disembunyikan untuk role selain super_admin.
+            </p>
           </div>
-        </section>
+        </ProductionPanel>
+      ) : null}
 
-        <aside className="grid gap-5">
-          <section className="rounded-[18px] border border-border bg-surface p-5 shadow-[0_16px_44px_rgba(18,32,24,0.08)]">
-            <h2 className="text-lg font-black text-foreground">
-              Error detail
-            </h2>
-            <dl className="mt-4 grid gap-3 text-sm">
-              {[
-                ["Auth", authError || "OK"],
-                ["Profile", profileError || "OK"],
-                ["Role", roleError || "OK"],
-              ].map(([label, value]) => (
-                <div key={label} className="rounded-xl border border-border bg-white p-3">
-                  <dt className="font-bold text-muted">{label}</dt>
-                  <dd className="mt-1 break-words font-black text-foreground">
-                    {value}
-                  </dd>
-                </div>
+      {state === "checking" ? (
+        <ProductionPanel>
+          <div className="p-5">
+            <h2 className="text-lg font-bold text-foreground">Memeriksa akses debug...</h2>
+            <p className="mt-2 text-sm font-semibold leading-6 text-muted">
+              Profile dan user_roles sedang dibaca melalui RLS sebelum diagnostics ditampilkan.
+            </p>
+          </div>
+        </ProductionPanel>
+      ) : null}
+
+      {state === "error" ? (
+        <ProductionPanel>
+          <div className="p-5">
+            <h2 className="text-lg font-bold text-foreground">Debug error</h2>
+            <p className="mt-2 text-sm font-semibold leading-6 text-muted">{message}</p>
+          </div>
+        </ProductionPanel>
+      ) : null}
+
+      {state === "loaded" && isSuperAdmin ? (
+        <div className="grid w-full gap-5 lg:grid-cols-[minmax(0,0.68fr)_minmax(320px,0.32fr)]">
+          <ProductionPanel>
+            <ProductionPanelHeader title={message} subtitle="Koneksi, Auth, profile, dan role production." />
+            <div className="grid gap-4 px-5 pb-5 md:grid-cols-2">
+              {diagnostics.map((item) => (
+                <DiagnosticCard key={item.label} item={item} />
               ))}
-            </dl>
-          </section>
+            </div>
+          </ProductionPanel>
 
-          <section className="rounded-[18px] border border-border bg-surface p-5 shadow-[0_16px_44px_rgba(18,32,24,0.08)]">
-            <h2 className="text-lg font-black text-foreground">
-              Checklist cepat
-            </h2>
-            <ul className="mt-4 grid gap-3 text-sm font-semibold leading-6 text-muted">
-              <li className="rounded-xl bg-cream px-3 py-2">
-                Supabase URL harus sama antara local dan production.
-              </li>
-              <li className="rounded-xl bg-cream px-3 py-2">
-                Auth user id harus sama dengan profile dan role.
-              </li>
-              <li className="rounded-xl bg-cream px-3 py-2">
-                CSP production harus mengizinkan domain Supabase.
-              </li>
-              <li className="rounded-xl bg-cream px-3 py-2">
-                Clear service worker/cache setelah deploy besar.
-              </li>
-            </ul>
-          </section>
-        </aside>
-      </div>
-    </main>
+          <aside className="grid gap-5">
+            <ProductionPanel>
+              <div className="p-5">
+                <h2 className="text-lg font-black text-foreground">Error detail</h2>
+                <dl className="mt-4 grid gap-3 text-sm">
+                  {[
+                    ["Auth", authError || "OK"],
+                    ["Profile", profileError || "OK"],
+                    ["Role", roleError || "OK"],
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-xl border border-border bg-white p-3">
+                      <dt className="font-bold text-muted">{label}</dt>
+                      <dd className="mt-1 break-words font-black text-foreground">
+                        {value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            </ProductionPanel>
+
+            <ProductionPanel>
+              <div className="p-5">
+                <h2 className="text-lg font-black text-foreground">Checklist cepat</h2>
+                <ul className="mt-4 grid gap-3 text-sm font-semibold leading-6 text-muted">
+                  <li className="rounded-xl bg-cream px-3 py-2">
+                    Supabase URL harus sama antara local dan production.
+                  </li>
+                  <li className="rounded-xl bg-cream px-3 py-2">
+                    Auth user id harus sama dengan profile dan role.
+                  </li>
+                  <li className="rounded-xl bg-cream px-3 py-2">
+                    CSP production harus mengizinkan domain Supabase.
+                  </li>
+                  <li className="rounded-xl bg-cream px-3 py-2">
+                    Debug hanya untuk super_admin.
+                  </li>
+                </ul>
+              </div>
+            </ProductionPanel>
+          </aside>
+        </div>
+      ) : null}
+    </ProductionAdminShell>
   );
 }

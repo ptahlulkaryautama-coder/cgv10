@@ -1,9 +1,17 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import {
+  ProductionActionButton,
+  ProductionAdminShell,
+  ProductionMetricCard,
+  ProductionPageIntro,
+  ProductionPanel,
+  ProductionPanelHeader,
+  ProductionStatusPill,
+} from "./production-admin-components";
 
 type AdminRole = "super_admin" | "ketua_rt" | "sekretaris" | "bendahara";
 type LoadState = "checking" | "not_logged_in" | "loading_profile" | "no_admin_role" | "authorized" | "error";
@@ -96,7 +104,7 @@ export function AdminShellClient() {
         setRoles([]);
         setPrimaryRole(null);
         setState("not_logged_in");
-        setMessage("Not logged in");
+        setMessage("Belum ada session login aktif.");
         return;
       }
 
@@ -142,7 +150,7 @@ export function AdminShellClient() {
 
       if (!adminRole) {
         setState("no_admin_role");
-        setMessage("Logged in but no admin role");
+        setMessage("Akun aktif, tetapi belum punya role admin production.");
         return;
       }
 
@@ -178,156 +186,161 @@ export function AdminShellClient() {
     setRoles([]);
     setPrimaryRole(null);
     setState("not_logged_in");
-    setMessage("Not logged in");
+    setMessage("Belum ada session login aktif.");
   }
 
   const visibleEmail = profile?.email ?? user?.email ?? "-";
   const roleNames = roles.length > 0 ? roles.map((row) => row.role).join(", ") : "Belum ada role";
+  const roleLabel = primaryRole ? formatRole(primaryRole) : roleNames;
+  const isSuperAdmin = primaryRole === "super_admin";
+  const isLoading = state === "checking" || state === "loading_profile";
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-accent">
-              CGV10 Production Admin
-            </p>
-            <h1 className="mt-2 text-2xl font-black text-primary sm:text-3xl">Admin Shell</h1>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link
+    <ProductionAdminShell
+      active="dashboard"
+      title="Dashboard"
+      subtitle="Production overview"
+      userLabel={profile?.display_name || visibleEmail}
+      roleLabel={roleLabel}
+      isSuperAdmin={isSuperAdmin}
+      action={
+        user ? (
+          <ProductionActionButton onClick={handleLogout} primary>
+            Logout
+          </ProductionActionButton>
+        ) : (
+          <ProductionActionButton href="/admin/login/" primary>
+            Masuk
+          </ProductionActionButton>
+        )
+      }
+    >
+      <ProductionPageIntro
+        eyebrow="Cipta Greenville - RT 010 / RW 021"
+        title={
+          <>
+            Ringkasan Operasional <br />
+            <span className="italic">Admin Production CGV10</span>
+          </>
+        }
+        text="Dashboard production memakai Supabase Auth, RLS, profile, role, dan permission. Modul live dipisahkan dari admin-preview yang tetap menjadi prototype statis."
+        side={<ProductionStatusPill>{state === "authorized" ? "Auth OK" : "Loading access"}</ProductionStatusPill>}
+      />
+
+      <section aria-label="Ringkasan production" className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <ProductionMetricCard label="Auth" value={user ? "Active" : "Required"} helper={visibleEmail} icon="users" />
+        <ProductionMetricCard label="Role" value={primaryRole ? formatRole(primaryRole) : "-"} helper={roleDescriptions[primaryRole ?? "sekretaris"] ?? "Role dari user_roles."} icon="shield" tone="gold" />
+        <ProductionMetricCard label="Portal Posts" value="Read-only" helper="Supabase + RLS + content:read" icon="file" tone="green" />
+        <ProductionMetricCard label="Admin Preview" value="Static" helper="Demo tetap terpisah" icon="building" tone="dark" />
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.8fr)]">
+        <ProductionPanel>
+          <ProductionPanelHeader
+            title="Modul Production"
+            subtitle="Modul yang sudah memakai jalur data production, bukan state demo browser."
+          />
+          <div className="grid gap-3 px-5 pb-5 sm:grid-cols-2">
+            <a
               href="/admin/portal-posts/"
-              className="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-4 text-sm font-bold text-primary transition-colors duration-200 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="group rounded-[16px] border border-black/8 bg-white p-4 transition-colors duration-200 hover:border-primary/25 hover:bg-primary-soft/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
-              Portal posts
-            </Link>
-            <Link
-              href="/admin-preview/"
-              className="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-4 text-sm font-bold text-primary transition-colors duration-200 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            >
-              Static demo
-            </Link>
-            <Link
-              href="/admin/login/"
-              className="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-4 text-sm font-bold text-primary transition-colors duration-200 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            >
-              Login
-            </Link>
-            <Link
-              href="/admin/debug/"
-              className="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-4 text-sm font-bold text-primary transition-colors duration-200 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            >
-              Debug
-            </Link>
-            {user ? (
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-xl bg-primary px-4 text-sm font-black text-white transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              >
-                Logout
-              </button>
-            ) : null}
-          </div>
-        </div>
-      </header>
-
-      <div className="mx-auto grid w-full max-w-7xl gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,0.72fr)_minmax(320px,0.28fr)] lg:px-8">
-        <section className="rounded-[18px] border border-border bg-surface p-5 shadow-[0_16px_44px_rgba(18,32,24,0.08)] sm:p-6">
-          <div className="flex flex-col gap-4 border-b border-border pb-5 md:flex-row md:items-start md:justify-between">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-accent">
-                Protected state
+              <div className="flex items-start justify-between gap-4">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[12px] bg-primary-soft text-primary [&>svg]:h-5 [&>svg]:w-5">
+                  <ProductionPortalIcon />
+                </span>
+                <ProductionStatusPill>Supabase read-only</ProductionStatusPill>
+              </div>
+              <h3 className="mt-4 text-base font-bold text-foreground">Portal Posts</h3>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                Membaca portal_posts lewat Supabase Auth, RLS, dan permission content:read.
               </p>
-              <h2 className="mt-2 text-2xl font-black text-foreground">{message}</h2>
-            </div>
-            <StateBadge state={state} role={primaryRole} />
+              <div className="mt-4 grid gap-2 border-t border-border pt-3 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-semibold text-muted">Status</span>
+                  <span className="font-bold text-primary">Supabase read-only</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-semibold text-muted">Permission</span>
+                  <span className="font-bold text-primary">content:read</span>
+                </div>
+                <span className="pt-2 font-bold text-primary group-hover:text-primary-hover">
+                  Buka Portal Posts
+                </span>
+              </div>
+            </a>
+
+            <a
+              href="/admin-preview/"
+              className="group rounded-[16px] border border-black/8 bg-white p-4 transition-colors duration-200 hover:border-primary/25 hover:bg-primary-soft/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[12px] bg-accent-soft text-foreground [&>svg]:h-5 [&>svg]:w-5">
+                  <ProductionPreviewIcon />
+                </span>
+                <ProductionStatusPill>Static demo</ProductionStatusPill>
+              </div>
+              <h3 className="mt-4 text-base font-bold text-foreground">Admin Preview</h3>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                Prototype dashboard tetap terpisah untuk presentasi UI dan alur modul.
+              </p>
+              <div className="mt-4 border-t border-border pt-3">
+                <span className="text-sm font-bold text-primary group-hover:text-primary-hover">
+                  Buka Static Demo
+                </span>
+              </div>
+            </a>
           </div>
+        </ProductionPanel>
 
-          {state === "not_logged_in" ? (
-            <ProtectedMessage
-              title="Not logged in"
-              text="Belum ada sesi Supabase aktif di browser ini. Login diperlukan sebelum admin production dapat membaca data yang dilindungi RLS."
-              actionHref="/admin/login/"
-              actionText="Masuk admin"
-            />
-          ) : null}
+        <ProductionPanel>
+          <ProductionPanelHeader
+            title="Access State"
+            subtitle="Status session dan role production saat ini."
+          />
+          <div className="space-y-3 px-5 pb-5">
+            <InfoRow label="State" value={isLoading ? "Memuat akses..." : message} />
+            <InfoRow label="Email" value={visibleEmail} />
+            <InfoRow label="Roles" value={roleNames} />
+            <InfoRow label="Debug nav" value={isSuperAdmin ? "Visible for super_admin" : "Hidden"} />
+          </div>
+        </ProductionPanel>
+      </section>
 
-          {state === "no_admin_role" ? (
-            <ProtectedMessage
-              title="Logged in but no admin role"
-              text="Akun Supabase aktif, tetapi tidak memiliki role super_admin, ketua_rt, sekretaris, atau bendahara di tabel user_roles."
-            />
-          ) : null}
+      {state === "not_logged_in" ? (
+        <ProtectedMessage
+          title="Login diperlukan"
+          text="Belum ada session Supabase aktif. Login admin diperlukan sebelum dashboard production dapat membaca data RLS."
+          actionHref="/admin/login/"
+          actionText="Masuk admin"
+        />
+      ) : null}
 
-          {state === "authorized" && primaryRole ? (
-            <div className="mt-6 grid gap-4 lg:grid-cols-2">
-              <InfoPanel label="Status akses" value={`Logged in as ${primaryRole}`} helper={roleDescriptions[primaryRole]} />
-              <InfoPanel label="Role utama" value={formatRole(primaryRole)} helper="Role diambil dari tabel user_roles." />
-              <InfoPanel label="Profile" value={profile?.display_name || "Tanpa nama tampilan"} helper={visibleEmail} />
-              <InfoPanel label="Status akun" value={profile?.status ?? "Profile belum terbaca"} helper="Status dari tabel profiles." />
-            </div>
-          ) : null}
+      {state === "no_admin_role" ? (
+        <ProtectedMessage
+          title="Access denied"
+          text="Akun Supabase aktif, tetapi tidak memiliki role super_admin, ketua_rt, sekretaris, atau bendahara di user_roles."
+        />
+      ) : null}
 
-          {state === "checking" || state === "loading_profile" ? (
-            <div className="mt-6 rounded-xl border border-border bg-cream p-4 text-sm font-semibold text-muted">
-              {message}
-            </div>
-          ) : null}
-
-          {state === "error" ? (
-            <ProtectedMessage
-              title="Admin shell error"
-              text={message}
-              actionHref="/admin/login/"
-              actionText="Kembali ke login"
-            />
-          ) : null}
-        </section>
-
-        <aside className="grid gap-5">
-          <section className="rounded-[18px] border border-border bg-surface p-5 shadow-[0_16px_44px_rgba(18,32,24,0.08)]">
-            <h2 className="text-lg font-black text-foreground">Session</h2>
-            <dl className="mt-4 grid gap-3 text-sm">
-              <div className="rounded-xl border border-border bg-white p-3">
-                <dt className="font-bold text-muted">Email</dt>
-                <dd className="mt-1 break-words font-black text-foreground">{visibleEmail}</dd>
-              </div>
-              <div className="rounded-xl border border-border bg-white p-3">
-                <dt className="font-bold text-muted">Roles</dt>
-                <dd className="mt-1 break-words font-black text-foreground">{roleNames}</dd>
-              </div>
-            </dl>
-          </section>
-
-          <section className="rounded-[18px] border border-border bg-surface p-5 shadow-[0_16px_44px_rgba(18,32,24,0.08)]">
-            <h2 className="text-lg font-black text-foreground">Phase B scope</h2>
-            <ul className="mt-4 grid gap-3 text-sm font-semibold leading-6 text-muted">
-              <li className="rounded-xl bg-cream px-3 py-2">Supabase Auth client-side.</li>
-              <li className="rounded-xl bg-cream px-3 py-2">Profile and role read via RLS.</li>
-              <li className="rounded-xl bg-cream px-3 py-2">portal_posts read-only admin check.</li>
-              <li className="rounded-xl bg-cream px-3 py-2">No media upload handling yet.</li>
-            </ul>
-          </section>
-        </aside>
-      </div>
-    </main>
+      {state === "error" ? (
+        <ProtectedMessage
+          title="Admin shell error"
+          text={message}
+          actionHref="/admin/login/"
+          actionText="Kembali ke login"
+        />
+      ) : null}
+    </ProductionAdminShell>
   );
 }
 
-function StateBadge({ state, role }: { state: LoadState; role: AdminRole | null }) {
-  const label = role ? `Logged in as ${role}` : state.replaceAll("_", " ");
-  const tone =
-    state === "authorized"
-      ? "border-primary/20 bg-primary-soft text-primary"
-      : state === "not_logged_in" || state === "no_admin_role"
-        ? "border-accent/30 bg-accent-soft text-foreground"
-        : "border-border bg-cream text-muted";
-
+function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <span className={`w-fit rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.12em] ${tone}`}>
-      {label}
-    </span>
+    <div className="rounded-[14px] border border-black/8 bg-white p-3">
+      <p className="text-xs font-bold text-muted">{label}</p>
+      <p className="mt-1 break-words text-sm font-bold text-foreground">{value}</p>
+    </div>
   );
 }
 
@@ -343,27 +356,34 @@ function ProtectedMessage({
   actionText?: string;
 }) {
   return (
-    <div className="mt-6 rounded-[16px] border border-border bg-cream p-5">
-      <h3 className="text-lg font-black text-foreground">{title}</h3>
-      <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-muted">{text}</p>
-      {actionHref && actionText ? (
-        <Link
-          href={actionHref}
-          className="mt-4 inline-flex min-h-10 items-center justify-center rounded-xl bg-primary px-4 text-sm font-black text-white transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-        >
-          {actionText}
-        </Link>
-      ) : null}
-    </div>
+    <ProductionPanel className="mt-5">
+      <div className="p-5">
+        <h3 className="text-lg font-bold text-foreground">{title}</h3>
+        <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-muted">{text}</p>
+        {actionHref && actionText ? (
+          <ProductionActionButton href={actionHref} primary>
+            {actionText}
+          </ProductionActionButton>
+        ) : null}
+      </div>
+    </ProductionPanel>
   );
 }
 
-function InfoPanel({ label, value, helper }: { label: string; value: string; helper: string }) {
+function ProductionPortalIcon() {
   return (
-    <div className="rounded-[16px] border border-border bg-white p-4">
-      <p className="text-xs font-black uppercase tracking-[0.16em] text-muted">{label}</p>
-      <p className="mt-2 text-lg font-black text-primary">{value}</p>
-      <p className="mt-2 text-sm font-semibold leading-6 text-muted">{helper}</p>
-    </div>
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8">
+      <path d="M12 3.5 19 6v5.2c0 4.1-2.8 7.9-7 9.3-4.2-1.4-7-5.2-7-9.3V6l7-2.5Z" />
+      <path d="M8.5 10.5h7M8.5 14h5" />
+    </svg>
+  );
+}
+
+function ProductionPreviewIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8">
+      <path d="M4.5 5.5h15v11h-15z" />
+      <path d="M8 20h8M10 16.5 9.5 20M14 16.5l.5 3.5M8 9h8M8 12.5h5" />
+    </svg>
   );
 }
