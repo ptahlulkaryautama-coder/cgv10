@@ -36,6 +36,14 @@ Role yang digunakan:
 | Reviewer PALUGADA | `palugada_reviewer` | Review dan moderasi PALUGADA |
 | Warga | `warga` | Akses warga setelah login dan verifikasi |
 
+Email trial pengurus yang sudah disiapkan di migration:
+
+| Jabatan | Email | Role sistem |
+| --- | --- | --- |
+| Ketua RT | `dharma.doddy9@yahoo.co.uk` | `ketua_rt` |
+| Sekretaris | `Zulhendy@gmail.com` | `sekretaris` |
+| Bendahara | Menunggu email resmi | `bendahara` |
+
 ## 3. Registrasi Admin Pengurus
 
 Registrasi admin dilakukan oleh Super Admin atau pengelola database.
