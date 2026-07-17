@@ -173,10 +173,18 @@ export function MasukWargaClient() {
               </Link>
               {hasAdminRole ? (
                 <Link
-                  href="/admin/"
+                  href="/admin/?source=login-admin-cta"
                   className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-accent-soft/40 bg-white/10 px-4 text-sm font-semibold text-accent-soft transition-colors hover:bg-white/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
                 >
-                  Buka admin
+                  Buka Admin Dashboard
+                </Link>
+              ) : null}
+              {hasAdminRole ? (
+                <Link
+                  href="/admin/?source=login-install-admin"
+                  className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-white px-4 text-sm font-semibold text-primary transition-colors hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
+                >
+                  Pasang Admin di HP
                 </Link>
               ) : null}
               <button

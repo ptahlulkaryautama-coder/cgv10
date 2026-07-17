@@ -1,4 +1,4 @@
-const CACHE_VERSION = "cgv10-pwa-v10";
+const CACHE_VERSION = "cgv10-pwa-v11";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 

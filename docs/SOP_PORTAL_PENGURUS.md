@@ -27,7 +27,9 @@ Di HP atau PWA, admin dashboard dibuka lewat:
 
 - buka halaman `/masuk`
 - login memakai akun pengurus
-- tekan tombol `Buka admin`
+- tekan tombol `Buka Admin Dashboard`
+- setelah dashboard terbuka, gunakan kartu `Aplikasi Admin Dashboard` untuk memasang shortcut admin di layar HP
+- jika memakai iPhone, buka halaman admin lewat Safari, tekan `Bagikan`, lalu pilih `Tambahkan ke Layar Utama`
 
 Jika tidak ada address bar di PWA, pengurus dapat membuka portal dari browser biasa lalu masuk ke `https://portalwargacgv.id/masuk` atau simpan shortcut khusus admin setelah halaman `/admin` terbuka.
 

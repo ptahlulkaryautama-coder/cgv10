@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { kabarArticles, marketplaceItems } from "@/lib/portal-data";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { AdminPwaInstallCard } from "./admin-pwa-install-card";
 import {
   ProductionActionButton,
   ProductionAdminShell,
@@ -564,6 +565,8 @@ export function AdminShellClient() {
         text="Lihat permintaan warga, pendaftaran PALUGADA, kabar, dan akses pengelola dari satu halaman."
         side={<ProductionStatusPill>{state === "authorized" ? "Akses aktif" : "Memeriksa akses"}</ProductionStatusPill>}
       />
+
+      <AdminPwaInstallCard />
 
       <section aria-label="Ringkasan admin" className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-6">
         <ProductionMetricCard label="Akun" value={user ? "Aktif" : "Perlu masuk"} helper={visibleEmail} icon="users" />
