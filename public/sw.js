@@ -1,4 +1,4 @@
-const CACHE_VERSION = "cgv10-pwa-v2";
+const CACHE_VERSION = "cgv10-pwa-v10";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 
@@ -13,14 +13,15 @@ const SHELL_URLS = [
   "/kontak/",
   "/manifest.webmanifest",
   "/assets/brand/favicon.svg",
+  "/assets/pwa/cgv10-pwa-icon-192.png",
   "/assets/pwa/cgv10-pwa-icon-512.png",
   "/assets/pwa/cgv10-maskable-icon-512.png",
   "/assets/pwa/cgv10-screenshot-wide.png",
   "/assets/pwa/cgv10-screenshot-mobile.png"
 ];
 
-function isAdminPreview(url) {
-  return url.pathname.startsWith("/admin-preview");
+function isAdminRoute(url) {
+  return url.pathname.startsWith("/admin");
 }
 
 function isStaticAsset(url) {
@@ -65,7 +66,7 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
 
-  if (url.origin !== self.location.origin || isAdminPreview(url)) {
+  if (url.origin !== self.location.origin || isAdminRoute(url)) {
     return;
   }
 

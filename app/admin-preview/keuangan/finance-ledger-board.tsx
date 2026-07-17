@@ -22,12 +22,12 @@ const initialTransactions: Transaction[] = financeTransactions.map((item, index)
   id: `FIN-${String(index + 1).padStart(3, "0")}`,
   date: `06-${String(index + 1).padStart(2, "0")}`,
   note: item.description,
-  category: "Kas Pilot",
-  type: "Masuk",
+  category: "Operasional",
+  type: item.direction === "income" ? "Masuk" : "Keluar",
   amount: item.subtotal,
   owner: "Bendahara",
   visibility: "Publik",
-  tone: index === 1 || index === 3 ? "gold" : "green",
+  tone: item.direction === "income" ? "green" : index === 1 || index === 3 ? "gold" : "red",
 }));
 
 const transactionTypes = ["Semua", "Masuk", "Keluar"];

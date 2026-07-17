@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Icon, PageShell } from "../components/portal";
 import { ContactRoutingForm } from "./contact-routing-form";
+
+export const metadata: Metadata = {
+  title: "Kontak",
+  description:
+    "Kanal kontak resmi CGV10 untuk pesan layanan, keamanan, iuran, PALUGADA, dan koordinasi pengurus.",
+};
 
 export default function KontakPage() {
   return (
@@ -21,7 +28,7 @@ export default function KontakPage() {
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-white/84 sm:text-lg sm:leading-8">
               Warga bisa memilih kanal kontak, menulis pesan singkat, lalu
-              mengirim draft WhatsApp yang sudah rapi ke pengurus.
+              mengirim pesan yang langsung punya konteks untuk pengurus.
             </p>
             <Link
               href="#kontak-cepat"
@@ -43,7 +50,7 @@ export default function KontakPage() {
             </div>
             <div>
               <p className="inline-flex rounded-full bg-accent-soft px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-foreground">
-                Halaman transisi
+                Direktori pengurus
               </p>
               <h2 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
                 Direktori peran tetap tersedia di halaman Pengurus.

@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { AdminAuthGate } from "./admin-auth-gate";
 
 export const metadata: Metadata = {
   title: "Admin CGV10",
   description: "Production admin shell CGV10 dengan autentikasi Supabase.",
+  manifest: "/admin-manifest.webmanifest",
   robots: {
     index: false,
     follow: false,
@@ -15,5 +17,5 @@ export default function AdminLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return children;
+  return <AdminAuthGate>{children}</AdminAuthGate>;
 }

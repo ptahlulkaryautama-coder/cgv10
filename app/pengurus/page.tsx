@@ -10,7 +10,7 @@ import {
 } from "@/lib/cgv10-master-data";
 
 const officialChart = {
-  src: "/assets/pengurus/RT10-Official-Pengurus.jpeg",
+  src: "/assets/pengurus/RT10-Official-Pengurus.png",
   alt: "Bagan resmi Pengurus RT 010 RW 021 rev.01 termasuk Penasehat",
 };
 

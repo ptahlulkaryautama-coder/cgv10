@@ -92,7 +92,7 @@ const financeItems: PortalContentItem[] = [
     owner: "Bendahara",
     visibility: "Publik",
     updated: publishedDate,
-    summary: `${financeTransactions.length} transaksi kas tersedia untuk ringkasan publik.`,
+    summary: `${financeTransactions.length} transaksi pengeluaran tersedia untuk laporan resmi Januari-Juni 2026.`,
     readiness: 90,
     portalPath: "/keuangan/",
     source: "lib/portal-data.ts",

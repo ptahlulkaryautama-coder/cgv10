@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Icon, PageShell, PlaceholderNotice } from "../components/portal";
 import type { IconName } from "@/lib/portal-data";
+import { MasukWargaClient } from "./masuk-warga-client";
 
 type AccessStep = {
   title: string;
@@ -27,12 +28,6 @@ const accessSteps: AccessStep[] = [
   },
 ];
 
-const accessRules = [
-  "Belum ada login produksi di fase ini.",
-  "Jangan mengirim data pribadi melalui halaman preview.",
-  "Akses real membutuhkan backend, auth, dan aturan perlindungan data.",
-] as const;
-
 export const metadata: Metadata = {
   title: "Masuk Warga | CGV10",
   description:
@@ -52,9 +47,9 @@ export default function MasukWargaPage() {
               Gerbang masuk untuk fase profil rumah CGV10.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-white/82 sm:text-lg sm:leading-8">
-              portalwargacgv.id sudah siap menjadi alamat utama. Tahap berikutnya
-              menyiapkan alur login warga yang rapi sebelum tersambung ke auth
-              dan database produksi.
+              portalwargacgv.id sudah siap menjadi alamat utama. Akses tulis
+              seperti pendaftaran lapak PALUGADA akan dibuka setelah warga
+              masuk dan terverifikasi.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -72,34 +67,7 @@ export default function MasukWargaPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/14 bg-white/10 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.22)]">
-            <div className="rounded-xl border border-white/14 bg-white/10 p-5">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-soft">
-                    Status Phase 2
-                  </p>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-tight">
-                    Login preview
-                  </h2>
-                </div>
-                <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-foreground">
-                  Static
-                </span>
-              </div>
-              <div className="mt-6 space-y-3">
-                {accessRules.map((rule) => (
-                  <div
-                    key={rule}
-                    className="flex items-start gap-3 rounded-xl border border-white/14 bg-white/10 p-4 text-sm leading-6 text-white/82"
-                  >
-                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-accent-soft" />
-                    <span>{rule}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <MasukWargaClient />
         </div>
       </section>
 
@@ -138,9 +106,9 @@ export default function MasukWargaPage() {
 
           <div className="mt-8">
             <PlaceholderNotice>
-              Form login belum diaktifkan. Untuk produksi, halaman ini perlu
-              disambungkan ke provider auth, aturan role warga, dan database
-              profil rumah yang aman.
+              Login warga memakai Supabase Auth. Setelah session aktif, menu
+              layanan, konfirmasi iuran, dan pendaftaran PALUGADA dapat dibuka
+              tanpa berputar kembali ke halaman masuk.
             </PlaceholderNotice>
           </div>
         </div>

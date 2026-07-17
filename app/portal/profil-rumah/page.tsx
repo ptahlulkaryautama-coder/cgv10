@@ -13,8 +13,8 @@ type ProfileCard = {
 const profileCards: ProfileCard[] = [
   {
     title: "Status profil",
-    value: "Draft preview",
-    text: "Data rumah belum tersambung ke database produksi.",
+    value: "Prototipe Fase Berikutnya",
+    text: "Belum menjadi layanan aktif untuk warga.",
     icon: "file",
   },
   {
@@ -32,10 +32,10 @@ const profileCards: ProfileCard[] = [
 ];
 
 const householdRows = [
-  ["Rumah", "Unit warga", "Private"],
-  ["Anggota keluarga", "Belum diisi", "Private"],
-  ["Kendaraan", "Belum diisi", "Admin only"],
-  ["Dokumen pendukung", "Belum tersedia", "Admin only"],
+  ["Rumah", "Unit warga", "Privat"],
+  ["Anggota keluarga", "Belum diisi", "Privat"],
+  ["Kendaraan", "Belum diisi", "Admin saja"],
+  ["Dokumen pendukung", "Belum tersedia", "Admin saja"],
 ] as const;
 
 const nextActions = [
@@ -56,7 +56,7 @@ const nextActions = [
 export const metadata: Metadata = {
   title: "Profil Rumah | CGV10",
   description:
-    "Preview profil rumah warga CGV10 untuk fase login warga dan pendataan rumah.",
+    "Prototipe profil rumah warga CGV10 untuk fase login warga dan pendataan rumah.",
 };
 
 export default function ProfilRumahPage() {
@@ -67,7 +67,7 @@ export default function ProfilRumahPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-soft">
-                Profil Rumah
+                Profil Rumah - Prototipe Fase Berikutnya
               </p>
               <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
                 CGV10 Portal Warga
@@ -98,9 +98,9 @@ export default function ProfilRumahPage() {
                 Satu profil rumah untuk akses layanan warga.
               </h2>
               <p className="mt-4 text-sm leading-6 text-white/76 sm:text-base">
-                Preview ini menunjukkan struktur profil rumah tanpa menyimpan
-                data pribadi. Nanti, data rumah menjadi dasar verifikasi,
-                layanan, iuran, dan administrasi warga.
+                Halaman ini adalah prototipe tahap berikutnya, belum layanan
+                aktif untuk warga. Strukturnya menunjukkan arah profil rumah
+                tanpa menyimpan data pribadi.
               </p>
             </div>
 
@@ -140,7 +140,7 @@ export default function ProfilRumahPage() {
                 </h2>
               </div>
               <span className="rounded-full border border-accent/35 bg-accent-soft px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-foreground">
-                Preview
+                Prototipe
               </span>
             </div>
 
@@ -165,8 +165,8 @@ export default function ProfilRumahPage() {
               </p>
               <p className="mt-2 text-sm leading-6 text-muted">
                 Data rumah, anggota keluarga, kendaraan, dokumen, dan bukti
-                pembayaran tidak boleh dipublikasikan. Produksi membutuhkan auth,
-                database, role access, dan audit log.
+                pembayaran tidak boleh dipublikasikan. Saat masuk produksi,
+                fitur ini membutuhkan login, database, akses role, dan audit log.
               </p>
             </div>
           </div>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AuthAwareAction } from "@/app/components/auth-aware-action";
 import { ImagePreview } from "@/app/components/image-preview";
 import { Icon, PageShell, PlaceholderNotice } from "@/app/components/portal";
 import { palugadaDetailItems } from "@/lib/portal-data";
@@ -26,13 +27,11 @@ function getDetailItem(slug: string) {
 
 function getTrustBadges({
   hasWhatsappContact,
-  isPrimaryListing,
 }: {
   hasWhatsappContact: boolean;
-  isPrimaryListing: boolean;
 }) {
   return [
-    isPrimaryListing ? "Lapak pilot" : "Lapak warga",
+    "Lapak warga",
     hasWhatsappContact ? "Kontak WhatsApp tersedia" : "Kontak via pengurus",
     "Katalog aktif",
     "Perlu konfirmasi penyedia",
@@ -68,7 +67,6 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
   const relatedItems = palugadaDetailItems
     .filter((entry) => entry.detailSlug !== item.detailSlug)
     .slice(0, 3);
-  const isPrimaryListing = item.detailSlug === "donat-kentang-warga";
   const hasWhatsappContact = Boolean(item.whatsappHref);
   const isSellerOnline = item.sellerStatus === "online";
   const whatsappLabel = item.whatsappLabel ?? "Hubungi WhatsApp";
@@ -97,7 +95,6 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
     "Detail katalog membantu warga mengenal usaha dan layanan di lingkungan.";
   const trustBadges = getTrustBadges({
     hasWhatsappContact,
-    isPrimaryListing,
   });
 
   return (
@@ -123,7 +120,7 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
             </ImagePreview>
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-primary/78 via-primary/14 to-transparent" />
             <div className="pointer-events-none absolute left-4 top-4 rounded-full bg-accent-soft px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-foreground shadow-sm">
-              {isPrimaryListing ? "Lapak pilot" : item.category}
+              {item.category}
             </div>
             <div
               className={`pointer-events-none absolute right-4 top-4 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold shadow-sm ${
@@ -194,12 +191,13 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                   Tanya kontak
                 </Link>
               )}
-              <Link
+              <AuthAwareAction
                 href="/palugada/daftar/"
+                guestHref="/masuk/?next=/palugada/daftar/"
+                guestLabel="Masuk untuk daftar"
+                authenticatedLabel="Daftar lapak"
                 className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/18 bg-white/10 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
-              >
-                Daftar lapak
-              </Link>
+              />
             </div>
           </div>
         </div>
@@ -307,9 +305,7 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                 Ringkasan lapak
               </p>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                {isPrimaryListing
-                  ? "Lapak pilot untuk format PALUGADA."
-                  : "Listing katalog PALUGADA."}
+                Lapak warga di katalog PALUGADA.
               </h2>
               <p className="mt-4 text-base leading-7 text-foreground">
                 {item.productDetail}
@@ -343,7 +339,7 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                     Galeri
                   </p>
                   <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                    Foto dan konteks listing.
+                    Foto produk dan layanan.
                   </h2>
                 </div>
                 <span className="w-fit rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary">
@@ -484,7 +480,7 @@ export default async function PalugadaDetailPage({ params }: DetailPageProps) {
                 Profil penyedia
               </p>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                Siapa yang ada di balik listing ini.
+                Informasi penjual.
               </h2>
               <p className="mt-4 text-base leading-7 text-muted">
                 {item.providerProfile}

@@ -44,21 +44,43 @@ export function PwaRegister() {
       return;
     }
 
-    const registerServiceWorker = () => {
-      navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {
-        // Registration failure should not block the portal.
-      });
+    let reloadingForUpdate = false;
+
+    const handleControllerChange = () => {
+      if (reloadingForUpdate) {
+        return;
+      }
+
+      reloadingForUpdate = true;
+      window.location.reload();
     };
+
+    const registerServiceWorker = () => {
+      navigator.serviceWorker
+        .register("/sw.js", { scope: "/" })
+        .then((registration) => registration.update())
+        .catch(() => {
+          // Registration failure should not block the portal.
+        });
+    };
+
+    navigator.serviceWorker.addEventListener(
+      "controllerchange",
+      handleControllerChange,
+    );
 
     if (document.readyState === "complete") {
       registerServiceWorker();
-      return;
+    } else {
+      window.addEventListener("load", registerServiceWorker, { once: true });
     }
-
-    window.addEventListener("load", registerServiceWorker, { once: true });
 
     return () => {
       window.removeEventListener("load", registerServiceWorker);
+      navigator.serviceWorker.removeEventListener(
+        "controllerchange",
+        handleControllerChange,
+      );
     };
   }, []);
 

@@ -49,7 +49,7 @@ export const portalConnectionItems: PortalConnectionItem[] = [
     status: "shared-static",
     publicItems: financeTransactions.length,
     note:
-      "Ringkasan publik dan admin preview keuangan memakai transaksi statis yang sama.",
+      "Laporan publik dan admin preview keuangan memakai rincian pengeluaran resmi yang sama.",
   },
   {
     id: "palugada",

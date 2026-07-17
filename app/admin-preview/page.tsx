@@ -45,7 +45,7 @@ const activities: Activity[] = [
   },
   {
     title: "Kontak bendahara dari halaman Kontak",
-    meta: "Layanan - sudah masuk intake terpadu",
+    meta: "Layanan - sudah tercatat dan siap ditindaklanjuti",
     status: "Diproses",
     icon: "message",
     tone: "gold",
@@ -58,9 +58,9 @@ const activities: Activity[] = [
     tone: "gold",
   },
   {
-    title: "Jadwal kerja bakti tetap published",
+    title: "Jadwal kerja bakti tetap tayang",
     meta: "Portal Warga - tampil di Kabar Warga",
-    status: "Published",
+    status: "Tayang",
     icon: "calendar",
     tone: "green",
   },
@@ -69,11 +69,11 @@ const activities: Activity[] = [
 const moduleSummaries = [
   {
     title: "Portal Warga",
-    description: "Demo publish queue, visibility audit, dan preview output publik.",
+    description: "Atur kabar yang akan diperiksa dan ditayangkan ke warga.",
     href: "/admin-preview/portal-warga/",
     icon: "shield" as IconName,
     status: "Static",
-    value: `${portalPublishSummary.published} published`,
+    value: `${portalPublishSummary.published} tayang`,
   },
   {
     title: "Data Warga",
@@ -85,7 +85,7 @@ const moduleSummaries = [
   },
   {
     title: "Keuangan",
-    description: "Konfirmasi iuran, ledger, kategori, dan ringkasan publik.",
+    description: "Konfirmasi iuran, catatan transaksi, dan ringkasan kas.",
     href: "/admin-preview/keuangan/",
     icon: "wallet" as IconName,
     status: "2 cocokkan",
@@ -93,7 +93,7 @@ const moduleSummaries = [
   },
   {
     title: "Program & Kegiatan",
-    description: "Agenda warga, jadwal kegiatan, dan output ke portal.",
+    description: "Agenda warga, jadwal kegiatan, dan informasi untuk portal.",
     href: "/admin-preview/program-kegiatan/",
     icon: "calendar" as IconName,
     status: "Aktif",
@@ -135,7 +135,7 @@ const requestSummary = [
 const healthItems: Array<[string, string, string, "green" | "gold" | "red" | "blue"]> = [
   [
     "Konten publik",
-    `${portalPublishSummary.published} published`,
+    `${portalPublishSummary.published} tayang`,
     `${portalPublishSummary.averageReadiness}%`,
     "green" as const,
   ],
@@ -180,7 +180,7 @@ const operations = [
   ["Konfirmasi iuran", "4", "2 cocokkan", "/admin-preview/keuangan/"],
   ["Draft PALUGADA", "4", "1 validasi", "/admin-preview/palugada/"],
   [
-    "Demo publish queue",
+    "Antrean kabar portal",
     String(portalPublishSummary.total),
     `${portalPublishSummary.review} review`,
     "/admin-preview/portal-warga/",
@@ -196,7 +196,7 @@ const ecosystem = [
   },
   {
     title: "Portal Warga",
-    text: "Konten published berasal dari data statis portal.",
+    text: "Kabar yang sudah tayang dapat dibaca warga di portal.",
     href: "/kabar-warga/",
     icon: "shield" as IconName,
   },
@@ -219,7 +219,7 @@ export default function AdminPreviewPage() {
     <AdminShell
       active="dashboard"
       title="Dashboard"
-      subtitle="Overview - Juni 2026"
+      subtitle="Ringkasan Juni 2026"
       action={<ActionButton primary href="/admin-preview/program-kegiatan/">Update Portal</ActionButton>}
     >
       <PageIntro
@@ -230,17 +230,17 @@ export default function AdminPreviewPage() {
             <span className="italic">Portal Warga CGV10</span>
           </>
         }
-        text="Dashboard ini hanya menampilkan ringkasan lintas modul. Editing, penambahan data, dokumen, approval, dan preview output dilakukan di halaman modul masing-masing."
+        text="Lihat pekerjaan yang perlu ditangani, lalu buka bagian terkait untuk memperbarui data atau menindaklanjuti permintaan warga."
         side={
           <div className="w-fit rounded-full bg-primary px-4 py-3 text-sm font-bold text-accent shadow-[0_12px_30px_rgba(14,56,40,0.18)]">
-            Status portal: {portalPublishSummary.published} published
+            {portalPublishSummary.published} kabar tayang
           </div>
         }
       />
 
-      <section aria-label="Ringkasan utama" className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <section aria-label="Ringkasan utama" className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-5">
         <MetricCard label="Total Warga" value="250 KK" helper="Data keluarga aktif di portal" icon="users" />
-        <MetricCard label="Layanan" value="8 masuk" helper="3 intake baru" icon="message" tone="blue" />
+        <MetricCard label="Layanan" value="8 masuk" helper="3 permintaan baru" icon="message" tone="blue" />
         <MetricCard label="Iuran" value="4 konfirmasi" helper="2 perlu cocokkan" icon="wallet" tone="gold" />
         <MetricCard
           label="Kas Publik"
@@ -255,9 +255,9 @@ export default function AdminPreviewPage() {
       <section className="mb-5 grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
         <Panel>
           <PanelHeader
-            title="Command Queue"
-            subtitle="Urutan kerja harian pengurus berdasarkan hal yang perlu ditindaklanjuti."
-            action={<ActionButton href="/admin-preview/layanan/">Buka intake</ActionButton>}
+            title="Perlu ditindaklanjuti"
+            subtitle="Urutan pekerjaan pengurus untuk hari ini."
+            action={<ActionButton href="/admin-preview/layanan/">Buka permintaan</ActionButton>}
           />
           <div className="grid gap-3 px-5 pb-5 md:grid-cols-2">
             {commandQueue.map((item) => (
@@ -314,16 +314,16 @@ export default function AdminPreviewPage() {
               <div className="mt-2 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div>
                   <h2 className="text-lg font-bold text-foreground">
-                    Shared static source mulai disiapkan untuk portal dan dashboard.
+                    Data portal dan halaman pengelola mulai terhubung.
                   </h2>
                   <p className="mt-2 max-w-4xl text-sm leading-6 text-muted">
                     Data publik penting mulai ditarik dari file sumber yang sama.
-                    Perubahan langsung dari dashboard masih prototype sampai ada
-                    backend, CMS, atau database.
+                    Periksa setiap bagian untuk memastikan informasi yang dibaca
+                    warga tetap sama dengan data pengelola.
                   </p>
                 </div>
                 <StatusPill>
-                  {portalConnectionSummary.sharedStatic}/{portalConnectionSummary.total} shared
+                  {portalConnectionSummary.sharedStatic}/{portalConnectionSummary.total} terhubung
                 </StatusPill>
               </div>
             </div>
@@ -342,7 +342,7 @@ export default function AdminPreviewPage() {
                       </p>
                     </div>
                     <StatusPill>
-                      {item.status === "shared-static" ? "Shared" : "Prototype"}
+                      {item.status === "shared-static" ? "Terhubung" : "Belum terhubung"}
                     </StatusPill>
                   </div>
                   <p className="mt-3 line-clamp-2 text-xs leading-5 text-muted">
@@ -359,7 +359,7 @@ export default function AdminPreviewPage() {
         <Panel>
           <PanelHeader
             title="Ringkasan Modul"
-            subtitle="Setiap modul punya halaman kerja sendiri untuk review, status, dan preview output."
+            subtitle="Buka bagian yang diperlukan untuk melihat detail dan memperbarui data."
           />
           <div className="grid gap-3 px-5 pb-5 sm:grid-cols-2">
             {moduleSummaries.map((module) => (
@@ -451,7 +451,7 @@ export default function AdminPreviewPage() {
         </Panel>
 
         <Panel className="min-w-0">
-          <PanelHeader title="Kesehatan Portal" subtitle="Indikator cepat kualitas data sebelum publish." />
+          <PanelHeader title="Kondisi Portal" subtitle="Pemeriksaan singkat sebelum informasi ditayangkan." />
           <div className="space-y-5 px-5 pb-5">
             {healthItems.map(([label, value, progress, tone]) => (
               <div key={label}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import {
   FileCaptureField,
@@ -8,6 +8,7 @@ import {
 } from "../components/file-capture-field";
 import { Icon } from "../components/portal";
 import type { IconName } from "@/lib/portal-data";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type RequestType = {
   id: string;
@@ -34,14 +35,6 @@ const requestTypes: RequestType[] = [
     icon: "users",
     priority: "Administrasi",
     helper: "Warga baru, perubahan kontak, kendaraan, atau data keluarga.",
-  },
-  {
-    id: "iuran",
-    title: "Konfirmasi Iuran",
-    label: "Keuangan",
-    icon: "wallet",
-    priority: "Normal",
-    helper: "Konfirmasi pembayaran, pertanyaan iuran, atau bukti transfer.",
   },
   {
     id: "administrasi",
@@ -78,6 +71,44 @@ const initialForm = {
   availability: "",
 };
 
+const serviceCategoryByType: Record<string, string> = {
+  keluhan: "pengaduan",
+  pendaftaran: "administrasi",
+  administrasi: "administrasi",
+  keamanan: "keamanan",
+  aspirasi: "aspirasi",
+};
+
+const servicePriorityByType: Record<RequestType["priority"], "normal" | "high" | "urgent"> = {
+  Normal: "normal",
+  Tinggi: "high",
+  Administrasi: "normal",
+};
+
+const serviceAttachmentBucket = "service-request-attachments";
+const maxAttachmentSize = 10 * 1024 * 1024;
+
+type ServiceUploadSession = {
+  request_id: string;
+  upload_token: string;
+};
+
+function getSafeFileName(fileName: string) {
+  const extension = fileName.split(".").pop()?.toLowerCase() ?? "jpg";
+  const baseName = fileName.replace(/\.[^.]+$/, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "foto-layanan";
+  return `${baseName}.${extension}`;
+}
+
+function getUploadContentType(file: File) {
+  if (file.type) return file.type;
+  const extension = file.name.split(".").pop()?.toLowerCase();
+  return extension === "heic" ? "image/heic" : extension === "heif" ? "image/heif" : "image/jpeg";
+}
+
+function isAcceptedAttachment(file: File) {
+  return file.type.startsWith("image/") && file.type !== "image/svg+xml";
+}
+
 function subscribeToUrlChanges(onStoreChange: () => void) {
   window.addEventListener("popstate", onStoreChange);
   window.addEventListener("hashchange", onStoreChange);
@@ -100,6 +131,7 @@ function buildMessage(
   type: RequestType,
   form: typeof initialForm,
   attachments: CaptureAttachment[],
+  reference: string,
 ) {
   return [
     "Halo Pengurus CGV10, saya ingin mengajukan layanan warga.",
@@ -114,9 +146,10 @@ function buildMessage(
     `Waktu yang bisa dihubungi: ${form.availability || "-"}`,
     `Lampiran foto: ${
       attachments.length > 0
-        ? `${attachments.length} file dipilih, akan dikirim manual via WhatsApp`
+        ? `${attachments.length} foto tersimpan bersama laporan`
         : "-"
     }`,
+    reference ? `Nomor laporan: ${reference}` : "",
     "",
     "Mohon dibantu tindak lanjut melalui kanal pengurus CGV10.",
   ].join("\n");
@@ -138,15 +171,20 @@ export function ServiceRequestForm() {
   >(null);
   const [form, setForm] = useState(initialForm);
   const [attachments, setAttachments] = useState<CaptureAttachment[]>([]);
-  const [submitted, setSubmitted] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveMessage, setSaveMessage] = useState("");
+  const [submissionReference, setSubmissionReference] = useState("");
+  const uploadSessionRef = useRef<ServiceUploadSession | null>(null);
+  const uploadedPathsRef = useRef<Record<string, string>>({});
+  const registeredAttachmentIdsRef = useRef(new Set<string>());
 
   const selectedTypeId = manualSelectedTypeId ?? routeSelectedTypeId;
   const selectedType =
     requestTypes.find((type) => type.id === selectedTypeId) ?? requestTypes[0];
 
   const message = useMemo(
-    () => buildMessage(selectedType, form, attachments),
-    [attachments, form, selectedType],
+    () => buildMessage(selectedType, form, attachments, submissionReference),
+    [attachments, form, selectedType, submissionReference],
   );
   const isReady = Boolean(
     form.name.trim() && form.cluster.trim() && form.phone.trim() && form.detail.trim(),
@@ -161,7 +199,119 @@ export function ServiceRequestForm() {
 
   function updateField(field: keyof typeof initialForm, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
-    setSubmitted(false);
+    setSaveState("idle");
+    setSaveMessage("");
+    setSubmissionReference("");
+    uploadSessionRef.current = null;
+    uploadedPathsRef.current = {};
+    registeredAttachmentIdsRef.current.clear();
+  }
+
+  async function submitToSupabase() {
+    if (!isReady) {
+      setSaveState("error");
+      setSaveMessage("Lengkapi nama, cluster, WhatsApp, dan detail kebutuhan terlebih dahulu.");
+      return;
+    }
+
+    const oversizedFile = attachments.find((attachment) => attachment.file.size > maxAttachmentSize);
+    if (oversizedFile) {
+      setSaveState("error");
+      setSaveMessage(`${oversizedFile.file.name} melebihi batas 10 MB.`);
+      return;
+    }
+
+    const unsupportedFile = attachments.find((attachment) => !isAcceptedAttachment(attachment.file));
+    if (unsupportedFile) {
+      setSaveState("error");
+      setSaveMessage(`${unsupportedFile.file.name} bukan format gambar yang didukung.`);
+      return;
+    }
+
+    setSaveState("saving");
+    setSaveMessage("Mengirim permintaan...");
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      const userId = userData.user?.id;
+
+      if (userError || !userId) {
+        throw new Error("Masuk sebagai warga terlebih dahulu sebelum mengajukan layanan.");
+      }
+
+      let uploadSession = uploadSessionRef.current;
+
+      if (!uploadSession) {
+        const { data, error } = await supabase.rpc("submit_service_request", {
+          p_category: serviceCategoryByType[selectedType.id] ?? "lainnya",
+          p_title: form.subject.trim() || selectedType.title,
+          p_description: [
+            `Jenis layanan: ${selectedType.title}`,
+            `Nama warga: ${form.name.trim()}`,
+            `Cluster/blok: ${form.cluster.trim()}`,
+            `Kontak WhatsApp: ${form.phone.trim()}`,
+            `Waktu dihubungi: ${form.availability.trim() || "-"}`,
+            "",
+            form.detail.trim(),
+          ].join("\n"),
+          p_priority: servicePriorityByType[selectedType.priority],
+        });
+
+        if (error) throw error;
+        uploadSession = ((data ?? []) as ServiceUploadSession[])[0] ?? null;
+        if (!uploadSession) throw new Error("Nomor laporan belum berhasil dibuat.");
+        uploadSessionRef.current = uploadSession;
+      }
+
+      for (const [index, attachment] of attachments.entries()) {
+        setSaveMessage(`Mengunggah foto ${index + 1} dari ${attachments.length}...`);
+        let storagePath = uploadedPathsRef.current[attachment.id];
+
+        if (!storagePath) {
+          storagePath = `${uploadSession.request_id}/${uploadSession.upload_token}/${crypto.randomUUID()}-${getSafeFileName(attachment.file.name)}`;
+          const { error: uploadError } = await supabase.storage
+            .from(serviceAttachmentBucket)
+            .upload(storagePath, attachment.file, {
+              cacheControl: "3600",
+              contentType: getUploadContentType(attachment.file),
+              upsert: false,
+            });
+          if (uploadError) throw uploadError;
+          uploadedPathsRef.current[attachment.id] = storagePath;
+        }
+
+        if (!registeredAttachmentIdsRef.current.has(attachment.id)) {
+          const { error: metadataError } = await supabase.from("attachments").insert({
+            owner_user_id: userId,
+            linked_type: "service_request",
+            linked_id: uploadSession.request_id,
+            file_name: attachment.file.name,
+            file_type: getUploadContentType(attachment.file),
+            file_size: attachment.file.size,
+            storage_path: storagePath,
+            thumbnail_path: null,
+            visibility: "admin_only",
+            moderation_status: "pending",
+          });
+          if (metadataError) throw metadataError;
+          registeredAttachmentIdsRef.current.add(attachment.id);
+        }
+      }
+
+      const reference = `LYN-${uploadSession.request_id.slice(0, 8).toUpperCase()}`;
+      setSubmissionReference(reference);
+      setSaveState("saved");
+      setSaveMessage(
+        attachments.length > 0
+          ? `Permintaan dan ${attachments.length} foto sudah diterima. Nomor laporan ${reference}.`
+          : `Permintaan sudah diterima. Nomor laporan ${reference}.`,
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Permintaan belum berhasil dikirim.";
+      setSaveState("error");
+      setSaveMessage(message);
+    }
   }
 
   return (
@@ -173,12 +323,11 @@ export function ServiceRequestForm() {
               Form Layanan Warga
             </p>
             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Pilih kebutuhan, isi data, lalu kirim draft ke pengurus.
+              Pilih kebutuhan, lengkapi data, lalu kirim ke pengurus.
             </h2>
             <p className="mt-5 text-base leading-7 text-muted">
-              Form ini belum menyimpan data ke database. Untuk fase awal, data
-              dirapikan menjadi pesan WhatsApp agar bisa langsung dipakai warga
-              dan mudah diproses pengurus.
+              Permintaan akan tersimpan dan juga dapat diteruskan langsung
+              melalui WhatsApp.
             </p>
             <div className="mt-6 rounded-2xl border border-accent/35 bg-accent-soft/55 p-5">
               <p className="text-sm font-semibold text-foreground">
@@ -187,20 +336,20 @@ export function ServiceRequestForm() {
               <p className="mt-2 text-sm leading-6 text-muted">
                 Jika kebutuhan belum jelas kategorinya, warga bisa melihat
                 struktur pengurus atau memakai kanal kontak cepat sebelum
-                mengirim draft layanan.
+                mengirim permintaan.
               </p>
               <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href="/pengurus/#kontak-pengurus"
+                  href="/kontak/#kontak-cepat"
                   className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-white transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-accent-soft"
                 >
-                  Hubungi pengurus
+                  Buka kontak cepat
                 </Link>
                 <Link
-                  href="/kontak/#kontak-cepat"
+                  href="/keuangan/#konfirmasi-iuran"
                   className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-border bg-background px-4 text-sm font-semibold text-primary transition-colors duration-200 hover:border-primary/35 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-accent-soft"
                 >
-                  Buka kontak cepat
+                  Konfirmasi iuran
                 </Link>
               </div>
             </div>
@@ -255,6 +404,8 @@ export function ServiceRequestForm() {
                 <span className="text-sm font-semibold text-foreground">Nama warga</span>
                 <input
                   value={form.name}
+                  autoComplete="name"
+                  maxLength={100}
                   onChange={(event) => updateField("name", event.target.value)}
                   onInput={(event) => updateField("name", event.currentTarget.value)}
                   placeholder="Nama lengkap"
@@ -265,6 +416,8 @@ export function ServiceRequestForm() {
                 <span className="text-sm font-semibold text-foreground">Cluster / blok</span>
                 <input
                   value={form.cluster}
+                  autoComplete="address-level3"
+                  maxLength={120}
                   onChange={(event) => updateField("cluster", event.target.value)}
                   onInput={(event) => updateField("cluster", event.currentTarget.value)}
                   placeholder="Contoh: Cluster Pinnata"
@@ -275,6 +428,10 @@ export function ServiceRequestForm() {
                 <span className="text-sm font-semibold text-foreground">Nomor WhatsApp</span>
                 <input
                   value={form.phone}
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  maxLength={20}
                   onChange={(event) => updateField("phone", event.target.value)}
                   onInput={(event) => updateField("phone", event.currentTarget.value)}
                   placeholder="08xxxxxxxxxx"
@@ -285,6 +442,7 @@ export function ServiceRequestForm() {
                 <span className="text-sm font-semibold text-foreground">Judul kebutuhan</span>
                 <input
                   value={form.subject}
+                  maxLength={160}
                   onChange={(event) => updateField("subject", event.target.value)}
                   onInput={(event) => updateField("subject", event.currentTarget.value)}
                   placeholder="Contoh: Lampu jalan padam"
@@ -295,9 +453,10 @@ export function ServiceRequestForm() {
                 <span className="text-sm font-semibold text-foreground">Detail kebutuhan</span>
                 <textarea
                   value={form.detail}
+                  maxLength={3000}
                   onChange={(event) => updateField("detail", event.target.value)}
                   onInput={(event) => updateField("detail", event.currentTarget.value)}
-                  placeholder="Tulis lokasi, kronologi, nominal iuran, atau informasi yang perlu diketahui pengurus."
+                  placeholder="Tulis lokasi, kronologi, atau informasi yang perlu diketahui pengurus."
                   rows={5}
                   className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm leading-6 outline-none transition-colors duration-200 focus:border-primary"
                 />
@@ -306,6 +465,7 @@ export function ServiceRequestForm() {
                 <span className="text-sm font-semibold text-foreground">Waktu yang bisa dihubungi</span>
                 <input
                   value={form.availability}
+                  maxLength={160}
                   onChange={(event) => updateField("availability", event.target.value)}
                   onInput={(event) => updateField("availability", event.currentTarget.value)}
                   placeholder="Contoh: Malam setelah 19.00"
@@ -316,11 +476,16 @@ export function ServiceRequestForm() {
                 <FileCaptureField
                   id="layanan-foto"
                   label="Foto pendukung"
-                  description="Ambil foto kondisi lokasi atau pilih dari galeri. Lampiran belum dikirim otomatis."
+                  description="Maksimal 4 foto, masing-masing 10 MB. Foto akan tersimpan bersama permintaan dan hanya dapat dibuka pengurus berizin."
                   attachments={attachments}
                   onChange={(nextAttachments) => {
                     setAttachments(nextAttachments);
-                    setSubmitted(false);
+                    setSaveState("idle");
+                    setSaveMessage("");
+                    setSubmissionReference("");
+                    uploadSessionRef.current = null;
+                    uploadedPathsRef.current = {};
+                    registeredAttachmentIdsRef.current.clear();
                   }}
                 />
               </div>
@@ -329,7 +494,7 @@ export function ServiceRequestForm() {
             <div className="mt-5 rounded-2xl border border-accent/35 bg-accent-soft/55 p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                  Preview WhatsApp
+                  Ringkasan permintaan
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <span className="rounded-full bg-background px-3 py-1 text-xs font-semibold text-foreground">
@@ -343,38 +508,53 @@ export function ServiceRequestForm() {
               <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-border bg-background p-4 text-sm leading-6 text-foreground">
                 {message}
               </pre>
-              <a
-                href={isReady ? whatsappHref : undefined}
-                target={isReady ? "_blank" : undefined}
-                rel={isReady ? "noopener noreferrer" : undefined}
-                aria-disabled={!isReady}
-                onClick={() => {
-                  if (isReady) {
-                    setSubmitted(true);
-                  }
-                }}
+              <button
+                type="button"
+                onClick={submitToSupabase}
+                disabled={!isReady || saveState === "saving" || saveState === "saved"}
                 className={[
-                  "mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-xl px-5 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                  "mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-xl px-5 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60",
                   isReady
                     ? "cursor-pointer bg-primary text-white hover:bg-primary-hover"
                     : "cursor-not-allowed bg-muted/20 text-muted",
                 ].join(" ")}
               >
-                Kirim draft ke WhatsApp
-              </a>
+                {saveState === "saving" ? "Mengirim..." : saveState === "saved" ? "Permintaan terkirim" : "Kirim permintaan"}
+              </button>
               <p className="mt-3 text-xs leading-5 text-muted">
                 Tombol aktif setelah nama, cluster, WhatsApp, dan detail
                 kebutuhan terisi.
               </p>
-              {submitted ? (
+              {saveMessage ? (
+                <div
+                  role={saveState === "error" ? "alert" : "status"}
+                  aria-live="polite"
+                  className={[
+                    "mt-4 rounded-xl border p-4",
+                    saveState === "error"
+                      ? "border-red-200 bg-red-50 text-red-700"
+                      : "border-primary/20 bg-background text-primary",
+                  ].join(" ")}
+                >
+                  <p className="text-sm font-semibold">{saveMessage}</p>
+                </div>
+              ) : null}
+              {saveState === "saved" ? (
                 <div className="mt-4 rounded-xl border border-primary/20 bg-background p-4">
                   <p className="text-sm font-semibold text-primary">
-                    Draft siap masuk antrian layanan.
+                    Simpan nomor laporan: {submissionReference}
                   </p>
                   <p className="mt-2 text-xs leading-5 text-muted">
-                    Di admin preview, request seperti ini dikelola di modul
-                    Layanan dengan status Baru, Diproses, Validasi, dan Selesai.
+                    Pengurus sudah menerima permintaan dan foto. WhatsApp hanya digunakan jika Anda ingin mengirim konfirmasi tambahan.
                   </p>
+                  <a
+                    href={whatsappHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-xl border border-primary/25 bg-surface px-4 text-sm font-semibold text-primary transition-colors duration-200 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  >
+                    Konfirmasi lewat WhatsApp
+                  </a>
                 </div>
               ) : null}
             </div>

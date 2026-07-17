@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Icon } from "../components/portal";
 import type { IconName } from "@/lib/portal-data";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type ContactRoute = {
   id: string;
@@ -10,6 +11,11 @@ type ContactRoute = {
   label: string;
   icon: IconName;
   helper: string;
+};
+
+type ContactSubmissionResult = {
+  request_id: string;
+  upload_token: string;
 };
 
 const contactRoutes: ContactRoute[] = [
@@ -39,7 +45,7 @@ const contactRoutes: ContactRoute[] = [
     title: "PALUGADA",
     label: "Katalog warga",
     icon: "store",
-    helper: "Kontak lapak, pendaftaran usaha, dan validasi listing.",
+    helper: "Kontak lapak, pendaftaran usaha, dan informasi katalog.",
   },
   {
     id: "pengurus",
@@ -57,7 +63,19 @@ const initialForm = {
   message: "",
 };
 
-function buildMessage(route: ContactRoute, form: typeof initialForm) {
+const contactCategoryByRoute: Record<string, string> = {
+  layanan: "lainnya",
+  keamanan: "keamanan",
+  iuran: "iuran",
+  palugada: "palugada",
+  pengurus: "aspirasi",
+};
+
+function buildMessage(
+  route: ContactRoute,
+  form: typeof initialForm,
+  reference: string,
+) {
   return [
     "Halo Pengurus CGV10, saya ingin menghubungi kanal resmi.",
     "",
@@ -66,6 +84,7 @@ function buildMessage(route: ContactRoute, form: typeof initialForm) {
     `Cluster/blok: ${form.cluster || "-"}`,
     `Kontak balik: ${form.phone || "-"}`,
     `Pesan: ${form.message || "-"}`,
+    reference ? `Nomor pesan: ${reference}` : "",
     "",
     "Mohon diarahkan ke PIC yang sesuai. Terima kasih.",
   ].join("\n");
@@ -74,13 +93,15 @@ function buildMessage(route: ContactRoute, form: typeof initialForm) {
 export function ContactRoutingForm() {
   const [routeId, setRouteId] = useState(contactRoutes[0].id);
   const [form, setForm] = useState(initialForm);
-  const [submitted, setSubmitted] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveMessage, setSaveMessage] = useState("");
+  const [submissionReference, setSubmissionReference] = useState("");
 
   const selectedRoute =
     contactRoutes.find((route) => route.id === routeId) ?? contactRoutes[0];
   const message = useMemo(
-    () => buildMessage(selectedRoute, form),
-    [form, selectedRoute],
+    () => buildMessage(selectedRoute, form, submissionReference),
+    [form, selectedRoute, submissionReference],
   );
   const ready = Boolean(
     form.name.trim() && form.cluster.trim() && form.phone.trim() && form.message.trim(),
@@ -95,7 +116,63 @@ export function ContactRoutingForm() {
 
   function updateField(field: keyof typeof initialForm, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
-    setSubmitted(false);
+    setSaveState("idle");
+    setSaveMessage("");
+    setSubmissionReference("");
+  }
+
+  function selectRoute(nextRouteId: string) {
+    setRouteId(nextRouteId);
+    setSaveState("idle");
+    setSaveMessage("");
+    setSubmissionReference("");
+  }
+
+  async function submitToSupabase() {
+    if (!ready) {
+      setSaveState("error");
+      setSaveMessage("Lengkapi nama, cluster, kontak balik, dan pesan terlebih dahulu.");
+      return;
+    }
+
+    setSaveState("saving");
+    setSaveMessage("Menyimpan pesan kontak...");
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+
+      if (userError || !userData.user?.id) {
+        throw new Error("Masuk sebagai warga terlebih dahulu sebelum mengirim pesan layanan.");
+      }
+
+      const { data, error } = await supabase.rpc("submit_service_request", {
+        p_category: contactCategoryByRoute[selectedRoute.id] ?? "lainnya",
+        p_title: `Kontak cepat - ${selectedRoute.title}`,
+        p_description: [
+          `Kanal: ${selectedRoute.title}`,
+          `Nama warga: ${form.name.trim()}`,
+          `Cluster/blok: ${form.cluster.trim()}`,
+          `Kontak balik: ${form.phone.trim()}`,
+          "",
+          form.message.trim(),
+        ].join("\n"),
+        p_priority: selectedRoute.id === "keamanan" ? "high" : "normal",
+      });
+
+      if (error) throw error;
+      const result = ((data ?? []) as ContactSubmissionResult[])[0] ?? null;
+      if (!result) throw new Error("Nomor pesan belum berhasil dibuat.");
+
+      const reference = `PSN-${result.request_id.slice(0, 8).toUpperCase()}`;
+      setSubmissionReference(reference);
+      setSaveState("saved");
+      setSaveMessage(`Pesan sudah diterima. Nomor pesan ${reference}.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Gagal menyimpan pesan kontak.";
+      setSaveState("error");
+      setSaveMessage(message);
+    }
   }
 
   return (
@@ -109,9 +186,8 @@ export function ContactRoutingForm() {
             Pilih kanal agar pesan warga langsung punya konteks.
           </h2>
           <p className="mt-5 text-base leading-7 text-muted">
-            Kontak ini belum menyimpan data ke database. Pesan dirapikan menjadi
-            draft WhatsApp agar warga bisa langsung menghubungi pengurus dengan
-            format yang jelas.
+            Pesan akan tersimpan dan juga dapat diteruskan melalui WhatsApp
+            agar warga bisa langsung menghubungi pengurus.
           </p>
 
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
@@ -122,7 +198,7 @@ export function ContactRoutingForm() {
                 <button
                   key={route.id}
                   type="button"
-                  onClick={() => setRouteId(route.id)}
+                  onClick={() => selectRoute(route.id)}
                   className={[
                     "cursor-pointer rounded-2xl border p-4 text-left transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
                     selected
@@ -159,6 +235,8 @@ export function ContactRoutingForm() {
               <span className="text-sm font-semibold text-foreground">Nama warga</span>
               <input
                 value={form.name}
+                autoComplete="name"
+                maxLength={100}
                 onChange={(event) => updateField("name", event.target.value)}
                 onInput={(event) => updateField("name", event.currentTarget.value)}
                 placeholder="Nama lengkap"
@@ -169,6 +247,8 @@ export function ContactRoutingForm() {
               <span className="text-sm font-semibold text-foreground">Cluster / blok</span>
               <input
                 value={form.cluster}
+                autoComplete="address-level3"
+                maxLength={120}
                 onChange={(event) => updateField("cluster", event.target.value)}
                 onInput={(event) => updateField("cluster", event.currentTarget.value)}
                 placeholder="Contoh: Cluster Aurora"
@@ -179,6 +259,10 @@ export function ContactRoutingForm() {
               <span className="text-sm font-semibold text-foreground">Kontak balik</span>
               <input
                 value={form.phone}
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                maxLength={20}
                 onChange={(event) => updateField("phone", event.target.value)}
                 onInput={(event) => updateField("phone", event.currentTarget.value)}
                 placeholder="Nomor WhatsApp"
@@ -189,6 +273,7 @@ export function ContactRoutingForm() {
               <span className="text-sm font-semibold text-foreground">Pesan</span>
               <textarea
                 value={form.message}
+                maxLength={3000}
                 onChange={(event) => updateField("message", event.target.value)}
                 onInput={(event) => updateField("message", event.currentTarget.value)}
                 rows={5}
@@ -201,7 +286,7 @@ export function ContactRoutingForm() {
           <div className="mt-5 rounded-2xl border border-accent/35 bg-accent-soft/55 p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                Preview WhatsApp
+                Ringkasan pesan
               </p>
               <span className="rounded-full bg-background px-3 py-1 text-xs font-semibold text-primary">
                 {completedFields}/4 wajib
@@ -210,34 +295,49 @@ export function ContactRoutingForm() {
             <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-border bg-background p-4 text-sm leading-6 text-foreground">
               {message}
             </pre>
-            <a
-              href={ready ? whatsappHref : undefined}
-              target={ready ? "_blank" : undefined}
-              rel={ready ? "noopener noreferrer" : undefined}
-              aria-disabled={!ready}
-              onClick={() => {
-                if (ready) {
-                  setSubmitted(true);
-                }
-              }}
+            <button
+              type="button"
+              onClick={submitToSupabase}
+              disabled={!ready || saveState === "saving" || saveState === "saved"}
               className={[
-                "mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-xl px-5 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                "mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-xl px-5 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60",
                 ready
                   ? "cursor-pointer bg-primary text-white hover:bg-primary-hover"
                   : "cursor-not-allowed bg-muted/20 text-muted",
               ].join(" ")}
             >
-              Kirim draft kontak
-            </a>
-            {submitted ? (
+              {saveState === "saving" ? "Mengirim..." : saveState === "saved" ? "Pesan terkirim" : "Kirim pesan"}
+            </button>
+            {saveMessage ? (
+              <div
+                role={saveState === "error" ? "alert" : "status"}
+                aria-live="polite"
+                className={[
+                  "mt-4 rounded-xl border p-4",
+                  saveState === "error"
+                    ? "border-red-200 bg-red-50 text-red-700"
+                    : "border-primary/20 bg-background text-primary",
+                ].join(" ")}
+              >
+                <p className="text-sm font-semibold">{saveMessage}</p>
+              </div>
+            ) : null}
+            {saveState === "saved" ? (
               <div className="mt-4 rounded-xl border border-primary/20 bg-background p-4">
                 <p className="text-sm font-semibold text-primary">
-                  Draft kontak siap diarahkan.
+                  Simpan nomor pesan: {submissionReference}
                 </p>
                 <p className="mt-2 text-xs leading-5 text-muted">
-                  Pesan kanal {selectedRoute.title} dapat dicatat sebagai intake
-                  layanan admin agar PIC dan status tindak lanjut tidak hilang.
+                  Pesan sudah diarahkan ke {selectedRoute.title}. Gunakan WhatsApp hanya jika Anda ingin mengirim konfirmasi tambahan.
                 </p>
+                <a
+                  href={whatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-xl border border-primary/25 bg-surface px-4 text-sm font-semibold text-primary transition-colors duration-200 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  Konfirmasi lewat WhatsApp
+                </a>
               </div>
             ) : null}
           </div>

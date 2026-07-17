@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Icon } from "../components/portal";
 import type { IconName } from "@/lib/portal-data";
 
-export type ProductionAdminSection = "dashboard" | "portal-posts" | "debug";
+export type ProductionAdminSection = "dashboard" | "warga" | "iuran" | "intake" | "palugada" | "portal-posts" | "debug";
 
 type ProductionNavItem = {
   id: ProductionAdminSection | "preview" | "login";
@@ -16,6 +16,34 @@ type ProductionNavItem = {
 
 const productionNav: ProductionNavItem[] = [
   { id: "dashboard", label: "Dashboard", href: "/admin/", icon: "home" },
+  {
+    id: "warga",
+    label: "Data Warga",
+    href: "/admin/warga/",
+    icon: "users",
+    badge: "New",
+  },
+  {
+    id: "iuran",
+    label: "Iuran",
+    href: "/admin/iuran/",
+    icon: "wallet",
+    badge: "New",
+  },
+  {
+    id: "intake",
+    label: "Intake",
+    href: "/admin/intake/",
+    icon: "message",
+    badge: "New",
+  },
+  {
+    id: "palugada",
+    label: "PALUGADA",
+    href: "/admin/palugada/",
+    icon: "store",
+    badge: "New",
+  },
   {
     id: "portal-posts",
     label: "Portal Posts",
@@ -34,7 +62,7 @@ const productionNav: ProductionNavItem[] = [
 ];
 
 const supportNav: ProductionNavItem[] = [
-  { id: "preview", label: "Static Demo", href: "/admin-preview/", icon: "file" },
+  { id: "preview", label: "Tampilan Uji", href: "/admin-preview/", icon: "file" },
   { id: "login", label: "Login", href: "/admin/login/", icon: "users" },
 ];
 
@@ -165,7 +193,7 @@ export function ProductionAdminShell({
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold text-white">CGV10 Admin</p>
                 <p className="mt-0.5 truncate text-[11px] font-semibold tracking-[0.04em] text-accent">
-                  Production portal
+                  Portal Pengelola
                 </p>
               </div>
               <span className="absolute right-4 top-5 rounded-full border border-accent/25 bg-accent/14 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-accent">
@@ -426,7 +454,9 @@ export function ProductionMetricCard({
           <Icon name={icon} />
         </span>
       </div>
-      <p className="mt-4 text-2xl font-bold tracking-tight">{value}</p>
+      <p className="mt-4 text-2xl font-bold tracking-tight" suppressHydrationWarning>
+        {value}
+      </p>
       <p className={cx("mt-2 text-xs leading-5", tone === "dark" ? "text-white/70" : "text-muted")}>
         {helper}
       </p>

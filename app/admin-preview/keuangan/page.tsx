@@ -13,14 +13,15 @@ import { FinanceLedgerBoard } from "./finance-ledger-board";
 import { IuranConfirmationBoard } from "./iuran-confirmation-board";
 import { financeTotals, financeTransactions } from "@/lib/portal-data";
 
-const incomeBreakdown = [
-  ["Dana kas RT", "Rp 2.000.000", "100%"],
-  ["Sumbangan warga", "Rp 1.000.000", "50%"],
-  ["KPU sebelumnya", "Rp 1.000.000", "50%"],
-  ["Pendaftaran calon", "Rp 1.500.000", "75%"],
-];
-
-const spendingBreakdown = [["Belum ada kas keluar", "Rp 0", "0%"]];
+const spendingBreakdown = financeTransactions.slice(0, 4).map((item) => [
+  item.shortLabel,
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(item.subtotal),
+  `${Math.round((item.subtotal / financeTotals.expense) * 100)}%`,
+]);
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("id-ID", {
@@ -40,7 +41,7 @@ export default function AdminFinancePage() {
     <AdminShell
       active="keuangan"
       title="Keuangan"
-      subtitle="Buku Kas CGV10 - Juni 2026"
+      subtitle="Laporan Keuangan RT 010 - Januari-Juni 2026"
       action={<ActionButton primary href="#tambah-transaksi">Tambah Transaksi</ActionButton>}
     >
       <PageIntro
@@ -55,8 +56,8 @@ export default function AdminFinancePage() {
       />
 
       <section className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Kas Masuk" value={formatCurrency(financeTotals.income)} helper={`${financeTransactions.length} transaksi masuk`} icon="wallet" />
-        <MetricCard label="Kas Keluar" value={formatCurrency(financeTotals.expense)} helper="Belum ada kas keluar" icon="file" tone="red" />
+        <MetricCard label="Kas Masuk" value={formatCurrency(financeTotals.income)} helper="Pemasukan Januari-Juni 2026" icon="wallet" />
+        <MetricCard label="Kas Keluar" value={formatCurrency(financeTotals.expense)} helper={`${financeTransactions.length} transaksi keluar`} icon="file" tone="red" />
         <MetricCard label="Iuran Masuk" value="4 konfirmasi" helper="2 perlu dicocokkan" icon="message" tone="gold" />
         <MetricCard label="Saldo Publik" value={formatCurrency(financeTotals.endingBalance)} helper="Selaras dengan portal" icon="shield" tone="dark" />
       </section>
@@ -79,19 +80,19 @@ export default function AdminFinancePage() {
         </Panel>
 
         <Panel>
-          <PanelHeader title="Komposisi Kas Masuk" subtitle="Breakdown sumber dana untuk ringkasan internal." />
+          <PanelHeader title="Pengeluaran Utama" subtitle="Empat transaksi terbesar/awal sesuai laporan resmi." />
           <div className="grid gap-5 px-5 pb-5 sm:grid-cols-[150px_1fr] sm:items-center">
-            <div className="mx-auto h-36 w-36 rounded-full bg-[conic-gradient(#1a7a50_0_45%,#c9a55a_45%_68%,#2b6cb0_68%_88%,#c8c4bc_88%_100%)] p-7">
+            <div className="mx-auto h-36 w-36 rounded-full bg-[conic-gradient(#b91c1c_0_45%,#c9a55a_45%_68%,#2b6cb0_68%_88%,#c8c4bc_88%_100%)] p-7">
               <div className="h-full w-full rounded-full bg-[#fdfcf9]" />
             </div>
             <div className="space-y-3">
-              {incomeBreakdown.map(([label, value], index) => (
+              {spendingBreakdown.map(([label, value], index) => (
                 <div key={label} className="flex items-center justify-between gap-3 text-sm">
                   <span className="flex items-center gap-2 text-muted">
                     <span
                       className={cx(
                         "h-3 w-3 rounded-sm",
-                        index === 0 ? "bg-emerald-600" : index === 1 ? "bg-accent" : index === 2 ? "bg-blue-600" : "bg-stone-300",
+                        index === 0 ? "bg-red-700" : index === 1 ? "bg-accent" : index === 2 ? "bg-blue-600" : "bg-stone-300",
                       )}
                     />
                     {label}
@@ -110,9 +111,12 @@ export default function AdminFinancePage() {
         <PanelHeader title="Rekap per Kategori - Juni 2026" subtitle="Breakdown sumber dan penggunaan dana secara lengkap." />
         <div className="grid gap-8 px-5 pb-5 lg:grid-cols-2">
           <div>
-            <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.14em] text-muted">Sumber Masuk</p>
+            <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.14em] text-muted">Ringkasan Periode</p>
             <div className="space-y-4">
-              {incomeBreakdown.map(([label, value, width]) => (
+              {[
+                ["Saldo Awal", formatCurrency(financeTotals.openingBalance), "77%"],
+                ["Pemasukan", formatCurrency(financeTotals.income), "23%"],
+              ].map(([label, value, width]) => (
                 <div key={label}>
                   <div className="mb-2 flex items-center justify-between gap-3 text-sm">
                     <span className="font-semibold text-foreground">{label}</span>

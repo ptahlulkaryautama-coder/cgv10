@@ -44,6 +44,7 @@ export type FinanceTransaction = {
   subtotal: number;
   shortLabel: string;
   color: string;
+  direction?: "income" | "expense";
 };
 
 export type MarketplaceItem = {
@@ -151,7 +152,7 @@ export type KabarArticle = {
   coverImageAlt?: string;
   video?: {
     src: string;
-    posterSrc: string;
+    posterSrc?: string;
     title: string;
     durationLabel: string;
   };
@@ -171,7 +172,7 @@ export const navItems = [
 export const quickInfo: IconCard[] = [
   {
     title: "Saldo Kas RT",
-    value: "Rp 5.500.000",
+    value: "Rp10.000",
     text: "Ringkasan kas lingkungan yang mudah dipantau warga.",
     status: "Ringkasan kas RT.",
     icon: "wallet",
@@ -348,68 +349,146 @@ export const pengurusRoles: IconCard[] = pengurusLeadership.map((member) => ({
 
 // Public finance summary shown in the portal.
 export const financeRows: FinanceRow[] = [
-  { label: "Saldo awal", value: "Rp 0" },
-  { label: "Pemasukan", value: "Rp 5.500.000" },
-  { label: "Pengeluaran", value: "Rp 0" },
-  { label: "Saldo akhir", value: "Rp 5.500.000" },
+  { label: "Saldo Awal", value: "Rp8.510.000" },
+  { label: "Pemasukan Januari-Juni 2026", value: "Rp2.500.000" },
+  { label: "Pengeluaran Januari-Juni 2026", value: "Rp11.000.000" },
+  { label: "Saldo Akhir per Juni 2026", value: "Rp10.000" },
 ];
 
 export const financeTransactions: FinanceTransaction[] = [
   {
-    description: "Dana kas RT",
+    description: "Setoran ke kas RW 021 tahun 2026",
+    quantity: 1,
+    unitAmount: 1800000,
+    subtotal: 1800000,
+    shortLabel: "Setoran kas RW",
+    color: "#003d34",
+    direction: "expense",
+  },
+  {
+    description: "Sumbangan untuk MTQ tahun 2026, RT 010/Kelurahan",
+    quantity: 1,
+    unitAmount: 200000,
+    subtotal: 200000,
+    shortLabel: "Sumbangan MTQ",
+    color: "#d4af37",
+    direction: "expense",
+  },
+  {
+    description: "Fotokopi dokumen tata tertib RT, 100 lembar",
+    quantity: 1,
+    unitAmount: 30000,
+    subtotal: 30000,
+    shortLabel: "Fotokopi dokumen",
+    color: "#006d5b",
+    direction: "expense",
+  },
+  {
+    description: "Snack pembentukan panitia pemilihan RT 010, 50 paket @ Rp15.000",
+    quantity: 50,
+    unitAmount: 15000,
+    subtotal: 750000,
+    shortLabel: "Snack pembentukan panitia",
+    color: "#e8c670",
+    direction: "expense",
+  },
+  {
+    description: "Air minum Sanford Mini, 3 dus, untuk pembentukan panitia",
+    quantity: 1,
+    unitAmount: 100000,
+    subtotal: 100000,
+    shortLabel: "Air minum pembentukan panitia",
+    color: "#002d27",
+    direction: "expense",
+  },
+  {
+    description: "Dana panitia pemilihan RT 010, 10 Mei 2026",
     quantity: 1,
     unitAmount: 2000000,
     subtotal: 2000000,
-    shortLabel: "Dana kas RT",
-    color: "#003d34",
-  },
-  {
-    description: "Pendaftaran Calon Doddy",
-    quantity: 1,
-    unitAmount: 500000,
-    subtotal: 500000,
-    shortLabel: "Calon Doddy",
-    color: "#d4af37",
-  },
-  {
-    description: "Pendaftaran Calon Fikri",
-    quantity: 1,
-    unitAmount: 500000,
-    subtotal: 500000,
-    shortLabel: "Calon Fikri",
-    color: "#006d5b",
-  },
-  {
-    description: "Pendaftaran Calon Meyer",
-    quantity: 1,
-    unitAmount: 500000,
-    subtotal: 500000,
-    shortLabel: "Calon Meyer",
-    color: "#e8c670",
-  },
-  {
-    description: "Dari KPU Sebelumnya",
-    quantity: 1,
-    unitAmount: 1000000,
-    subtotal: 1000000,
-    shortLabel: "KPU Sebelumnya",
-    color: "#002d27",
-  },
-  {
-    description: "Dari Sumbangan Warga - Mandeville 09",
-    quantity: 1,
-    unitAmount: 1000000,
-    subtotal: 1000000,
-    shortLabel: "Mandeville 09",
+    shortLabel: "Dana panitia pemilihan",
     color: "#b8942f",
+    direction: "expense",
+  },
+  {
+    description: "Snack kegiatan 17 Mei 2026, 75 paket @ Rp15.000",
+    quantity: 75,
+    unitAmount: 15000,
+    subtotal: 1050000,
+    shortLabel: "Snack kegiatan 17 Mei",
+    color: "#003d34",
+    direction: "expense",
+  },
+  {
+    description: "Ucapan terima kasih kepada Bapak Meyer",
+    quantity: 1,
+    unitAmount: 1000000,
+    subtotal: 1000000,
+    shortLabel: "Terima kasih Bapak Meyer",
+    color: "#d4af37",
+    direction: "expense",
+  },
+  {
+    description: "Ucapan terima kasih kepada Ibu Sukenti",
+    quantity: 1,
+    unitAmount: 1000000,
+    subtotal: 1000000,
+    shortLabel: "Terima kasih Ibu Sukenti",
+    color: "#006d5b",
+    direction: "expense",
+  },
+  {
+    description: "Snack kegiatan 7 Juni 2026, 150 paket @ Rp15.000",
+    quantity: 150,
+    unitAmount: 15000,
+    subtotal: 2250000,
+    shortLabel: "Snack kegiatan 7 Juni",
+    color: "#e8c670",
+    direction: "expense",
+  },
+  {
+    description: "Snack serah terima jabatan, 17 Juni 2026, 50 paket @ Rp10.000",
+    quantity: 50,
+    unitAmount: 10000,
+    subtotal: 500000,
+    shortLabel: "Snack serah terima",
+    color: "#002d27",
+    direction: "expense",
+  },
+  {
+    description: "Air minum Sanford Mini, 3 dus, untuk serah terima jabatan 17 Juni 2026",
+    quantity: 1,
+    unitAmount: 100000,
+    subtotal: 100000,
+    shortLabel: "Air minum serah terima",
+    color: "#b8942f",
+    direction: "expense",
+  },
+  {
+    description: "Stempel dan busa dari Bapak Khalil",
+    quantity: 1,
+    unitAmount: 120000,
+    subtotal: 120000,
+    shortLabel: "Stempel dan busa",
+    color: "#003d34",
+    direction: "expense",
+  },
+  {
+    description: "Pengangkutan kursi oleh Edwin untuk acara serah terima jabatan, 17 Juni 2026",
+    quantity: 1,
+    unitAmount: 100000,
+    subtotal: 100000,
+    shortLabel: "Pengangkutan kursi",
+    color: "#b8942f",
+    direction: "expense",
   },
 ];
 
 export const financeTotals = {
-  openingBalance: 0,
-  income: financeTransactions.reduce((sum, item) => sum + item.subtotal, 0),
-  expense: 0,
-  endingBalance: financeTransactions.reduce((sum, item) => sum + item.subtotal, 0),
+  openingBalance: 8510000,
+  income: 2500000,
+  expense: 11000000,
+  endingBalance: 10000,
 };
 
 // Public announcement content for residents.
@@ -576,7 +655,7 @@ export const kabarArticles: KabarArticle[] = [
     author: "Ketua RT 010",
     publishedAt: "10 Jul 2026",
     readTime: "4 menit baca",
-    coverImageSrc: "/assets/pengurus/RT10-Official-Pengurus.jpeg",
+    coverImageSrc: "/assets/pengurus/RT10-Official-Pengurus.png",
     coverImageAlt: "Bagan susunan Kepengurusan RT 010 periode baru",
   },
   {
@@ -594,12 +673,6 @@ export const kabarArticles: KabarArticle[] = [
           "Kegiatan sosial kembali terlihat di lingkungan sekitar Cipta Green Ville melalui agenda pembagian Sedekah Jumat. Dalam dokumentasi kegiatan, tampak suasana sederhana namun penuh makna, ketika warga dan pihak yang terlibat turut berperan dalam menyalurkan kebaikan kepada masyarakat sekitar.",
           "Sedekah Jumat menjadi salah satu bentuk kepedulian sosial yang sangat positif. Tidak hanya bernilai sebagai bantuan, kegiatan ini juga menjadi sarana untuk mempererat hubungan antarwarga, menumbuhkan rasa empati, dan membangun lingkungan yang lebih peduli terhadap sesama.",
         ],
-        image: {
-          src: "/assets/kegiatan/2026-07-10_kabar-sosial_sedekah-jumat-cgv_panitia-01-optimized.jpg",
-          alt: "Dokumentasi kegiatan Sedekah Jumat di lingkungan sekitar Cipta Green Ville",
-          caption:
-            "Dokumentasi Sedekah Jumat sebagai kegiatan sosial warga di lingkungan sekitar CGV.",
-        },
       },
       {
         heading: "Peran Sosial Warga dalam Lingkungan Sekitar",
@@ -640,14 +713,8 @@ export const kabarArticles: KabarArticle[] = [
     author: "Pengurus CGV10",
     publishedAt: "10 Jul 2026",
     readTime: "4 menit baca",
-    coverImageSrc:
-      "/assets/kegiatan/2026-07-10_kabar-sosial_sedekah-jumat-cgv_panitia-01-optimized.jpg",
-    coverImageAlt:
-      "Dokumentasi kegiatan Sedekah Jumat di lingkungan sekitar Cipta Green Ville",
     video: {
       src: "/assets/kegiatan/2026-07-10_kabar-sosial_sedekah-jumat-cgv_video-01.mp4",
-      posterSrc:
-        "/assets/kegiatan/2026-07-10_kabar-sosial_sedekah-jumat-cgv_poster-01-optimized.jpg",
       title: "Video dokumentasi Sedekah Jumat CGV",
       durationLabel: "27 detik",
     },

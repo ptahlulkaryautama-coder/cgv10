@@ -1,11 +1,11 @@
-# CGV10 Deployment Preview
+# CGV10 Deployment
 
 Approved public identity:
 
-CGV10 — Portal Digital Warga  
-Cipta Greenville • RT 010 / RW 021
+CGV10 - Portal Digital Warga
+Cipta Greenville RT 010 / RW 021
 
-This project is a static public prototype built with Next.js App Router. It is ready for online preview deployment on a standard Next.js hosting platform.
+This project uses Next.js App Router with static export. Public pages are prerendered, while admin and intake forms use Supabase client-side access protected by Supabase Auth, RLS, and database policies.
 
 ## Local Development
 
@@ -47,7 +47,10 @@ Recommended settings:
 - Install command: `npm install`
 - Build command: `npm run build`
 - Output / publish directory: use the platform default for Next.js unless the hosting provider requires specific configuration.
-- Environment variables: none required at this stage.
+- Environment variables:
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - `NEXT_PUBLIC_ANALYTICS_ENDPOINT` optional, only if the consent-based analytics receiver is already prepared.
 
 ## Approved Domain
 
@@ -57,44 +60,59 @@ Primary public domain:
 https://portalwargacgv.id/
 ```
 
-Keep HTTPS enabled and point DNS to the selected hosting provider before
-sharing the production address.
+Keep HTTPS enabled and point DNS to the selected hosting provider before sharing the production address.
 
 ## Public Routes
 
-The preview should expose these static public routes:
+The production site should expose these public routes:
 
 - `/`
+- `/kabar-warga`
+- `/kegiatan`
 - `/pengurus`
 - `/keuangan`
 - `/pengumuman`
 - `/palugada`
+- `/palugada/daftar`
+- `/layanan`
 - `/kontak`
 - `/masuk`
 - `/portal`
 - `/portal/profil-rumah`
+- `/privasi`
+
+## Supabase Migration Order
+
+Before deploying intake/photo features, apply the SQL migrations in order through Supabase SQL Editor or the approved Supabase deployment flow:
+
+```text
+supabase/migrations/202607150004_palugada_static_catalog_import.sql
+supabase/migrations/202607160001_service_request_private_attachments.sql
+supabase/migrations/202607160002_palugada_submission_hardening.sql
+supabase/migrations/202607160003_resident_billing_foundation.sql
+supabase/migrations/202607160004_public_dues_confirmation.sql
+```
+
+The first migration makes the original PALUGADA catalog visible from Supabase. The next two migrations harden public submission RPCs and private photo uploads for layanan and PALUGADA. The last two migrations add the resident billing foundation and public dues confirmation flow for `/keuangan` and `/admin/iuran`.
 
 ## Asset And Metadata Notes
 
 - Favicon is configured through Next.js metadata at `/assets/brand/favicon.svg`.
+- PWA assets live under `public/assets/pwa/`.
 - Brand assets live under `public/assets/brand/`.
-- Placeholder QR/profile assets live under `public/assets/placeholders/`.
-- The portal preview illustration is `public/cgv10-portal-preview.svg`.
+- Static export now includes `/robots.txt` and `/sitemap.xml`.
 
-## Public Prototype Notice
-
-This project is a static public prototype. It does not include login, database, payment, admin dashboard, real complaint system, real QR, real WA integration, or active PALUGADA transactions.
+## Production Data Notice
 
 Do not publish private or unconfirmed community data. Do not add real names, financial values, phone numbers, QR images, or PALUGADA item data unless they are approved for public release.
 
 ## Pre-Deploy Checklist
 
-Run these checks before sharing a preview URL:
+Run these checks before sharing a production URL:
 
 ```bash
 npm.cmd run lint
 npm.cmd run build
-npm.cmd run start
 ```
 
-Then verify the six public routes in the browser and confirm there are no broken images or unexpected private data.
+Then verify the public routes in the browser and confirm there are no broken images or unexpected private data.

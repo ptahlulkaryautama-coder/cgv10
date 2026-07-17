@@ -25,10 +25,10 @@ const actionTiles: {
   },
   {
     title: "PALUGADA CGV",
-    text: "Katalog warga dengan Ma'niez Donut sebagai lapak awal.",
+    text: "Cari produk dan jasa dari usaha milik warga.",
     href: "/palugada/",
     icon: "store",
-    badge: "Lapak awal",
+    badge: "Katalog warga",
   },
   {
     title: "Kabar Warga",
@@ -39,7 +39,7 @@ const actionTiles: {
   },
   {
     title: "Transparansi Keuangan",
-    text: "Ringkasan kas lingkungan yang mudah dipindai oleh warga.",
+    text: "Lihat saldo kas dan penggunaan iuran secara ringkas.",
     href: "/keuangan/",
     icon: "wallet",
     badge: "Kas RT",
@@ -101,9 +101,8 @@ export default function Home() {
               Portal Digital Warga CGV10
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-white/78 sm:text-lg sm:leading-8">
-              Portal lingkungan yang rapi, hidup, dan terpercaya untuk
-              pengumuman, layanan warga, kegiatan, pengurus, transparansi, dan
-              PALUGADA CGV dalam satu pengalaman premium.
+              Temukan pengumuman, layanan, kegiatan, informasi keuangan, dan
+              PALUGADA CGV dalam satu tempat.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -268,7 +267,7 @@ export default function Home() {
                 Info Cepat
               </p>
               <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-                Snapshot civic dashboard yang mudah dipindai.
+                Informasi penting dalam satu tampilan.
               </h2>
               <p className="mt-5 text-base leading-7 text-white/78">
                 Ringkasan terkini portal warga.

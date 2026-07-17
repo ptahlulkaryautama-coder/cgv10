@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 import {
   Icon,
   PageShell,
 } from "../components/portal";
-import { ServiceRequestForm } from "./service-request-form";
+import { AuthAwareAction } from "../components/auth-aware-action";
+import { ServiceRequestGate } from "./service-request-gate";
 
 const serviceStats = [
   ["4", "Pintu layanan"],
@@ -42,22 +42,17 @@ export default function LayananPage() {
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-white/84 sm:text-lg sm:leading-8">
               Layanan CGV10 ditata sebagai pintu bantuan warga: laporan,
-              administrasi, iuran, dan aspirasi terlihat jelas tanpa
-              membuat klaim bahwa sistem pengiriman sudah aktif.
+              administrasi, iuran, dan aspirasi masuk ke alur yang jelas untuk
+              ditindaklanjuti pengurus.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="#form-layanan"
+              <AuthAwareAction
+                href="/layanan/#form-layanan"
+                guestHref="/masuk/?next=/layanan/%23form-layanan"
+                guestLabel="Masuk untuk ajukan"
+                authenticatedLabel="Ajukan layanan"
                 className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl bg-accent px-5 text-base font-semibold text-foreground shadow-[0_18px_42px_rgba(212,175,55,0.24)] transition-colors duration-200 hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
-              >
-                Ajukan layanan
-              </Link>
-              <Link
-                href="/pengurus/#kontak-pengurus"
-                className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl border border-white/20 bg-white/10 px-5 text-base font-semibold text-white transition-colors duration-200 hover:bg-white/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
-              >
-                Hubungi pengurus
-              </Link>
+              />
             </div>
           </div>
 
@@ -125,7 +120,7 @@ export default function LayananPage() {
       </section>
 
       <Suspense fallback={null}>
-        <ServiceRequestForm />
+        <ServiceRequestGate />
       </Suspense>
     </PageShell>
   );

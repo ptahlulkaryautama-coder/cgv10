@@ -1,0 +1,76 @@
+{
+  "name": "CGV10 Admin Dashboard",
+  "short_name": "CGV10 Admin",
+  "description": "Dashboard admin operasional CGV10 untuk pengurus berizin.",
+  "id": "/admin/?source=admin-pwa",
+  "start_url": "/admin/?source=admin-pwa",
+  "scope": "/admin/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8f5f0",
+  "theme_color": "#003d34",
+  "categories": ["productivity", "business", "utilities"],
+  "lang": "id",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/assets/pwa/cgv10-pwa-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/pwa/cgv10-pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/pwa/cgv10-maskable-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Admin Dashboard",
+      "short_name": "Dashboard",
+      "description": "Buka dashboard admin CGV10.",
+      "url": "/admin/?source=admin-pwa-shortcut",
+      "icons": [
+        {
+          "src": "/assets/pwa/cgv10-pwa-icon-512.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Intake Layanan",
+      "short_name": "Intake",
+      "description": "Buka antrian layanan warga.",
+      "url": "/admin/intake/?source=admin-pwa-shortcut",
+      "icons": [
+        {
+          "src": "/assets/pwa/cgv10-pwa-icon-512.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Iuran Admin",
+      "short_name": "Iuran",
+      "description": "Buka dashboard iuran admin.",
+      "url": "/admin/iuran/?source=admin-pwa-shortcut",
+      "icons": [
+        {
+          "src": "/assets/pwa/cgv10-pwa-icon-512.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

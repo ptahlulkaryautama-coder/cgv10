@@ -3,27 +3,54 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { AuthAwareAction } from "../components/auth-aware-action";
 import { ImagePreview } from "../components/image-preview";
-import { Icon, PlaceholderNotice } from "../components/portal";
-import {
-  marketplaceItems,
-  palugadaCategories,
-  type MarketplaceItem,
-} from "@/lib/portal-data";
-
-const categories = ["Semua", ...palugadaCategories.map((item) => item.title)];
-const sortOptions = [
-  { value: "featured", label: "Featured" },
-  { value: "newest", label: "Newest" },
-  { value: "contact", label: "Kontak tersedia" },
-  { value: "category", label: "Kategori" },
-] as const;
-
-type SortValue = (typeof sortOptions)[number]["value"];
+import { Icon } from "../components/portal";
+import { marketplaceItems, type MarketplaceItem } from "@/lib/portal-data";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type PalugadaFilterDetail = {
   query?: string;
   category?: string;
+};
+
+type LivePalugadaRow = {
+  id: string;
+  name: string;
+  category: "barang" | "kuliner" | "jasa" | "properti" | "lainnya";
+  cluster: string;
+  price_label: string;
+  description: string;
+  availability_note: string;
+  contact_method: string;
+  seller_status: "online" | "offline";
+  seller_status_note: string;
+  cover_image_url: string | null;
+  cover_image_alt: string | null;
+  published_at: string | null;
+  updated_at: string;
+};
+
+type LivePalugadaAttachment = {
+  linked_id: string;
+  storage_path: string;
+  file_name: string;
+};
+
+const palugadaCategoryLabel: Record<LivePalugadaRow["category"], string> = {
+  barang: "Barang",
+  kuliner: "Kuliner",
+  jasa: "Jasa",
+  properti: "Properti",
+  lainnya: "Lainnya",
+};
+
+const palugadaCategoryIcon: Record<LivePalugadaRow["category"], MarketplaceItem["icon"]> = {
+  barang: "store",
+  kuliner: "utensils",
+  jasa: "briefcase",
+  properti: "building",
+  lainnya: "file",
 };
 
 function normalize(value: string) {
@@ -47,9 +74,6 @@ function matchesSearch(item: MarketplaceItem, query: string, category: string) {
     item.category,
     item.cluster,
     item.price,
-    item.status,
-    item.detailDescription,
-    item.providerProfile,
   ]
     .filter(Boolean)
     .join(" ")
@@ -58,23 +82,11 @@ function matchesSearch(item: MarketplaceItem, query: string, category: string) {
   return categoryMatch && (!query || content.includes(query));
 }
 
-function sortItems(items: MarketplaceItem[], sort: SortValue) {
+function sortItems(items: MarketplaceItem[]) {
   const indexedItems = items.map((item, index) => ({ item, index }));
 
   return indexedItems
     .sort((left, right) => {
-      if (sort === "newest") {
-        return right.index - left.index;
-      }
-
-      if (sort === "contact") {
-        return Number(Boolean(right.item.whatsappHref)) - Number(Boolean(left.item.whatsappHref));
-      }
-
-      if (sort === "category") {
-        return left.item.category.localeCompare(right.item.category, "id");
-      }
-
       const leftFeatured = left.item.detailSlug === "donat-kentang-warga" ? 1 : 0;
       const rightFeatured = right.item.detailSlug === "donat-kentang-warga" ? 1 : 0;
       return rightFeatured - leftFeatured || left.index - right.index;
@@ -82,12 +94,58 @@ function sortItems(items: MarketplaceItem[], sort: SortValue) {
     .map(({ item }) => item);
 }
 
+function buildWhatsappHref(contactMethod: string) {
+  const digits = contactMethod.replace(/\D/g, "");
+
+  if (!digits) {
+    return undefined;
+  }
+
+  const normalized = digits.startsWith("0") ? `62${digits.slice(1)}` : digits;
+  return `https://wa.me/${normalized}`;
+}
+
+function mapLiveListing(
+  row: LivePalugadaRow,
+  cover?: LivePalugadaAttachment & { signedUrl: string },
+): MarketplaceItem {
+  const category = palugadaCategoryLabel[row.category];
+  const whatsappHref = buildWhatsappHref(row.contact_method);
+
+  return {
+    name: row.name,
+    category,
+    cluster: row.cluster,
+    price: row.price_label || "Harga sesuai konfirmasi",
+    status: "Tayang",
+    sellerStatus: row.seller_status,
+    sellerStatusLabel: row.seller_status === "online" ? "Online" : "Offline",
+    sellerStatusNote: row.seller_status_note || "Status seller dari admin PALUGADA.",
+    icon: palugadaCategoryIcon[row.category],
+    imageSrc: cover?.signedUrl ?? row.cover_image_url ?? undefined,
+    imageAlt: cover
+      ? `Foto ${row.name} - ${cover.file_name}`
+      : row.cover_image_alt ?? undefined,
+    detailSlug: row.id,
+    detailHref: `/palugada/detail/?id=${encodeURIComponent(row.id)}`,
+    detailDescription:
+      row.description ||
+      "Lapak warga yang sudah diperiksa pengurus.",
+    availabilityNote: row.availability_note,
+    contactBadge: whatsappHref ? "WhatsApp" : "Kontak via pengurus",
+    whatsappHref,
+    whatsappLabel: "Hubungi WhatsApp",
+    whatsappDisplayNumber: row.contact_method,
+    whatsappStatus: whatsappHref ? "WhatsApp tersedia" : "Via pengurus",
+  };
+}
+
 function ListingCard({ item }: { item: MarketplaceItem }) {
   const badges = getTrustBadges(item);
   const isOnline = item.sellerStatus === "online";
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-colors duration-200 hover:border-primary/35">
+    <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-sm transition-colors duration-200 hover:border-primary/35 sm:rounded-2xl">
       <div className="relative border-b border-border bg-cream">
         <div className="relative aspect-[4/3]">
           {item.imageSrc ? (
@@ -98,13 +156,23 @@ function ListingCard({ item }: { item: MarketplaceItem }) {
               caption={`${item.category} - ${item.cluster}`}
               className="aspect-[4/3]"
             >
-              <Image
-                src={item.imageSrc}
-                alt={item.imageAlt ?? item.name}
-                fill
-                sizes="(min-width: 1280px) 300px, (min-width: 768px) 43vw, 92vw"
-                className="object-cover transition-opacity duration-200 group-hover:opacity-95"
-              />
+              {item.imageSrc.startsWith("http") ? (
+                // Signed Supabase URLs are dynamic and cannot use the static image optimizer.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={item.imageSrc}
+                  alt={item.imageAlt ?? item.name}
+                  className="h-full w-full object-cover transition-opacity duration-200 group-hover:opacity-95"
+                />
+              ) : (
+                <Image
+                  src={item.imageSrc}
+                  alt={item.imageAlt ?? item.name}
+                  fill
+                  sizes="(min-width: 1280px) 300px, (min-width: 768px) 43vw, 92vw"
+                  className="object-cover transition-opacity duration-200 group-hover:opacity-95"
+                />
+              )}
             </ImagePreview>
           ) : (
             <div className="flex h-full flex-col justify-between p-5">
@@ -119,11 +187,12 @@ function ListingCard({ item }: { item: MarketplaceItem }) {
             </div>
           )}
         </div>
-        <div className="absolute left-3 top-3 rounded-full bg-accent-soft px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-foreground shadow-sm">
+        <div className="absolute left-2 top-2 rounded-full bg-accent-soft px-2 py-1 text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-foreground shadow-sm sm:left-3 sm:top-3 sm:px-3 sm:text-[0.68rem] sm:tracking-[0.14em]">
           {item.category}
         </div>
         <div
-          className={`absolute right-3 top-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold shadow-sm ${
+          aria-label={`Penjual ${item.sellerStatusLabel}`}
+          className={`absolute right-2 top-2 inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[0.62rem] font-semibold shadow-sm sm:right-3 sm:top-3 sm:gap-2 sm:px-3 sm:text-xs ${
             isOnline
               ? "border-emerald-200 bg-emerald-50 text-primary"
               : "border-white/45 bg-white/90 text-muted"
@@ -134,39 +203,39 @@ function ListingCard({ item }: { item: MarketplaceItem }) {
               isOnline ? "bg-emerald-600" : "bg-stone-400"
             }`}
           />
-          {item.sellerStatusLabel}
+          <span className="hidden sm:inline">{item.sellerStatusLabel}</span>
         </div>
-        <div className="absolute bottom-3 right-3 rounded-full border border-white/45 bg-primary/86 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+        <div className="absolute bottom-3 right-3 hidden rounded-full border border-white/45 bg-primary/86 px-3 py-1 text-xs font-semibold text-white shadow-sm sm:block">
           {item.status}
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+      <div className="flex flex-1 flex-col p-3 sm:p-5">
+        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.1em] text-primary sm:text-xs sm:tracking-[0.14em]">
           {item.cluster}
         </p>
-        <h2 className="mt-2 text-xl font-semibold tracking-tight text-foreground">
+        <h2 className="mt-1.5 line-clamp-2 text-base font-semibold tracking-tight text-foreground sm:mt-2 sm:text-xl">
           {item.name}
         </h2>
-        <p className="mt-3 text-sm leading-6 text-muted">
+        <p className="mt-3 hidden text-sm leading-6 text-muted sm:block">
           {item.detailDescription ??
-            "Listing katalog warga dengan informasi dasar yang dapat dilengkapi bertahap."}
+            "Informasi lapak warga yang dapat dilihat sebelum menghubungi penjual."}
         </p>
 
-        <div className="mt-5 grid gap-3 text-sm">
-          <div className="flex items-center justify-between gap-4 border-t border-border pt-4">
-            <span className="text-muted">Harga/status</span>
-            <span className="text-right font-semibold text-foreground">
+        <div className="mt-3 grid gap-3 text-sm sm:mt-5">
+          <div className="border-t border-border pt-3 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:pt-4">
+            <span className="hidden text-muted sm:inline">Harga</span>
+            <span className="line-clamp-2 text-sm font-semibold text-foreground sm:text-right">
               {item.price}
             </span>
           </div>
-          <div className="flex items-center justify-between gap-4 border-t border-border pt-4">
+          <div className="hidden items-center justify-between gap-4 border-t border-border pt-4 sm:flex">
             <span className="text-muted">Kontak</span>
             <span className="text-right font-semibold text-foreground">
               {item.whatsappStatus ?? "Via pengurus"}
             </span>
           </div>
-          <div className="flex items-center justify-between gap-4 border-t border-border pt-4">
+          <div className="hidden items-center justify-between gap-4 border-t border-border pt-4 sm:flex">
             <span className="text-muted">Status seller</span>
             <span
               className={`inline-flex items-center gap-2 text-right font-semibold ${
@@ -183,7 +252,7 @@ function ListingCard({ item }: { item: MarketplaceItem }) {
           </div>
         </div>
 
-        <div className="mt-5 flex flex-wrap gap-2">
+        <div className="mt-5 hidden flex-wrap gap-2 sm:flex">
           {badges.map((badge) => (
             <span
               key={badge}
@@ -194,19 +263,19 @@ function ListingCard({ item }: { item: MarketplaceItem }) {
           ))}
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        <div className="mt-auto grid grid-cols-2 gap-2 pt-4 sm:mt-6 sm:gap-3 sm:pt-0">
           {item.detailHref ? (
             <Link
               href={item.detailHref}
-              className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface sm:rounded-xl sm:px-4 sm:text-sm"
             >
-              Lihat detail
+              Detail
             </Link>
           ) : (
             <button
               type="button"
               disabled
-              className="inline-flex min-h-11 cursor-not-allowed items-center justify-center rounded-xl bg-primary-soft px-4 text-sm font-semibold text-primary/70"
+              className="inline-flex min-h-11 cursor-not-allowed items-center justify-center rounded-lg bg-primary-soft px-2 text-xs font-semibold text-primary/70 sm:rounded-xl sm:px-4 sm:text-sm"
             >
               Detail segera
             </button>
@@ -216,7 +285,7 @@ function ListingCard({ item }: { item: MarketplaceItem }) {
               href={item.whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center justify-center rounded-xl bg-accent px-4 text-sm font-semibold text-foreground shadow-sm transition-colors hover:bg-accent/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-accent px-2 text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-accent/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface sm:rounded-xl sm:px-4 sm:text-sm"
               aria-label={`${item.whatsappLabel ?? "Hubungi WhatsApp"} untuk ${item.name}`}
             >
               {isOnline ? "Hubungi" : "Cek kontak"}
@@ -224,9 +293,9 @@ function ListingCard({ item }: { item: MarketplaceItem }) {
           ) : (
             <Link
               href="/kontak/"
-              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-background px-4 text-sm font-semibold text-primary transition-colors hover:border-primary/35 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+              className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border bg-background px-2 text-xs font-semibold text-primary transition-colors hover:border-primary/35 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface sm:rounded-xl sm:px-4 sm:text-sm"
             >
-              {isOnline ? "Tanya kontak" : "Seller offline"}
+              {isOnline ? "Tanya" : "Kontak"}
             </Link>
           )}
         </div>
@@ -238,18 +307,24 @@ function ListingCard({ item }: { item: MarketplaceItem }) {
 export function PalugadaCatalog() {
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("semua");
-  const [sort, setSort] = useState<SortValue>("featured");
+  const [liveItems, setLiveItems] = useState<MarketplaceItem[]>([]);
+  const [, setLiveState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const normalizedQuery = normalize(query);
-  const selectedCategoryLabel =
-    categories.find((category) => normalize(category) === selectedCategory) ??
-    "Semua";
+  const catalogItems = useMemo(() => {
+    const liveNames = new Set(liveItems.map((item) => normalize(item.name)));
+
+    return [
+      ...liveItems,
+      ...marketplaceItems.filter((item) => !liveNames.has(normalize(item.name))),
+    ];
+  }, [liveItems]);
   const filteredItems = useMemo(() => {
-    const matchedItems = marketplaceItems.filter((item) =>
+    const matchedItems = catalogItems.filter((item) =>
         matchesSearch(item, normalizedQuery, selectedCategory),
       );
 
-    return sortItems(matchedItems, sort);
-  }, [normalizedQuery, selectedCategory, sort]);
+    return sortItems(matchedItems);
+  }, [catalogItems, normalizedQuery, selectedCategory]);
 
   useEffect(() => {
     function handleHeroFilter(event: Event) {
@@ -268,209 +343,159 @@ export function PalugadaCatalog() {
     };
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadLiveListings() {
+      try {
+        setLiveState("loading");
+        const supabase = getSupabaseBrowserClient();
+        const { data, error } = await supabase
+          .from("palugada_listings")
+          .select(
+            "id, name, category, cluster, price_label, description, availability_note, contact_method, seller_status, seller_status_note, cover_image_url, cover_image_alt, published_at, updated_at",
+          )
+          .eq("status", "approved")
+          .order("published_at", { ascending: false, nullsFirst: false })
+          .limit(24);
+
+        if (!mounted) {
+          return;
+        }
+
+        if (error) {
+          setLiveState("error");
+          return;
+        }
+
+        const rows = (data ?? []) as LivePalugadaRow[];
+        const listingIds = rows.map((row) => row.id);
+        const covers = new Map<string, LivePalugadaAttachment & { signedUrl: string }>();
+
+        if (listingIds.length > 0) {
+          const { data: attachmentData } = await supabase
+            .from("attachments")
+            .select("linked_id, storage_path, file_name")
+            .eq("linked_type", "palugada_listing")
+            .eq("visibility", "public_after_approval")
+            .eq("moderation_status", "approved")
+            .in("linked_id", listingIds)
+            .order("created_at", { ascending: true });
+
+          for (const attachment of (attachmentData ?? []) as LivePalugadaAttachment[]) {
+            if (covers.has(attachment.linked_id)) continue;
+            const { data: signedData } = await supabase.storage
+              .from("palugada-submissions")
+              .createSignedUrl(attachment.storage_path, 3600);
+            if (signedData?.signedUrl) {
+              covers.set(attachment.linked_id, {
+                ...attachment,
+                signedUrl: signedData.signedUrl,
+              });
+            }
+          }
+        }
+
+        setLiveItems(rows.map((row) => mapLiveListing(row, covers.get(row.id))));
+        setLiveState("ready");
+      } catch {
+        if (mounted) {
+          setLiveState("error");
+        }
+      }
+    }
+
+    loadLiveListings();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  function showAllListings() {
+    setQuery("");
+    setSelectedCategory("semua");
+    window.dispatchEvent(new Event("palugada-reset"));
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.getElementById("hasil-palugada")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+    });
+  }
+
   return (
     <section
       id="katalog"
-      className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20 xl:px-10"
+      className="mx-auto max-w-7xl scroll-mt-32 px-4 py-5 sm:px-6 sm:py-8 lg:px-8 lg:py-10 xl:px-10"
     >
-      <div className="grid gap-8 lg:grid-cols-[0.34fr_0.66fr] lg:items-start">
-        <aside className="space-y-4 lg:sticky lg:top-32">
-          <div className="hidden lg:block">
-            <PlaceholderNotice>
-            PALUGADA saat ini memakai data katalog terkurasi. Transaksi tetap
-            dikonfirmasi langsung melalui penyedia atau kanal pengurus.
-            </PlaceholderNotice>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-                Cari katalog
-              </p>
-              <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary lg:hidden">
-                {filteredItems.length} hasil
-              </span>
-            </div>
-            <label htmlFor="palugada-search" className="sr-only">
-              Cari lapak PALUGADA
-            </label>
-            <input
-              id="palugada-search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              onInput={(event) => setQuery(event.currentTarget.value)}
-              placeholder="Donat, laundry, catering..."
-              className="mt-4 min-h-12 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground outline-none transition-colors placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/18"
-            />
-            <div className="mt-4 flex flex-wrap gap-2">
-              {categories.map((category) => {
-                const normalizedCategory = normalize(category);
-                const isActive = selectedCategory === normalizedCategory;
-
-                return (
-                  <button
-                    key={category}
-                    type="button"
-                    onClick={() => setSelectedCategory(normalizedCategory)}
-                    className={`inline-flex min-h-10 cursor-pointer items-center rounded-full border px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                      isActive
-                        ? "border-primary bg-primary text-white"
-                        : "border-border bg-background text-muted hover:border-primary/35 hover:bg-primary-soft"
-                    }`}
-                  >
-                    {category}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-              Urutkan
-            </p>
-            <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-1">
-              {sortOptions.map((option) => {
-                const isActive = sort === option.value;
-
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setSort(option.value)}
-                    className={`flex min-h-10 cursor-pointer items-center justify-between rounded-xl border px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                      isActive
-                        ? "border-primary bg-primary text-white"
-                        : "border-border bg-background text-muted hover:border-primary/35 hover:bg-primary-soft"
-                    }`}
-                  >
-                    {option.label}
-                    <span
-                      className={`h-2 w-2 rounded-full ${
-                        isActive ? "bg-accent" : "bg-border"
-                      }`}
-                    />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="hidden rounded-2xl border border-border bg-surface p-5 shadow-sm lg:block">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-              Filter aktif
-            </p>
-            <div className="mt-4 space-y-3 text-sm">
-              <div className="flex items-center justify-between gap-4 border-b border-border pb-3">
-                <span className="text-muted">Kategori</span>
-                <span className="font-semibold text-foreground">
-                  {selectedCategoryLabel}
-                </span>
-              </div>
-              <div className="flex items-center justify-between gap-4 border-b border-border pb-3">
-                <span className="text-muted">Pencarian</span>
-                <span className="text-right font-semibold text-foreground">
-                  {normalizedQuery || "Semua"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted">Hasil</span>
-                <span className="font-semibold text-foreground">
-                  {filteredItems.length} listing
-                </span>
-              </div>
-              <div className="flex items-center justify-between gap-4 border-t border-border pt-3">
-                <span className="text-muted">Urutan</span>
-                <span className="text-right font-semibold text-foreground">
-                  {sortOptions.find((option) => option.value === sort)?.label}
-                </span>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setQuery("");
-                setSelectedCategory("semua");
-                setSort("featured");
-              }}
-              className="mt-5 inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-xl border border-border bg-background px-4 text-sm font-semibold text-primary transition-colors hover:border-primary/35 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-            >
-              Reset filter
-            </button>
-          </div>
-
-          <div
-            id="daftar-lapak"
-            className="rounded-2xl border border-accent/45 bg-accent-soft/65 p-5 shadow-sm"
-          >
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-              Daftar lapak
-            </p>
-            <h2 className="mt-3 text-xl font-semibold tracking-tight text-foreground">
-              Warga bisa mulai didata untuk masuk katalog.
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-foreground/78">
-              Siapkan nama usaha, kategori, cluster, deskripsi singkat, kisaran
-              harga, kontak WhatsApp, dan foto produk atau layanan.
-            </p>
-            <Link
-              href="/palugada/daftar/"
-              className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-accent-soft"
-            >
-              Buka form daftar
-            </Link>
-          </div>
-        </aside>
-
-        <div>
+      <div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">
-                Katalog warga
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary sm:text-sm sm:tracking-[0.16em]">
+                {normalizedQuery
+                  ? `${filteredItems.length} hasil untuk “${query}”`
+                  : `${filteredItems.length} lapak tersedia`}
               </p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                Listing PALUGADA yang bisa langsung dibuka.
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:mt-3 sm:text-4xl">
+                Pilihan usaha dan jasa warga.
               </h2>
             </div>
-            <Link
+            <AuthAwareAction
               href="/palugada/daftar/"
-              className="inline-flex min-h-11 items-center justify-center rounded-xl bg-accent px-4 text-sm font-semibold text-foreground shadow-sm transition-colors hover:bg-accent/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              Daftar lapak
-            </Link>
+              guestHref="/masuk/?next=/palugada/daftar/"
+              guestLabel="Masuk untuk daftar"
+              authenticatedLabel="Daftar lapak"
+              className="hidden min-h-11 items-center justify-center rounded-xl bg-accent px-4 text-sm font-semibold text-foreground shadow-sm transition-colors hover:bg-accent/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:inline-flex"
+            />
           </div>
 
-          {filteredItems.length > 0 ? (
-            <div className="mt-8 grid items-stretch gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {filteredItems.map((item) => (
-                <ListingCard key={item.name} item={item} />
-              ))}
-            </div>
-          ) : (
-            <div className="mt-8 rounded-2xl border border-border bg-surface p-8 text-center shadow-sm">
-              <div className="mx-auto grid h-14 w-14 place-items-center rounded-xl bg-primary-soft text-primary">
-                <Icon name="store" />
+          <div id="hasil-palugada" className="scroll-mt-32">
+            {filteredItems.length > 0 ? (
+              <div className="mt-4 grid grid-cols-2 items-stretch gap-3 sm:mt-8 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
+                {filteredItems.map((item) => (
+                  <ListingCard key={item.detailHref ?? item.name} item={item} />
+                ))}
               </div>
-              <h2 className="mt-5 text-2xl font-semibold text-foreground">
-                Belum ada listing yang cocok.
-              </h2>
-              <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-muted">
-                Coba kata kunci lain, pilih kategori berbeda, atau kembali ke
-                semua katalog PALUGADA.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setQuery("");
-                  setSelectedCategory("semua");
-                }}
-                className="mt-6 inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-              >
-                Lihat semua katalog
-              </button>
+            ) : (
+              <div className="mt-8 rounded-2xl border border-border bg-surface p-8 text-center shadow-sm">
+                <div className="mx-auto grid h-14 w-14 place-items-center rounded-xl bg-primary-soft text-primary">
+                  <Icon name="store" />
+                </div>
+                <h2 className="mt-5 text-2xl font-semibold text-foreground">
+                  Belum ada lapak yang cocok.
+                </h2>
+                <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-muted">
+                  Coba kata kunci lain, pilih kategori berbeda, atau kembali ke
+                  semua katalog PALUGADA.
+                </p>
+                <button
+                  type="button"
+                  onClick={showAllListings}
+                  className="mt-6 inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                >
+                  Lihat semua katalog
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div id="daftar-lapak" className="mt-8 flex flex-col gap-4 rounded-2xl border border-accent/45 bg-accent-soft/65 p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Daftar lapak</p>
+              <h2 className="mt-2 text-xl font-semibold tracking-tight text-foreground">Punya usaha atau jasa untuk warga CGV?</h2>
+              <p className="mt-2 text-sm leading-6 text-foreground/78">Katalog terbuka untuk umum. Pendaftaran lapak hanya untuk warga yang sudah masuk.</p>
             </div>
-          )}
-        </div>
+            <AuthAwareAction
+              href="/palugada/daftar/"
+              guestHref="/masuk/?next=/palugada/daftar/"
+              guestLabel="Masuk untuk daftar"
+              authenticatedLabel="Daftar sekarang"
+              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-accent-soft"
+            />
+          </div>
       </div>
     </section>
   );

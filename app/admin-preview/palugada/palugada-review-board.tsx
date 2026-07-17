@@ -166,7 +166,7 @@ export function PalugadaReviewBoard() {
       priority: "Normal",
       completeness: "45%",
       contactStatus: "Belum diverifikasi",
-      nextAction: "Simpan sebagai draft intake sampai data utama dilengkapi.",
+      nextAction: "Simpan sebagai pendaftaran awal sampai data utama dilengkapi.",
     });
   }
 
@@ -471,7 +471,7 @@ export function PalugadaReviewBoard() {
                         priority: "Normal",
                         completeness: "45%",
                         contactStatus: "Belum diverifikasi",
-                        nextAction: "Simpan sebagai draft intake sampai data utama dilengkapi.",
+                        nextAction: "Simpan sebagai pendaftaran awal sampai data utama dilengkapi.",
                       })
                     }
                     className="min-h-10 cursor-pointer rounded-[10px] border border-black/10 bg-white px-4 text-[13px] font-bold text-muted transition-colors hover:border-primary/30 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"

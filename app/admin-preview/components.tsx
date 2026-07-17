@@ -145,7 +145,7 @@ export function AdminShell({
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold text-white">CGV10 Admin Preview</p>
                 <p className="mt-0.5 truncate text-[11px] font-semibold tracking-[0.04em] text-accent">
-                  Static prototype
+                  Tampilan uji
                 </p>
               </div>
               <span className="absolute right-4 top-5 rounded-full border border-accent/25 bg-accent/14 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-accent">
@@ -192,7 +192,7 @@ export function AdminShell({
 
         <div className="min-w-0 flex-1">
           <div className="h-7 border-b border-accent/10 bg-primary text-center text-[11px] font-semibold leading-7 tracking-[0.04em] text-accent/75">
-            Admin Preview CGV10 - prototype statis
+            Tampilan Uji Admin CGV10
           </div>
           <header className="sticky top-0 z-30 border-b border-black/8 bg-[#f3efe6]/90 backdrop-blur-xl">
             <div className="flex min-h-[60px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">

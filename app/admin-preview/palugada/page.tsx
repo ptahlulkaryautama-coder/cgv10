@@ -178,7 +178,7 @@ export default function AdminPalugadaPage() {
                 href: "/palugada/daftar/",
               },
               {
-                title: "Lapak Pilot",
+                title: "Ma'niez Donut",
                 text: "Buka contoh detail listing yang sudah lengkap.",
                 href: "/palugada/donat-kentang-warga/",
               },

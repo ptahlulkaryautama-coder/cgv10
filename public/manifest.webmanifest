@@ -14,6 +14,12 @@
   "dir": "ltr",
   "icons": [
     {
+      "src": "/assets/pwa/cgv10-pwa-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
       "src": "/assets/pwa/cgv10-pwa-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
@@ -56,19 +62,6 @@
       ]
     },
     {
-      "name": "Profil Rumah",
-      "short_name": "Profil",
-      "description": "Buka preview profil rumah warga CGV10.",
-      "url": "/portal/profil-rumah/?source=pwa-shortcut",
-      "icons": [
-        {
-          "src": "/assets/pwa/cgv10-pwa-icon-512.png",
-          "sizes": "512x512",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
       "name": "Layanan Warga",
       "short_name": "Layanan",
       "description": "Buka kanal layanan warga CGV10.",
@@ -99,6 +92,19 @@
       "short_name": "PALUGADA",
       "description": "Buka katalog PALUGADA CGV.",
       "url": "/palugada/?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/assets/pwa/cgv10-pwa-icon-512.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Admin Dashboard",
+      "short_name": "Admin",
+      "description": "Buka dashboard admin CGV10.",
+      "url": "/admin/?source=pwa-shortcut",
       "icons": [
         {
           "src": "/assets/pwa/cgv10-pwa-icon-512.png",
