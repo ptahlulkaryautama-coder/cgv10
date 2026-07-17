@@ -23,6 +23,14 @@ Alamat utama:
 
 Warga dan pengurus memakai sistem login yang sama. Setelah login, akun dengan role pengurus akan melihat akses admin.
 
+Di HP atau PWA, admin dashboard dibuka lewat:
+
+- buka halaman `/masuk`
+- login memakai akun pengurus
+- tekan tombol `Buka admin`
+
+Jika tidak ada address bar di PWA, pengurus dapat membuka portal dari browser biasa lalu masuk ke `https://portalwargacgv.id/masuk` atau simpan shortcut khusus admin setelah halaman `/admin` terbuka.
+
 ### 2.2 Role Admin
 
 Role yang digunakan:
@@ -142,6 +150,20 @@ Registrasi warga digunakan untuk membuat data rumah dan akun warga yang bisa dip
 8. Jika layanan selesai, admin menutup permintaan dan menyimpan catatan penyelesaian.
 
 Untuk warga yang belum login, portal hanya mengarahkan ke halaman masuk. Data layanan tidak boleh dikirim anonim.
+
+## 5A. SOP Kontak Pengurus
+
+Nomor pribadi pengurus tidak ditampilkan untuk publik. Nomor hanya muncul di halaman Kontak setelah warga login dan akunnya memiliki role `warga` atau role admin pengurus.
+
+Kontak privat pengurus inti:
+
+| Jabatan | Nama | Nomor |
+| --- | --- | --- |
+| Ketua RT | Doddy Dharma | `+62 813-1567-1999` |
+| Sekretaris | Zulhendy Masruddin | `+62 813-7541-0997` |
+| Bendahara | Niko Diponako | `+62 812-6610-3715` |
+
+Jika warga sudah login tetapi nomor belum muncul, cek apakah akun tersebut sudah diberi role `warga` di `public.user_roles`.
 
 ## 6. SOP Iuran
 

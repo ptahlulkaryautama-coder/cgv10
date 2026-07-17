@@ -9,6 +9,7 @@ export type PengurusMember = {
   kategori: PengurusKategori;
   subKategori?: string;
   cluster?: string;
+  privatePhone?: string;
   urutanTampil: number;
   statusAktif: boolean;
   statusPublikasi: PengurusStatusPublikasi;
@@ -28,6 +29,7 @@ export const pengurusMembers: PengurusMember[] = [
     nama: "Doddy Dharma",
     jabatan: "Ketua RT",
     kategori: "pimpinan",
+    privatePhone: "+62 813-1567-1999",
     urutanTampil: 1,
     statusAktif: true,
     statusPublikasi: "published",
@@ -37,6 +39,7 @@ export const pengurusMembers: PengurusMember[] = [
     nama: "Zulhendy Masruddin",
     jabatan: "Sekretaris",
     kategori: "pimpinan",
+    privatePhone: "+62 813-7541-0997",
     urutanTampil: 2,
     statusAktif: true,
     statusPublikasi: "published",
@@ -46,6 +49,7 @@ export const pengurusMembers: PengurusMember[] = [
     nama: "Niko Diponako",
     jabatan: "Bendahara",
     kategori: "pimpinan",
+    privatePhone: "+62 812-6610-3715",
     urutanTampil: 3,
     statusAktif: true,
     statusPublikasi: "published",

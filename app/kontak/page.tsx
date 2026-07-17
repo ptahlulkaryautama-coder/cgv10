@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Icon, PageShell } from "../components/portal";
 import { ContactRoutingForm } from "./contact-routing-form";
+import { PrivatePengurusContacts } from "./private-pengurus-contacts";
 
 export const metadata: Metadata = {
   title: "Kontak",
@@ -42,6 +43,8 @@ export default function KontakPage() {
 
       <ContactRoutingForm />
 
+      <PrivatePengurusContacts />
+
       <section className="mx-auto max-w-5xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
         <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
           <div className="grid gap-5 sm:grid-cols-[auto_1fr] sm:items-start">
@@ -57,14 +60,14 @@ export default function KontakPage() {
               </h2>
               <p className="mt-3 text-sm leading-6 text-muted">
                 Untuk melihat struktur peran dan konteks tanggung jawab, warga
-                tetap bisa membuka halaman Pengurus. Untuk pesan cepat, gunakan
-                form kontak di atas.
+                tetap bisa membuka halaman Pengurus. Nomor pribadi pengurus
+                hanya tampil di blok kontak privat setelah warga login.
               </p>
               <Link
-                href="/pengurus/#kontak-pengurus"
+                href="#kontak-pengurus-privat"
                 className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-background px-4 text-sm font-semibold text-primary transition-colors duration-200 hover:border-primary/35 hover:bg-primary-soft"
               >
-                Buka direktori pengurus
+                Lihat kontak privat
               </Link>
             </div>
           </div>
