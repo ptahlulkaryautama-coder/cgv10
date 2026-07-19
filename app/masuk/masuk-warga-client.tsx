@@ -15,6 +15,20 @@ const adminRoles = new Set([
   "palugada_reviewer",
 ]);
 
+const knownPengurusEmails = new Set([
+  "dharma.doddy9@yahoo.co.uk",
+  "zulhendy@gmail.com",
+  "nikodiponako7@gmail.com",
+]);
+
+const roleLabels: Record<string, string> = {
+  super_admin: "Super Admin",
+  ketua_rt: "Ketua RT",
+  sekretaris: "Sekretaris",
+  bendahara: "Bendahara",
+  palugada_reviewer: "Reviewer PALUGADA",
+};
+
 function getSafeNextPath() {
   if (typeof window === "undefined") return "/portal/";
 
@@ -31,7 +45,7 @@ export function MasukWargaClient() {
     try {
       return { client: getSupabaseBrowserClient(), error: "" };
     } catch {
-      return { client: null, error: "Konfigurasi Supabase belum siap." };
+      return { client: null, error: "Koneksi portal belum siap. Coba muat ulang halaman." };
     }
   }, []);
   const supabase = supabaseState.client;
@@ -41,7 +55,7 @@ export function MasukWargaClient() {
     supabaseState.error ? "error" : "checking",
   );
   const [message, setMessage] = useState(
-    supabaseState.error || "Memeriksa sesi warga...",
+    supabaseState.error || "Memeriksa akun warga...",
   );
   const [nextPath] = useState(getSafeNextPath);
   const [userEmail, setUserEmail] = useState("");
@@ -65,7 +79,7 @@ export function MasukWargaClient() {
       const user = data.session?.user;
       if (!user) {
         setState("ready");
-        setMessage("Masuk dengan email dan password Supabase.");
+        setMessage("Masuk dengan email dan password yang sudah didaftarkan.");
         return;
       }
 
@@ -78,7 +92,7 @@ export function MasukWargaClient() {
       if (!mounted) return;
       setRoles(((roleData ?? []) as RoleRow[]).map((row) => row.role));
       setState("signed-in");
-      setMessage("Session aktif. Pilih menu yang ingin dibuka.");
+      setMessage("Akun aktif. Pilih tujuan yang ingin dibuka.");
     }
 
     void loadSession();
@@ -97,14 +111,14 @@ export function MasukWargaClient() {
 
     if (!supabase) {
       setState("error");
-      setMessage("Konfigurasi Supabase belum siap.");
+      setMessage("Koneksi portal belum siap. Coba muat ulang halaman.");
       return;
     }
 
     setState("submitting");
     setMessage("Memvalidasi login...");
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password,
     });
@@ -115,7 +129,25 @@ export function MasukWargaClient() {
       return;
     }
 
+    const activeUser = data.user;
+    const { data: roleData } = activeUser
+      ? await supabase.from("user_roles").select("role").eq("user_id", activeUser.id)
+      : { data: [] };
+    const nextRoles = ((roleData ?? []) as RoleRow[]).map((row) => row.role);
+    const normalizedEmail = (activeUser?.email ?? email).toLowerCase();
+    const hasAdminAccess =
+      nextRoles.some((role) => adminRoles.has(role)) ||
+      knownPengurusEmails.has(normalizedEmail);
+
+    setUserEmail(activeUser?.email ?? email.trim());
+    setRoles(nextRoles);
     setState("signed-in");
+
+    if (hasAdminAccess && nextPath === "/portal/") {
+      setMessage("Akun pengurus terdeteksi. Pilih Dashboard Pengurus atau Portal Warga.");
+      return;
+    }
+
     setMessage("Login berhasil. Membuka tujuan...");
     window.location.assign(nextPath);
   }
@@ -131,7 +163,15 @@ export function MasukWargaClient() {
 
   const isBusy = state === "checking" || state === "submitting";
   const isSignedIn = state === "signed-in";
-  const hasAdminRole = roles.some((role) => adminRoles.has(role));
+  const hasAdminRole =
+    roles.some((role) => adminRoles.has(role)) ||
+    knownPengurusEmails.has(userEmail.toLowerCase());
+  const statusLabel =
+    roles.length > 0
+      ? roles.map((role) => roleLabels[role] ?? role).join(", ")
+      : hasAdminRole
+        ? "Pengurus"
+        : "Warga";
 
   return (
     <div className="rounded-2xl border border-white/14 bg-white/10 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.22)]">
@@ -142,11 +182,11 @@ export function MasukWargaClient() {
               Login warga
             </p>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight">
-              {isSignedIn ? "Session aktif" : "Masuk ke portal"}
+              {isSignedIn ? "Akun aktif" : "Masuk ke portal"}
             </h2>
           </div>
           <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-foreground">
-            Supabase
+            Aman
           </span>
         </div>
 
@@ -155,7 +195,7 @@ export function MasukWargaClient() {
             <div className="rounded-xl border border-accent-soft/40 bg-accent-soft/18 p-4 text-sm leading-6 text-white/86">
               <p className="font-semibold text-white">{userEmail || "User aktif"}</p>
               <p className="mt-1">
-                Role: {roles.length > 0 ? roles.join(", ") : "warga / belum ada role admin"}
+                Status: {statusLabel}
               </p>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -176,7 +216,7 @@ export function MasukWargaClient() {
                   href="/admin/?source=login-admin-cta"
                   className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-accent-soft/40 bg-white/10 px-4 text-sm font-semibold text-accent-soft transition-colors hover:bg-white/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
                 >
-                  Buka Admin Dashboard
+                  Buka Dashboard Pengurus
                 </Link>
               ) : null}
               {hasAdminRole ? (
@@ -184,7 +224,7 @@ export function MasukWargaClient() {
                   href="/admin/?source=login-install-admin"
                   className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-white px-4 text-sm font-semibold text-primary transition-colors hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
                 >
-                  Pasang Admin di HP
+                  Pasang dashboard di HP
                 </Link>
               ) : null}
               <button

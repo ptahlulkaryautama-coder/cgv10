@@ -14,6 +14,7 @@ type DuesForm = {
   phone: string;
   periodMonth: string;
   periodYear: string;
+  periodCount: string;
   amount: string;
   paidAt: string;
   method: "transfer" | "cash" | "qris" | "other";
@@ -26,6 +27,13 @@ type PaymentUploadSession = {
   upload_token: string;
 };
 
+type SubmissionError = {
+  message?: string;
+  details?: string;
+  hint?: string;
+  code?: string;
+};
+
 const paymentProofBucket = "payment-proofs";
 const maxProofSize = 10 * 1024 * 1024;
 const initialForm: DuesForm = {
@@ -35,6 +43,7 @@ const initialForm: DuesForm = {
   phone: "",
   periodMonth: String(new Date().getMonth() + 1),
   periodYear: String(new Date().getFullYear()),
+  periodCount: "1",
   amount: "",
   paidAt: new Date().toISOString().slice(0, 10),
   method: "transfer",
@@ -57,6 +66,16 @@ const monthOptions = [
   "Desember",
 ];
 
+const periodCountOptions = [
+  "1",
+  "2",
+  "3",
+  "6",
+  "12",
+  "24",
+  "36",
+];
+
 function parseAmount(value: string) {
   const numeric = value.replace(/[^\d]/g, "");
   return numeric ? Number(numeric) : 0;
@@ -68,6 +87,24 @@ function formatCurrency(value: number) {
     currency: "IDR",
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+function getPeriodRangeLabel(month: string, year: string, count: string) {
+  const startMonth = Number(month);
+  const startYear = Number(year);
+  const periodCount = Number(count);
+
+  if (!startMonth || !startYear || !periodCount) return "-";
+
+  const startDate = new Date(startYear, startMonth - 1, 1);
+  const endDate = new Date(startYear, startMonth - 1 + periodCount, 0);
+  const formatter = new Intl.DateTimeFormat("id-ID", {
+    month: "long",
+    year: "numeric",
+  });
+
+  if (periodCount === 1) return formatter.format(startDate);
+  return `${formatter.format(startDate)} s.d. ${formatter.format(endDate)}`;
 }
 
 function getSafeFileName(fileName: string) {
@@ -90,8 +127,26 @@ function isAcceptedProof(file: File) {
   return file.type.startsWith("image/") && file.type !== "image/svg+xml";
 }
 
+function getSubmissionErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+
+  if (error && typeof error === "object") {
+    const nextError = error as SubmissionError;
+    const detail = [nextError.details, nextError.hint, nextError.code]
+      .filter(Boolean)
+      .join(" ");
+
+    if (nextError.message && detail) return `${nextError.message} ${detail}`;
+    if (nextError.message) return nextError.message;
+  }
+
+  return "Konfirmasi iuran belum berhasil dikirim.";
+}
+
 function buildSummary(form: DuesForm, attachments: CaptureAttachment[], reference: string) {
   const amount = parseAmount(form.amount);
+  const periodCount = Math.max(Number(form.periodCount) || 1, 1);
+  const monthlyAverage = amount > 0 ? Math.round(amount / periodCount) : 0;
 
   return [
     "Konfirmasi iuran warga CGV10.",
@@ -99,8 +154,10 @@ function buildSummary(form: DuesForm, attachments: CaptureAttachment[], referenc
     `Nama warga: ${form.name || "-"}`,
     `Cluster/blok: ${form.cluster || "-"} / ${form.blockOrUnit || "-"}`,
     `WhatsApp: ${form.phone || "-"}`,
-    `Periode: ${monthOptions[Number(form.periodMonth) - 1] ?? "-"} ${form.periodYear || "-"}`,
+    `Periode: ${getPeriodRangeLabel(form.periodMonth, form.periodYear, form.periodCount)}`,
+    `Cakupan: ${periodCount} bulan`,
     `Nominal: ${amount > 0 ? formatCurrency(amount) : "-"}`,
+    `Estimasi per bulan: ${monthlyAverage > 0 ? formatCurrency(monthlyAverage) : "-"}`,
     `Tanggal bayar: ${form.paidAt || "-"}`,
     `Metode: ${form.method}`,
     `Referensi: ${form.referenceNo || "-"}`,
@@ -121,12 +178,15 @@ export function DuesConfirmationForm() {
   const registeredAttachmentIdsRef = useRef(new Set<string>());
 
   const amount = parseAmount(form.amount);
+  const periodCount = Number(form.periodCount);
   const isReady = Boolean(
     form.name.trim() &&
       form.cluster.trim() &&
       form.blockOrUnit.trim() &&
       form.phone.trim() &&
       form.paidAt &&
+      periodCount >= 1 &&
+      periodCount <= 120 &&
       amount > 0,
   );
   const summary = useMemo(
@@ -151,7 +211,7 @@ export function DuesConfirmationForm() {
   async function submitConfirmation() {
     if (!isReady) {
       setSaveState("error");
-      setSaveMessage("Lengkapi nama, cluster/blok, WhatsApp, periode, nominal, dan tanggal bayar.");
+      setSaveMessage("Ada bagian wajib yang belum diisi. Cek nama, rumah, WhatsApp, periode, nominal, dan tanggal bayar.");
       return;
     }
 
@@ -170,7 +230,7 @@ export function DuesConfirmationForm() {
     }
 
     setSaveState("saving");
-    setSaveMessage("Mengirim konfirmasi iuran...");
+    setSaveMessage("Mengirim konfirmasi ke bendahara...");
 
     try {
       const supabase = getSupabaseBrowserClient();
@@ -178,7 +238,7 @@ export function DuesConfirmationForm() {
       const userId = userData.user?.id;
 
       if (userError || !userId) {
-        throw new Error("Masuk sebagai warga terlebih dahulu sebelum konfirmasi iuran.");
+        throw new Error("Masuk dulu supaya konfirmasi iuran nyambung ke akun warga.");
       }
 
       let uploadSession = uploadSessionRef.current;
@@ -196,6 +256,7 @@ export function DuesConfirmationForm() {
           p_method: form.method,
           p_reference_no: form.referenceNo.trim(),
           p_note: form.note.trim(),
+          p_period_count: periodCount,
         });
 
         if (error) throw error;
@@ -242,11 +303,10 @@ export function DuesConfirmationForm() {
       const reference = `IUR-${uploadSession.payment_id.slice(0, 8).toUpperCase()}`;
       setSubmissionReference(reference);
       setSaveState("saved");
-      setSaveMessage(`Konfirmasi iuran diterima. Nomor konfirmasi ${reference}.`);
+      setSaveMessage(`Konfirmasi diterima. Simpan nomor ${reference}, nanti bendahara bisa cocokkan dari sini.`);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Konfirmasi iuran belum berhasil dikirim.";
       setSaveState("error");
-      setSaveMessage(message);
+      setSaveMessage(getSubmissionErrorMessage(error));
     }
   }
 
@@ -258,10 +318,11 @@ export function DuesConfirmationForm() {
             Konfirmasi Iuran
           </p>
           <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-            Kirim nominal dan bukti bayar ke bendahara.
+            Sudah bayar iuran? Kirim buktinya di sini.
           </h2>
           <p className="mt-3 text-sm leading-6 text-muted">
-            Form ini khusus untuk pembayaran iuran. Pertanyaan atau klarifikasi tetap bisa dikirim melalui Layanan Warga.
+            Form ini khusus konfirmasi iuran. Pertanyaan lain tetap lewat
+            Layanan Warga supaya catatan tidak tercampur.
           </p>
           <pre className="mt-5 whitespace-pre-wrap rounded-2xl border border-border bg-background p-4 text-sm leading-6 text-foreground">
             {summary}
@@ -272,7 +333,7 @@ export function DuesConfirmationForm() {
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
               <span className="text-sm font-semibold text-foreground">Nama warga</span>
-              <input value={form.name} autoComplete="name" maxLength={120} onChange={(event) => updateField("name", event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm outline-none focus:border-primary" placeholder="Nama penyetor" />
+              <input value={form.name} autoComplete="name" maxLength={120} onChange={(event) => updateField("name", event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm outline-none focus:border-primary" placeholder="Nama warga / penyetor" />
             </label>
             <label className="block">
               <span className="text-sm font-semibold text-foreground">Nomor WhatsApp</span>
@@ -287,7 +348,7 @@ export function DuesConfirmationForm() {
               <input value={form.blockOrUnit} maxLength={80} onChange={(event) => updateField("blockOrUnit", event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm outline-none focus:border-primary" placeholder="Contoh: A1/12" />
             </label>
             <label className="block">
-              <span className="text-sm font-semibold text-foreground">Bulan iuran</span>
+              <span className="text-sm font-semibold text-foreground">Mulai bulan</span>
               <select value={form.periodMonth} onChange={(event) => updateField("periodMonth", event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm outline-none focus:border-primary">
                 {monthOptions.map((month, index) => (
                   <option key={month} value={String(index + 1)}>{month}</option>
@@ -297,6 +358,40 @@ export function DuesConfirmationForm() {
             <label className="block">
               <span className="text-sm font-semibold text-foreground">Tahun</span>
               <input value={form.periodYear} inputMode="numeric" maxLength={4} onChange={(event) => updateField("periodYear", event.target.value.replace(/[^\d]/g, "").slice(0, 4))} className="mt-2 min-h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm outline-none focus:border-primary" />
+            </label>
+            <label className="block">
+              <span className="text-sm font-semibold text-foreground">Cakupan pembayaran</span>
+              <input
+                value={form.periodCount}
+                inputMode="numeric"
+                min="1"
+                max="120"
+                onChange={(event) => updateField("periodCount", event.target.value.replace(/[^\d]/g, "").slice(0, 3))}
+                className="mt-2 min-h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm outline-none focus:border-primary"
+                placeholder="Contoh: 7"
+              />
+              <span className="mt-2 block text-xs leading-5 text-muted">
+                Isi jumlah bulan yang dibayar. Kalau bayar 7 atau 8 bulan,
+                langsung ketik angkanya.
+              </span>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {periodCountOptions.map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => updateField("periodCount", option)}
+                    className={`min-h-9 cursor-pointer rounded-full border px-3 text-xs font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                      form.periodCount === option
+                        ? "border-primary bg-primary text-white"
+                        : "border-border bg-surface text-muted hover:border-primary/35 hover:bg-primary-soft"
+                    }`}
+                  >
+                    {Number(option) >= 12 && Number(option) % 12 === 0
+                      ? `${Number(option) / 12} tahun`
+                      : `${option} bulan`}
+                  </button>
+                ))}
+              </div>
             </label>
             <label className="block">
               <span className="text-sm font-semibold text-foreground">Nominal bayar</span>
@@ -317,7 +412,7 @@ export function DuesConfirmationForm() {
             </label>
             <label className="block">
               <span className="text-sm font-semibold text-foreground">Referensi transfer</span>
-              <input value={form.referenceNo} maxLength={120} onChange={(event) => updateField("referenceNo", event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm outline-none focus:border-primary" placeholder="Opsional" />
+              <input value={form.referenceNo} maxLength={120} onChange={(event) => updateField("referenceNo", event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm outline-none focus:border-primary" placeholder="Opsional, kalau ada" />
             </label>
             <label className="block sm:col-span-2">
               <span className="text-sm font-semibold text-foreground">Catatan</span>

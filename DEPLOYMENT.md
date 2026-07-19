@@ -83,17 +83,34 @@ The production site should expose these public routes:
 
 ## Supabase Migration Order
 
-Before deploying intake/photo features, apply the SQL migrations in order through Supabase SQL Editor or the approved Supabase deployment flow:
+Before deploying Supabase-backed features, apply SQL migrations in filename order
+through Supabase SQL Editor or the approved Supabase deployment flow.
 
 ```text
+supabase/migrations/202607080001_initial_auth_permissions.sql
+supabase/migrations/202607130001_portal_posts_slug_hardening.sql
+supabase/migrations/202607140001_portal_posts_media_fields.sql
+supabase/migrations/202607140002_portal_post_storage_buckets.sql
+supabase/migrations/202607140003_portal_post_storage_mime_hardening.sql
+supabase/migrations/202607140004_public_intake_insert_policies.sql
+supabase/migrations/202607150001_palugada_reviewer_permissions.sql
+supabase/migrations/202607150002_palugada_private_attachments.sql
+supabase/migrations/202607150003_palugada_listing_lifecycle.sql
 supabase/migrations/202607150004_palugada_static_catalog_import.sql
 supabase/migrations/202607160001_service_request_private_attachments.sql
 supabase/migrations/202607160002_palugada_submission_hardening.sql
 supabase/migrations/202607160003_resident_billing_foundation.sql
 supabase/migrations/202607160004_public_dues_confirmation.sql
+supabase/migrations/202607170001_palugada_authenticated_submission.sql
+supabase/migrations/202607170002_service_request_authenticated_submission.sql
+supabase/migrations/202607170003_dues_confirmation_authenticated_submission.sql
+supabase/migrations/202607170004_dues_approval_finance_posting.sql
+supabase/migrations/202607170005_pengurus_admin_invites.sql
+supabase/migrations/202607180001_multi_period_dues_personal_recap.sql
 ```
 
-The first migration makes the original PALUGADA catalog visible from Supabase. The next two migrations harden public submission RPCs and private photo uploads for layanan and PALUGADA. The last two migrations add the resident billing foundation and public dues confirmation flow for `/keuangan` and `/admin/iuran`.
+Use [supabase/MIGRATION_SAFETY.md](supabase/MIGRATION_SAFETY.md) for dependency
+checks, iuran preflight queries, and post-apply verification.
 
 ## Asset And Metadata Notes
 

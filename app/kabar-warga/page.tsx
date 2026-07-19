@@ -46,7 +46,7 @@ const allNews: KabarItem[] = [
 export const metadata: Metadata = {
   title: "Kabar Warga | CGV10",
   description:
-    "Kabar Warga CGV10 berisi artikel terbaru, pengumuman, agenda, dan dokumentasi warga dalam satu alur yang mudah dibaca.",
+    "Kabar Warga CGV10 berisi pengumuman, agenda, dokumentasi, dan cerita lingkungan yang mudah dibaca warga.",
 };
 
 function ArrowIcon() {
@@ -118,7 +118,7 @@ function KabarCard({ item }: { item: KabarItem }) {
           {item.text}
         </p>
         <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary transition-colors duration-200 group-hover:text-primary-hover">
-          Buka kabar
+          Baca selengkapnya
           <ArrowIcon />
         </span>
       </div>
@@ -137,11 +137,11 @@ export default function KabarWargaPage() {
                 Kabar Warga
               </p>
               <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-                Artikel dari warga untuk warga.
+                Kabar yang dekat dengan kita.
               </h1>
               <p className="mt-3 text-base leading-7 text-muted">
-                Ruang kabar untuk berbagi informasi lingkungan, pengumuman penting,
-                agenda bersama, dan dokumentasi kegiatan CGV10.
+                Pengumuman, cerita kegiatan, foto lingkungan, dan kabar kecil
+                yang sayang kalau hilang begitu saja.
               </p>
             </div>
             <span className="w-fit rounded-full border border-border bg-surface px-4 py-2 text-sm font-semibold text-muted">
@@ -161,7 +161,7 @@ export default function KabarWargaPage() {
                 Arsip Kabar
               </p>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-                Kabar bawaan dan dokumentasi lingkungan.
+                Arsip kabar dan dokumentasi lingkungan.
               </h2>
             </div>
             <span className="w-fit rounded-full border border-border bg-surface px-4 py-2 text-sm font-semibold text-muted">

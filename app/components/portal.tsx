@@ -85,14 +85,14 @@ export function SiteHeader() {
               />
             </div>
             <p className="mt-4 text-sm font-semibold text-foreground">
-              CGV10 — Portal Digital Warga
+              CGV10 - Portal Warga
             </p>
             <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
               Identitas portal warga
             </p>
             <p className="mt-2 text-xs leading-5 text-muted">
-              Menampilkan logo lengkap Portal Warga CGV sebagai identitas
-              resmi.
+              Rumah info warga CGV10, dari kabar lingkungan sampai layanan
+              harian.
             </p>
             <Link
               href="/"
@@ -193,10 +193,10 @@ export function SiteFooter() {
           </div>
           <div>
             <p className="font-semibold text-foreground">
-              CGV10 - Portal Digital Warga
+              CGV10 - Portal Warga
             </p>
             <p className="mt-1 text-xs text-muted">
-              Terhubung - Terlibat - Terpercaya
+              Info warga, layanan, dan kabar lingkungan.
             </p>
           </div>
         </div>

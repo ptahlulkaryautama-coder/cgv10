@@ -484,9 +484,9 @@ export function PortalPostsAdminClient() {
   function startNewPost() {
     setForm(emptyForm);
     setFormNotice(
-      isSuperAdmin
+      canWriteContent
         ? "Draft baru siap diisi."
-        : "Draft dapat disiapkan, tetapi menyimpan membutuhkan role super_admin.",
+        : "Draft dapat disiapkan, tetapi menyimpan membutuhkan permission content:write.",
     );
     setDbError(null);
   }
@@ -497,13 +497,13 @@ export function PortalPostsAdminClient() {
       return;
     }
 
-    if (!isSuperAdmin) {
-      setFormNotice("Hanya Super Admin pioneer yang dapat menyimpan pada tahap ini.");
+    if (!canWriteContent) {
+      setFormNotice("Menyimpan kabar membutuhkan permission content:write.");
       return;
     }
 
-    if ((targetStatus === "published" || targetStatus === "archived") && !isSuperAdmin) {
-      setFormNotice("Publish dan archive membutuhkan role super_admin.");
+    if ((targetStatus === "published" || targetStatus === "archived") && !canApproveContent) {
+      setFormNotice("Publish dan archive membutuhkan permission content:approve.");
       return;
     }
 
@@ -610,8 +610,8 @@ export function PortalPostsAdminClient() {
       return;
     }
 
-    if (!isSuperAdmin) {
-      setFormNotice("Upload media saat ini hanya untuk Super Admin pioneer.");
+    if (!canWriteContent) {
+      setFormNotice("Upload media membutuhkan permission content:write.");
       return;
     }
 
@@ -704,7 +704,7 @@ export function PortalPostsAdminClient() {
       isSuperAdmin={isSuperAdmin}
       action={
         <div className="flex items-center gap-2">
-          <ProductionActionButton onClick={startNewPost} disabled={isBusy}>
+          <ProductionActionButton onClick={startNewPost} disabled={isBusy || !canWriteContent}>
             New
           </ProductionActionButton>
           <ProductionActionButton onClick={loadPortalPosts} disabled={isBusy} primary>
@@ -714,7 +714,7 @@ export function PortalPostsAdminClient() {
       }
     >
       <ProductionPageIntro
-        eyebrow="Content management - Super Admin"
+        eyebrow="Content management - Portal Warga"
         title={
           <>
             Portal Posts <br />
@@ -724,7 +724,13 @@ export function PortalPostsAdminClient() {
         text="Tulis, periksa, tayangkan, atau arsipkan kabar yang akan dibaca warga di portal."
         side={
           <ProductionStatusPill>
-            {isSuperAdmin ? "Super Admin editor" : canReadContent ? "Read-only" : "Access check"}
+            {canApproveContent
+              ? "Editor + publish"
+              : canWriteContent
+                ? "Editor draft"
+                : canReadContent
+                  ? "Read-only"
+                  : "Access check"}
           </ProductionStatusPill>
         }
       />
@@ -743,16 +749,15 @@ export function PortalPostsAdminClient() {
                     Kabar terbit tampil di portal warga. Draft, review, dan arsip tetap hanya
                     terlihat di admin.
                   </p>
-                  {!isSuperAdmin ? (
+                  {!canWriteContent ? (
                     <p className="mt-3 max-w-2xl rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-bold leading-6 text-red-700">
-                      Role super_admin belum terbaca untuk origin ini. Gunakan origin yang sama
-                      dengan tempat login, contoh: localhost:3000 dan 127.0.0.1:3000 punya session
-                      browser yang berbeda.
+                      Permission content:write belum terbaca untuk akun ini. Jika baru diberi role,
+                      logout lalu login lagi dan pastikan migrasi permission sudah dijalankan.
                     </p>
-                  ) : !canWriteContent || !canApproveContent ? (
+                  ) : !canApproveContent ? (
                     <p className="mt-3 max-w-2xl rounded-xl border border-accent/30 bg-accent-soft px-3 py-2 text-sm font-bold leading-6 text-foreground">
-                      Editor aktif untuk Super Admin. Jika penyimpanan gagal, cek izin tulis
-                      atau izin tayang akun ini.
+                      Editor draft aktif. Publish dan archive tetap membutuhkan permission
+                      content:approve.
                     </p>
                   ) : null}
                 </div>
@@ -949,7 +954,7 @@ export function PortalPostsAdminClient() {
                   <input
                     value={form.title}
                     onChange={(event) => updateForm("title", event.target.value)}
-                    disabled={isBusy}
+                    disabled={isBusy || !canWriteContent}
                     className={fieldClass}
                     placeholder="Judul kabar warga"
                   />
@@ -959,7 +964,7 @@ export function PortalPostsAdminClient() {
                   <input
                     value={form.slug}
                     onChange={(event) => updateForm("slug", event.target.value)}
-                    disabled={isBusy}
+                    disabled={isBusy || !canWriteContent}
                     className={fieldClass}
                     placeholder="otomatis-jika-dikosongkan"
                   />
@@ -971,7 +976,7 @@ export function PortalPostsAdminClient() {
                     onChange={(event) =>
                       updateForm("category", event.target.value as PostCategory)
                     }
-                    disabled={isBusy}
+                    disabled={isBusy || !canWriteContent}
                     className={`${fieldClass} cursor-pointer`}
                   >
                     {categoryOptions.map((item) => (
@@ -986,7 +991,7 @@ export function PortalPostsAdminClient() {
                   <textarea
                     value={form.excerpt}
                     onChange={(event) => updateForm("excerpt", event.target.value)}
-                    disabled={isBusy}
+                    disabled={isBusy || !canWriteContent}
                     className={`${fieldClass} min-h-24 resize-y py-3 leading-6`}
                     placeholder="Ringkasan pendek untuk kartu portal"
                   />
@@ -996,7 +1001,7 @@ export function PortalPostsAdminClient() {
                   <textarea
                     value={form.body}
                     onChange={(event) => updateForm("body", event.target.value)}
-                    disabled={isBusy}
+                    disabled={isBusy || !canWriteContent}
                     className={`${fieldClass} min-h-56 resize-y py-3 leading-6`}
                     placeholder="Tulis isi kabar. Paragraf dapat dipisahkan dengan baris kosong."
                   />
@@ -1021,7 +1026,7 @@ export function PortalPostsAdminClient() {
                       <input
                         value={form.coverImageUrl}
                         onChange={(event) => updateForm("coverImageUrl", event.target.value)}
-                        disabled={isBusy || !mediaColumnsReady}
+                        disabled={isBusy || !mediaColumnsReady || !canWriteContent}
                         className={fieldClass}
                         placeholder="https://..."
                       />
@@ -1034,7 +1039,7 @@ export function PortalPostsAdminClient() {
                           uploadPortalMedia(event.currentTarget.files?.[0] ?? null, "cover");
                           event.currentTarget.value = "";
                         }}
-                        disabled={isBusy || !mediaColumnsReady || !form.id}
+                        disabled={isBusy || !mediaColumnsReady || !form.id || !canWriteContent}
                         className="block w-full cursor-pointer rounded-[10px] border border-dashed border-primary/25 bg-white px-3 py-3 text-sm font-semibold text-muted file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-bold file:text-accent hover:border-primary/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
                       />
                     </FieldLabel>
@@ -1042,7 +1047,7 @@ export function PortalPostsAdminClient() {
                       <input
                         value={form.coverImageAlt}
                         onChange={(event) => updateForm("coverImageAlt", event.target.value)}
-                        disabled={isBusy || !mediaColumnsReady}
+                        disabled={isBusy || !mediaColumnsReady || !canWriteContent}
                         className={fieldClass}
                         placeholder="Deskripsi singkat gambar"
                       />
@@ -1051,7 +1056,7 @@ export function PortalPostsAdminClient() {
                       <input
                         value={form.attachmentUrl}
                         onChange={(event) => updateForm("attachmentUrl", event.target.value)}
-                        disabled={isBusy || !mediaColumnsReady}
+                        disabled={isBusy || !mediaColumnsReady || !canWriteContent}
                         className={fieldClass}
                         placeholder="https://.../dokumen.pdf"
                       />
@@ -1064,7 +1069,7 @@ export function PortalPostsAdminClient() {
                           uploadPortalMedia(event.currentTarget.files?.[0] ?? null, "attachment");
                           event.currentTarget.value = "";
                         }}
-                        disabled={isBusy || !mediaColumnsReady || !form.id}
+                        disabled={isBusy || !mediaColumnsReady || !form.id || !canWriteContent}
                         className="block w-full cursor-pointer rounded-[10px] border border-dashed border-primary/25 bg-white px-3 py-3 text-sm font-semibold text-muted file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-bold file:text-accent hover:border-primary/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
                       />
                     </FieldLabel>
@@ -1072,7 +1077,7 @@ export function PortalPostsAdminClient() {
                       <input
                         value={form.attachmentLabel}
                         onChange={(event) => updateForm("attachmentLabel", event.target.value)}
-                        disabled={isBusy || !mediaColumnsReady}
+                        disabled={isBusy || !mediaColumnsReady || !canWriteContent}
                         className={fieldClass}
                         placeholder="Contoh: Lampiran Tata Tertib"
                       />
@@ -1091,7 +1096,7 @@ export function PortalPostsAdminClient() {
                 <button
                   type="button"
                   onClick={() => savePost("draft")}
-                  disabled={isBusy}
+                  disabled={isBusy || !canWriteContent}
                   className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[10px] border border-black/10 bg-white px-3 text-sm font-bold text-primary transition-colors duration-200 hover:border-primary/30 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Simpan draft
@@ -1099,7 +1104,7 @@ export function PortalPostsAdminClient() {
                 <button
                   type="button"
                   onClick={() => savePost("review")}
-                  disabled={isBusy}
+                  disabled={isBusy || !canWriteContent}
                   className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[10px] border border-accent/40 bg-accent-soft px-3 text-sm font-bold text-foreground transition-colors duration-200 hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Kirim untuk diperiksa
@@ -1107,7 +1112,7 @@ export function PortalPostsAdminClient() {
                 <button
                   type="button"
                   onClick={() => savePost("published")}
-                  disabled={isBusy}
+                  disabled={isBusy || !canApproveContent}
                   className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[10px] border border-primary bg-primary px-3 text-sm font-bold text-accent transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Terbitkan
@@ -1115,7 +1120,7 @@ export function PortalPostsAdminClient() {
                 <button
                   type="button"
                   onClick={() => savePost("archived")}
-                  disabled={!form.id || isBusy}
+                  disabled={!form.id || isBusy || !canApproveContent}
                   className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[10px] border border-red-200 bg-red-50 px-3 text-sm font-bold text-red-700 transition-colors duration-200 hover:border-red-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Arsipkan

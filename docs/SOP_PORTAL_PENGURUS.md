@@ -174,12 +174,21 @@ Jika warga sudah login tetapi nomor belum muncul, cek apakah akun tersebut sudah
 1. Warga login.
 2. Warga membuka menu Keuangan.
 3. Warga memilih `Konfirmasi iuran`.
-4. Warga mengisi periode iuran, nominal, tanggal bayar, metode bayar, nomor referensi, dan bukti pembayaran.
+4. Warga mengisi blok, nomor rumah, periode mulai, cakupan pembayaran, nominal, tanggal bayar, metode bayar, nomor referensi, dan bukti pembayaran.
 5. Sistem menyimpan data sebagai pembayaran dengan status `pending`.
 6. Bendahara membuka Admin Dashboard -> Iuran.
-7. Bendahara mencocokkan bukti pembayaran dengan mutasi rekening atau bukti kas.
-8. Jika valid, bendahara menandai pembayaran sebagai terverifikasi.
-9. Jika tidak valid, bendahara menolak atau meminta klarifikasi.
+7. Bendahara klik `Lihat detail` pada pembayaran masuk.
+8. Bendahara mencocokkan catatan, referensi, periode, cakupan bulan, nominal, dan bukti pembayaran dengan mutasi rekening atau bukti kas.
+9. Jika valid, bendahara menandai pembayaran sebagai terverifikasi.
+10. Jika tidak valid, bendahara menolak atau meminta klarifikasi.
+
+Pembayaran iuran bisa mencakup lebih dari satu bulan. Warga dapat mengisi jumlah bulan bebas, misalnya 1 bulan, 7 bulan, 8 bulan, 1 tahun, atau beberapa tahun. Sistem menyimpan satu pembayaran dengan `period_count`, lalu saat approval membuat alokasi bulanan sesuai cakupan tersebut.
+
+Data rumah harus sudah ada di `public.households` sebelum konfirmasi iuran diterima. Jika warga menerima pesan `Data rumah belum ditemukan`, pengurus perlu membuat atau memverifikasi data rumah terlebih dahulu. Untuk pola data saat ini:
+
+- field database `cluster` dipakai sebagai blok atau area, misalnya `Colloseum`;
+- field database `block_or_unit` dipakai sebagai nomor rumah, misalnya `12`;
+- input form warga harus cocok dengan data tersebut.
 
 ### 6.2 Status Saat Ini di Sistem
 
@@ -196,10 +205,11 @@ Setelah migration approval iuran diterapkan di Supabase:
 - Konfirmasi iuran warga masuk ke `payments` dengan status `pending`.
 - Bendahara atau Ketua RT dengan izin `billing:verify` dapat menekan `Setujui & posting kas`.
 - Sistem mengubah pembayaran menjadi `verified`.
-- Sistem membuat atau memakai periode iuran yang sesuai.
-- Sistem membuat atau memakai tagihan rumah untuk periode tersebut.
-- Sistem membuat `payment_allocations`, yaitu pencocokan nominal pembayaran ke tagihan rumah/periode.
+- Sistem membuat atau memakai periode iuran yang sesuai. Untuk pembayaran multi-bulan, sistem membuat atau memakai semua periode dari bulan mulai sampai cakupan terakhir.
+- Sistem membuat atau memakai tagihan rumah untuk setiap periode tersebut.
+- Sistem membuat `payment_allocations`, yaitu pencocokan nominal pembayaran ke tagihan rumah/periode. Untuk pembayaran beberapa bulan, alokasi dibuat per bulan.
 - Sistem membuat transaksi kas masuk di `finance_transactions`.
+- Warga yang login dapat melihat rekap iuran pribadi di profil rumah jika akun sudah terhubung ke data rumah.
 
 Catatan: ringkasan keuangan publik di halaman portal masih perlu disambungkan ke ledger database jika ingin sepenuhnya real-time. Saat ini fitur approval sudah membuat transaksi database, tetapi tampilan publik lama masih memakai data statis sampai modul publiknya diarahkan ke database.
 
@@ -209,13 +219,40 @@ Saat tombol approval iuran dijalankan, sistem menjalankan proses berikut:
 
 1. Update `payments.verification_status` menjadi `verified`.
 2. Isi `verified_by` dan `verified_at`.
-3. Buat atau pilih `payment_allocations` ke tagihan rumah/periode yang sesuai.
-4. Refresh status tagihan menjadi `paid` atau `partial`.
-5. Buat transaksi kas masuk di `finance_transactions` dengan kategori iuran.
-6. Tandai transaksi tersebut sebagai sumber laporan publik bila sudah boleh ditampilkan.
-7. Catat audit log agar siapa yang menyetujui pembayaran bisa dilacak.
+3. Buat atau pilih `billing_periods` untuk seluruh cakupan bulan.
+4. Buat atau pilih `household_charges` untuk rumah dan periode yang sesuai.
+5. Buat atau pilih `payment_allocations` ke tagihan rumah/periode yang sesuai.
+6. Refresh status tagihan menjadi `paid` atau `partial`.
+7. Buat transaksi kas masuk di `finance_transactions` dengan kategori iuran.
+8. Tandai transaksi tersebut sebagai sumber laporan publik bila sudah boleh ditampilkan.
+9. Catat audit log agar siapa yang menyetujui pembayaran bisa dilacak.
 
 Dengan pola ini, bendahara cukup klik approve sekali. Sistem otomatis memperbarui status iuran dan laporan keuangan.
+
+### 6.4 Preview Bukti Transfer
+
+Di Admin Dashboard -> Iuran:
+
+1. Buka daftar `Pembayaran masuk`.
+2. Klik `Lihat detail` pada pembayaran.
+3. Periksa detail pembayaran, catatan submit, periode, cakupan bulan, referensi, dan status.
+4. Jika bukti transfer berupa gambar, klik `Preview bukti` untuk membuka popup gambar besar.
+5. Jika bukti bukan gambar, sistem membuka file melalui signed URL Supabase di tab baru.
+
+Bukti pembayaran bersifat private. Jangan membagikan signed URL ke warga umum atau pihak yang tidak berwenang.
+
+### 6.5 Data Test, Koreksi, dan Pembatalan
+
+Untuk pembayaran dengan status `pending`, bendahara dapat menolak pembayaran jika itu hanya data test atau tidak valid.
+
+Untuk pembayaran yang sudah `verified`, jangan hard delete langsung dari database. Pembayaran verified sudah bisa terkait ke:
+
+- `payment_allocations`;
+- `household_charges`;
+- `finance_transactions`;
+- audit log.
+
+Jika perlu membatalkan pembayaran verified, gunakan prosedur void atau reversal yang menjaga audit trail. Fitur void/reversal perlu dibuat sebagai tahap lanjutan sebelum dipakai untuk operasional production.
 
 ## 7. SOP PALUGADA
 

@@ -7,7 +7,7 @@ import { PalugadaHeroControls } from "./palugada-hero-controls";
 export const metadata: Metadata = {
   title: "PALUGADA CGV | Katalog Warga",
   description:
-    "Katalog usaha, jasa, barang, kuliner, dan informasi warga CGV10 dengan detail lapak dan kanal kontak.",
+    "Katalog lapak, jasa, kuliner, barang, dan info warga CGV10 yang mudah dicari.",
 };
 
 export default function PalugadaPage() {
@@ -30,15 +30,16 @@ export default function PalugadaPage() {
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-accent-soft">
                   PALUGADA CGV
                 </p>
-                <p className="mt-0.5 text-sm text-white/72">Lapak dan jasa warga CGV.</p>
+                <p className="mt-0.5 text-sm text-white/72">Lapak dan jasa tetangga CGV.</p>
               </div>
             </div>
 
             <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-[2.75rem]">
-              Cari kebutuhan warga tanpa harus menunggu info tersebar di grup.
+              Cari lapak warga tanpa harus scroll grup sampai jauh.
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-white/78 sm:mt-4 sm:text-base">
-              Ketik nama produk atau jasa, lalu pilih kategori yang dibutuhkan.
+              Butuh donat, laundry, servis AC, atau info lapak lain? Coba
+              cari dulu di sini.
             </p>
 
             <PalugadaHeroControls />

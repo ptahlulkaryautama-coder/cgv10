@@ -106,7 +106,7 @@ function buildMessage(
     }`,
     reference ? `Nomor pendaftaran: ${reference}` : "",
     "",
-    "Mohon dibantu periksa untuk ditampilkan di katalog PALUGADA CGV.",
+    "Mohon dibantu cek sebelum ditampilkan di katalog PALUGADA CGV.",
   ].join("\n");
 }
 
@@ -161,7 +161,7 @@ export function PalugadaSubmissionForm() {
   async function submitToSupabase() {
     if (!ready) {
       setSaveState("error");
-      setSaveMessage("Lengkapi nama lapak, pemilik, cluster, WhatsApp, dan deskripsi.");
+      setSaveMessage("Ada bagian wajib yang belum diisi. Cek nama lapak, pemilik, cluster, WhatsApp, dan deskripsi.");
       return;
     }
 
@@ -180,7 +180,7 @@ export function PalugadaSubmissionForm() {
     }
 
     setSaveState("saving");
-    setSaveMessage("Mengirim pendaftaran lapak...");
+    setSaveMessage("Mengirim data lapak ke pengurus...");
 
     try {
       const supabase = getSupabaseBrowserClient();
@@ -188,7 +188,7 @@ export function PalugadaSubmissionForm() {
       const userId = userData.user?.id;
 
       if (userError || !userId) {
-        throw new Error("Masuk sebagai warga terlebih dahulu sebelum mendaftarkan lapak.");
+        throw new Error("Masuk dulu supaya lapak nyambung ke akun warga.");
       }
 
       let uploadSession = uploadSessionRef.current;
@@ -216,7 +216,7 @@ export function PalugadaSubmissionForm() {
 
         if (error) throw error;
         uploadSession = ((data ?? []) as UploadSession[])[0] ?? null;
-        if (!uploadSession) throw new Error("Supabase tidak mengembalikan sesi upload PALUGADA.");
+        if (!uploadSession) throw new Error("Sesi upload PALUGADA belum berhasil dibuat.");
         uploadSessionRef.current = uploadSession;
       }
 
@@ -260,11 +260,11 @@ export function PalugadaSubmissionForm() {
       setSubmissionReference(reference);
       setSaveMessage(
         attachments.length > 0
-          ? `Pendaftaran dan ${attachments.length} foto sudah diterima. Nomor pendaftaran ${reference}.`
-          : `Pendaftaran sudah diterima. Nomor pendaftaran ${reference}.`,
+          ? `Lapak masuk bersama ${attachments.length} foto. Simpan nomor ${reference} untuk cek progres.`
+          : `Lapak masuk. Simpan nomor ${reference} untuk cek progres.`,
       );
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Pendaftaran lapak belum berhasil dikirim.";
+      const message = error instanceof Error ? error.message : "Pendaftaran lapak belum berhasil dikirim. Coba ulangi sebentar lagi.";
       setSaveState("error");
       setSaveMessage(message);
     }
@@ -374,7 +374,7 @@ export function PalugadaSubmissionForm() {
               onInput={(event) =>
                 updateField("description", event.currentTarget.value)
               }
-              placeholder="Ceritakan produk, jasa, area layanan, atau format pesanan."
+              placeholder="Ceritakan produknya, area layanan, cara pesan, atau hal penting lain yang perlu warga tahu."
               rows={5}
               className="rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium leading-6 text-foreground outline-none transition-colors placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/18"
             />
@@ -405,7 +405,7 @@ export function PalugadaSubmissionForm() {
               onInput={(event) =>
                 updateField("photoNote", event.currentTarget.value)
               }
-              placeholder="Contoh: 3 foto produk tersedia"
+              placeholder="Contoh: Foto menu dan kemasan sudah ada"
               className="min-h-12 rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground outline-none transition-colors placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/18"
             />
           </label>
@@ -414,7 +414,7 @@ export function PalugadaSubmissionForm() {
             <FileCaptureField
               id="palugada-foto"
               label="Foto produk atau lapak"
-              description="Maksimal 4 foto, masing-masing 10 MB. Foto disimpan private dan hanya dapat dibuka admin berizin."
+              description="Maksimal 4 foto, masing-masing 10 MB. Foto membantu pengurus menilai apakah lapak sudah siap tampil."
               attachments={attachments}
               onChange={(nextAttachments) => {
                 setAttachments(nextAttachments);
@@ -456,7 +456,7 @@ export function PalugadaSubmissionForm() {
                 : "cursor-not-allowed bg-primary-soft text-primary/60"
             }`}
           >
-            {saveState === "saving" ? "Mengirim dan mengunggah..." : saveState === "saved" ? "Pendaftaran terkirim" : "Kirim pendaftaran"}
+            {saveState === "saving" ? "Mengirim data lapak..." : saveState === "saved" ? "Lapak terkirim" : "Kirim pendaftaran"}
           </button>
           {saveMessage ? (
             <div
@@ -481,7 +481,7 @@ export function PalugadaSubmissionForm() {
                 Simpan nomor pendaftaran: {submissionReference}
               </p>
               <p className="mt-2 text-xs leading-5 text-foreground/70">
-                Pengurus sudah menerima data dan foto lapak. WhatsApp hanya digunakan jika Anda ingin mengirim konfirmasi tambahan.
+                Pengurus sudah menerima data dan foto lapak. WhatsApp hanya dipakai kalau Anda ingin menambahkan konfirmasi.
               </p>
               <a
                 href={whatsappHref}
@@ -497,10 +497,10 @@ export function PalugadaSubmissionForm() {
 
         <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-            Setelah dikirim
+            Setelah lapak masuk
           </p>
           <div className="mt-4 space-y-3 text-sm leading-6 text-muted">
-            <p>Pengurus dapat meminta foto tambahan atau klarifikasi kontak.</p>
+            <p>Pengurus mungkin meminta foto tambahan atau klarifikasi kontak.</p>
             <p>
               Lapak akan tampil setelah informasinya cukup jelas untuk warga.
             </p>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Icon } from "../../components/portal";
 import type { IconName } from "@/lib/portal-data";
+import { PersonalDuesRecap } from "./personal-dues-recap";
 
 type ProfileCard = {
   title: string;
@@ -126,6 +127,8 @@ export default function ProfilRumahPage() {
           </div>
         </div>
       </section>
+
+      <PersonalDuesRecap />
 
       <section className="px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
         <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1.15fr_0.85fr]">

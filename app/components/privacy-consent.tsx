@@ -95,7 +95,9 @@ export function PrivacyConsent() {
             Privasi warga tetap dijaga.
           </p>
           <p className="mt-1 text-xs leading-5 text-muted sm:text-sm sm:leading-6">
-            Portal dapat memakai data teknis ringan untuk membaca performa halaman. Data form warga tetap dipakai untuk tindak lanjut pengurus.
+            Portal bisa mencatat data teknis ringan, misalnya halaman yang dibuka
+            dan kecepatan akses. Data dari form tetap hanya untuk membantu
+            pengurus menindaklanjuti kebutuhan warga.
             Baca ringkasannya di{" "}
             <Link href="/privasi/" className="font-semibold text-primary underline-offset-4 hover:underline">
               Kebijakan Privasi

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Icon, PwaInstallGuide } from "../components/portal";
 import type { IconName } from "@/lib/portal-data";
+import { AdminDashboardShortcut } from "./admin-dashboard-shortcut";
 
 type PortalAction = {
   title: string;
@@ -13,28 +14,28 @@ type PortalAction = {
 const primaryActions: PortalAction[] = [
   {
     title: "Layanan Warga",
-    text: "Ajukan surat, laporan, keamanan, atau konfirmasi iuran.",
+    text: "Ajukan surat, laporan lingkungan, keamanan, atau urusan iuran.",
     href: "/layanan/#form-layanan",
     icon: "message",
     tone: "surface",
   },
   {
     title: "PALUGADA CGV",
-    text: "Cari produk dan jasa dari sesama warga.",
+    text: "Cari produk dan jasa dari tetangga sendiri.",
     href: "/palugada/",
     icon: "store",
     tone: "accent",
   },
   {
     title: "Kabar Warga",
-    text: "Baca pengumuman, agenda, dan kabar lingkungan.",
+    text: "Baca pengumuman, agenda, dan kabar yang dekat dengan kita.",
     href: "/kabar-warga/",
     icon: "megaphone",
     tone: "surface",
   },
   {
     title: "Keuangan",
-    text: "Lihat ringkasan kas dan penggunaan iuran.",
+    text: "Cek kas RT dan catatan iuran secara ringkas.",
     href: "/keuangan/",
     icon: "wallet",
     tone: "surface",
@@ -44,21 +45,21 @@ const primaryActions: PortalAction[] = [
 const secondaryActions: PortalAction[] = [
   {
     title: "Pengurus",
-    text: "Kenali pengurus dan pembagian tugasnya.",
+    text: "Lihat siapa mengurus apa, biar tidak salah pintu.",
     href: "/pengurus/",
     icon: "users",
     tone: "surface",
   },
   {
     title: "Kontak Penting",
-    text: "Hubungi pengurus sesuai kebutuhan.",
+    text: "Pilih jalur pesan sesuai urusannya.",
     href: "/kontak/",
     icon: "phone",
     tone: "surface",
   },
   {
     title: "Daftar PALUGADA",
-    text: "Masuk warga untuk mendaftarkan usaha atau jasa.",
+    text: "Punya usaha atau jasa? Masukkan ke katalog warga.",
     href: "/masuk/?next=/palugada/daftar/",
     icon: "briefcase",
     tone: "surface",
@@ -145,26 +146,29 @@ export default function PortalWargaPage() {
               Cipta Greenville - RT 010 / RW 021
             </p>
             <p className="mt-2 max-w-2xl text-2xl font-semibold leading-tight tracking-tight sm:mt-3 sm:text-4xl">
-              Semua kebutuhan warga, lebih mudah dijangkau.
+              Yang sering dicari warga, taruh di depan.
             </p>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-white/72 sm:mt-4 sm:text-base">
-              Buka layanan, kabar, keuangan, dan PALUGADA dari satu tempat.
+              Urus layanan, cek iuran, baca kabar, atau cari lapak warga tanpa
+              muter-muter.
             </p>
             <div className="mt-4 flex gap-2 sm:mt-6 sm:gap-3">
               <Link
                 href="/layanan/#form-layanan"
                 className="inline-flex min-h-11 flex-1 cursor-pointer items-center justify-center rounded-xl bg-accent px-4 text-sm font-semibold text-foreground transition-colors duration-200 hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft focus-visible:ring-offset-2 focus-visible:ring-offset-primary sm:flex-none sm:px-5"
               >
-                Ajukan Layanan
+                Ajukan layanan
               </Link>
               <Link
                 href="/palugada/"
                 className="inline-flex min-h-11 flex-1 cursor-pointer items-center justify-center rounded-xl border border-white/18 bg-white/10 px-4 text-sm font-semibold text-white transition-colors duration-200 hover:bg-white/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary sm:flex-none sm:px-5"
               >
-                Cari di PALUGADA
+                Cari lapak warga
               </Link>
             </div>
           </div>
+
+          <AdminDashboardShortcut />
         </div>
       </section>
 
@@ -180,10 +184,10 @@ export default function PortalWargaPage() {
             <div className="flex items-end justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                  Akses lainnya
+                  Lainnya yang juga penting
                 </p>
                 <h2 className="mt-2 text-xl font-semibold tracking-tight text-foreground">
-                  Pilihan lainnya
+                  Jalur cepat lain
                 </h2>
               </div>
             </div>

@@ -18,28 +18,28 @@ const actionTiles: {
 }[] = [
   {
     title: "Layanan Warga",
-    text: "Pengaduan, administrasi, dan aspirasi warga dalam satu alur ringkas.",
+    text: "Laporkan kendala, urus administrasi, atau kirim usulan tanpa mulai dari nol.",
     href: "/layanan/",
     icon: "home",
     badge: "Aksi warga",
   },
   {
     title: "PALUGADA CGV",
-    text: "Cari produk dan jasa dari usaha milik warga.",
+    text: "Cari produk, jasa, dan lapak tetangga yang sudah masuk katalog warga.",
     href: "/palugada/",
     icon: "store",
     badge: "Katalog warga",
   },
   {
     title: "Kabar Warga",
-    text: "Pengumuman, agenda, dan dokumentasi warga dalam satu halaman hidup.",
+    text: "Baca pengumuman, agenda, dan cerita kecil yang dekat dengan lingkungan.",
     href: "/kabar-warga/",
     icon: "calendar",
     badge: "Aktif",
   },
   {
     title: "Transparansi Keuangan",
-    text: "Lihat saldo kas dan penggunaan iuran secara ringkas.",
+    text: "Cek ringkasan kas RT dan penggunaan iuran dalam bahasa yang mudah dibaca.",
     href: "/keuangan/",
     icon: "wallet",
     badge: "Kas RT",
@@ -98,29 +98,29 @@ export default function Home() {
               Cipta Greenville - RT 010 / RW 021
             </p>
             <h1 className="mt-6 max-w-full text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Portal Digital Warga CGV10
+              Portal Warga CGV10
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-white/78 sm:text-lg sm:leading-8">
-              Temukan pengumuman, layanan, kegiatan, informasi keuangan, dan
-              PALUGADA CGV dalam satu tempat.
+              Kabar lingkungan, layanan warga, kas RT, sampai lapak tetangga
+              dikumpulkan di sini, biar tidak tercecer di chat.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/layanan/"
                 className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl bg-accent px-5 text-base font-semibold text-foreground shadow-[0_18px_42px_rgba(212,175,55,0.28)] transition-colors duration-200 hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft focus-visible:ring-offset-2 focus-visible:ring-offset-primary sm:px-6"
               >
-                Buka Layanan Warga
+                Ajukan Layanan
               </Link>
               <Link
                 href="/kabar-warga/"
                 className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl border border-white/20 bg-white/10 px-5 text-base font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-white/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary sm:px-6"
               >
-                Lihat Kabar Warga
+                Cek Kabar Terbaru
               </Link>
             </div>
             <div className="mt-9 max-w-xl border-y border-white/12 py-4">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-soft">
-                Portal aktif untuk
+                Jalur cepat warga
               </p>
               <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold text-white/82">
                 {liveSignals.map((signal, index) => (
@@ -145,7 +145,7 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/76 via-primary/18 to-primary/6" />
                 <div className="absolute left-5 right-5 top-5 flex items-center justify-between gap-3">
                   <span className="rounded-full border border-white/22 bg-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-white backdrop-blur">
-                    Ritme Warga
+                    Kabar Hari Ini
                   </span>
                   <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-foreground">
                     CGV10
@@ -153,10 +153,10 @@ export default function Home() {
                 </div>
                 <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4">
                   <p className="max-w-[15rem] text-sm font-semibold leading-6 text-white/88">
-                    Kabar, pengumuman, dan dokumentasi aktual warga CGV10.
+                    Kabar, pengumuman, dan dokumentasi warga yang paling baru.
                   </p>
                   <span className="rounded-full border border-white/22 bg-white/14 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
-                    Visual utama
+                    Sorotan
                   </span>
                 </div>
               </div>
@@ -184,7 +184,7 @@ export default function Home() {
                   </div>
                   <div className="p-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent-soft">
-                      Ritme Warga
+                      Dari Warga
                     </p>
                     <p className="mt-2 line-clamp-2 text-base font-semibold leading-tight text-white">
                       {card.title}
@@ -210,11 +210,11 @@ export default function Home() {
                 Akses Utama Warga
               </p>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-                Empat pintu utama untuk kebutuhan lingkungan.
+                Mau urus apa hari ini? Pilih pintunya di sini.
               </h2>
               <p className="mt-3 text-base leading-7 text-muted">
-                Pilihan dibuat ringkas agar pengurus dan warga bisa langsung
-                menuju area yang dibutuhkan.
+                Dibuat pendek saja: warga cepat ketemu tujuan, pengurus juga
+                tidak perlu tanya ulang dari awal.
               </p>
             </div>
             <span className="w-fit rounded-full border border-accent/35 bg-accent-soft px-4 py-2 text-sm font-semibold text-foreground">
@@ -246,7 +246,7 @@ export default function Home() {
                       {item.text}
                     </p>
                     <span className="mt-4 inline-flex text-sm font-semibold text-primary transition-colors duration-200 group-hover:text-primary-hover">
-                      Buka area
+                      Buka area ini
                     </span>
                   </div>
                 </div>
@@ -267,10 +267,10 @@ export default function Home() {
                 Info Cepat
               </p>
               <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-                Informasi penting dalam satu tampilan.
+                Yang penting, langsung kelihatan.
               </h2>
               <p className="mt-5 text-base leading-7 text-white/78">
-                Ringkasan terkini portal warga.
+                Ringkasan pendek untuk cek kondisi lingkungan hari ini.
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">

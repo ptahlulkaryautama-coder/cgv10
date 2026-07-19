@@ -22,15 +22,15 @@ type RequestType = {
 const requestTypes: RequestType[] = [
   {
     id: "keluhan",
-    title: "Ajukan Keluhan",
+    title: "Laporkan Kendala",
     label: "Laporan lingkungan",
     icon: "message",
     priority: "Tinggi",
-    helper: "Fasilitas umum, kebersihan, lampu, keamanan, atau kondisi area.",
+    helper: "Lampu padam, fasilitas umum, kebersihan, keamanan, atau kondisi area.",
   },
   {
     id: "pendaftaran",
-    title: "Pendaftaran / Update Data",
+    title: "Update Data Warga",
     label: "Data warga",
     icon: "users",
     priority: "Administrasi",
@@ -58,7 +58,7 @@ const requestTypes: RequestType[] = [
     label: "Aspirasi",
     icon: "megaphone",
     priority: "Normal",
-    helper: "Ide, masukan, prioritas kegiatan, atau perbaikan portal.",
+    helper: "Ide, masukan, prioritas kegiatan, atau hal yang bisa dibuat lebih enak untuk warga.",
   },
 ];
 
@@ -151,7 +151,7 @@ function buildMessage(
     }`,
     reference ? `Nomor laporan: ${reference}` : "",
     "",
-    "Mohon dibantu tindak lanjut melalui kanal pengurus CGV10.",
+    "Mohon dibantu tindak lanjutnya. Terima kasih.",
   ].join("\n");
 }
 
@@ -210,7 +210,7 @@ export function ServiceRequestForm() {
   async function submitToSupabase() {
     if (!isReady) {
       setSaveState("error");
-      setSaveMessage("Lengkapi nama, cluster, WhatsApp, dan detail kebutuhan terlebih dahulu.");
+      setSaveMessage("Ada bagian wajib yang belum diisi. Cek nama, cluster, WhatsApp, dan detail kebutuhan.");
       return;
     }
 
@@ -229,7 +229,7 @@ export function ServiceRequestForm() {
     }
 
     setSaveState("saving");
-    setSaveMessage("Mengirim permintaan...");
+    setSaveMessage("Mengirim permintaan ke pengurus...");
 
     try {
       const supabase = getSupabaseBrowserClient();
@@ -237,7 +237,7 @@ export function ServiceRequestForm() {
       const userId = userData.user?.id;
 
       if (userError || !userId) {
-        throw new Error("Masuk sebagai warga terlebih dahulu sebelum mengajukan layanan.");
+        throw new Error("Masuk dulu supaya laporan nyambung ke akun warga.");
       }
 
       let uploadSession = uploadSessionRef.current;
@@ -304,11 +304,11 @@ export function ServiceRequestForm() {
       setSaveState("saved");
       setSaveMessage(
         attachments.length > 0
-          ? `Permintaan dan ${attachments.length} foto sudah diterima. Nomor laporan ${reference}.`
-          : `Permintaan sudah diterima. Nomor laporan ${reference}.`,
+          ? `Laporan masuk bersama ${attachments.length} foto. Simpan nomor ${reference} kalau nanti perlu tanya progres.`
+          : `Laporan masuk. Simpan nomor ${reference} kalau nanti perlu tanya progres.`,
       );
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Permintaan belum berhasil dikirim.";
+      const message = error instanceof Error ? error.message : "Permintaan belum berhasil dikirim. Coba ulangi sebentar lagi.";
       setSaveState("error");
       setSaveMessage(message);
     }
@@ -323,20 +323,20 @@ export function ServiceRequestForm() {
               Form Layanan Warga
             </p>
             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Pilih kebutuhan, lengkapi data, lalu kirim ke pengurus.
+              Pilih kebutuhan, tulis ceritanya singkat, lalu kirim ke pengurus.
             </h2>
             <p className="mt-5 text-base leading-7 text-muted">
-              Permintaan akan tersimpan dan juga dapat diteruskan langsung
-              melalui WhatsApp.
+              Permintaan akan masuk ke catatan pengurus. WhatsApp hanya untuk
+              konfirmasi tambahan kalau memang diperlukan.
             </p>
             <div className="mt-6 rounded-2xl border border-accent/35 bg-accent-soft/55 p-5">
               <p className="text-sm font-semibold text-foreground">
                 Perlu arahan pengurus?
               </p>
               <p className="mt-2 text-sm leading-6 text-muted">
-                Jika kebutuhan belum jelas kategorinya, warga bisa melihat
-                struktur pengurus atau memakai kanal kontak cepat sebelum
-                mengirim permintaan.
+                Kalau belum yakin masuk kategori mana, cek kontak cepat dulu.
+                Lebih baik tanya sebentar daripada laporan masuk ke jalur yang
+                salah.
               </p>
               <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                 <Link
@@ -408,7 +408,7 @@ export function ServiceRequestForm() {
                   maxLength={100}
                   onChange={(event) => updateField("name", event.target.value)}
                   onInput={(event) => updateField("name", event.currentTarget.value)}
-                  placeholder="Nama lengkap"
+                  placeholder="Nama lengkap warga"
                   className="mt-2 min-h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm outline-none transition-colors duration-200 focus:border-primary"
                 />
               </label>
@@ -456,7 +456,7 @@ export function ServiceRequestForm() {
                   maxLength={3000}
                   onChange={(event) => updateField("detail", event.target.value)}
                   onInput={(event) => updateField("detail", event.currentTarget.value)}
-                  placeholder="Tulis lokasi, kronologi, atau informasi yang perlu diketahui pengurus."
+                  placeholder="Tulis lokasi, jam kejadian, atau detail penting. Tidak perlu panjang, yang penting jelas."
                   rows={5}
                   className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm leading-6 outline-none transition-colors duration-200 focus:border-primary"
                 />
@@ -476,7 +476,7 @@ export function ServiceRequestForm() {
                 <FileCaptureField
                   id="layanan-foto"
                   label="Foto pendukung"
-                  description="Maksimal 4 foto, masing-masing 10 MB. Foto akan tersimpan bersama permintaan dan hanya dapat dibuka pengurus berizin."
+                  description="Maksimal 4 foto, masing-masing 10 MB. Foto membantu pengurus melihat kondisi tanpa harus menebak dari teks saja."
                   attachments={attachments}
                   onChange={(nextAttachments) => {
                     setAttachments(nextAttachments);
@@ -545,7 +545,7 @@ export function ServiceRequestForm() {
                     Simpan nomor laporan: {submissionReference}
                   </p>
                   <p className="mt-2 text-xs leading-5 text-muted">
-                    Pengurus sudah menerima permintaan dan foto. WhatsApp hanya digunakan jika Anda ingin mengirim konfirmasi tambahan.
+                    Pengurus sudah menerima permintaan dan foto. WhatsApp hanya dipakai kalau Anda ingin menambahkan konfirmasi.
                   </p>
                   <a
                     href={whatsappHref}

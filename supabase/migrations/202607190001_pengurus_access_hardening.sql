@@ -1,5 +1,5 @@
--- Seed current pengurus admin invite records and role mapping.
--- Auth users still need to be created/invited from Supabase Authentication.
+-- Ensure current pengurus roles and module permissions are active in existing databases.
+-- Auth users still need to exist in Supabase Authentication before user_roles can attach.
 
 begin;
 
@@ -9,19 +9,19 @@ with target(email, display_name, role, note) as (
       'dharma.doddy9@yahoo.co.uk'::citext,
       'Doddy Dharma',
       'ketua_rt'::public.app_role,
-      'Ketua RT 010 trial access'
+      'Ketua RT 010 production access'
     ),
     (
       'Zulhendy@gmail.com'::citext,
       'Zulhendy Masruddin',
       'sekretaris'::public.app_role,
-      'Sekretaris RT 010 trial access'
+      'Sekretaris RT 010 production access'
     ),
     (
       'nikodiponako7@gmail.com'::citext,
       'Niko Diponako',
       'bendahara'::public.app_role,
-      'Bendahara RT 010 trial access'
+      'Bendahara RT 010 production access'
     )
 )
 insert into public.admin_invites (email, role, status, note)
@@ -42,7 +42,7 @@ with target(email, display_name, role) as (
 )
 update public.profiles profile
 set display_name = case
-    when btrim(profile.display_name) = '' then target.display_name
+    when btrim(coalesce(profile.display_name, '')) = '' then target.display_name
     else profile.display_name
   end,
   status = 'active',
@@ -61,5 +61,21 @@ select profile.id, target.role, null
 from target
 join public.profiles profile on profile.email = target.email
 on conflict (user_id, role) do nothing;
+
+insert into public.role_permissions (role, permission) values
+  ('ketua_rt', 'billing:read'),
+  ('ketua_rt', 'billing:verify'),
+  ('sekretaris', 'content:read'),
+  ('sekretaris', 'content:write'),
+  ('sekretaris', 'palugada:read'),
+  ('sekretaris', 'billing:read'),
+  ('bendahara', 'resident:read'),
+  ('bendahara', 'services:read'),
+  ('bendahara', 'finance:read'),
+  ('bendahara', 'finance:write'),
+  ('bendahara', 'billing:read'),
+  ('bendahara', 'billing:write'),
+  ('bendahara', 'billing:verify')
+on conflict do nothing;
 
 commit;

@@ -14,13 +14,13 @@ import {
 export const metadata: Metadata = {
   title: "Keuangan",
   description:
-    "Laporan Keuangan RT 010 Perumahan Cipta Green Ville periode Januari-Juni 2026.",
+    "Ringkasan keuangan RT 010 Perumahan Cipta Green Ville periode Januari-Juni 2026.",
 };
 
 const reportTitle = "Laporan Keuangan RT 010";
 const reportSubtitle = "Perumahan Cipta Green Ville";
 const reportPeriod = "Januari-Juni 2026";
-const reportStatus = "Laporan Pengurus";
+const reportStatus = "Ringkasan Pengurus";
 const totalAvailableFunds = financeTotals.openingBalance + financeTotals.income;
 const maxExpense = Math.max(...transactions.map((item) => item.subtotal));
 
@@ -28,25 +28,25 @@ const summaryCards = [
   {
     title: "Saldo Awal",
     value: financeTotals.openingBalance,
-    detail: "Total dana tersedia dikurangi pemasukan periode berjalan.",
+    detail: "Saldo yang menjadi dasar laporan periode ini.",
     icon: "wallet",
   },
   {
     title: "Pemasukan Januari-Juni 2026",
     value: financeTotals.income,
-    detail: "Pemasukan resmi periode laporan.",
+    detail: "Dana masuk yang tercatat pada periode laporan.",
     icon: "message",
   },
   {
     title: "Pengeluaran Januari-Juni 2026",
     value: financeTotals.expense,
-    detail: "Total rincian pengeluaran pada tabel laporan.",
+    detail: "Total belanja lingkungan yang dirinci di bawah.",
     icon: "file",
   },
   {
     title: "Saldo Akhir per Juni 2026",
     value: financeTotals.endingBalance,
-    detail: "Saldo akhir laporan resmi RT 010.",
+    detail: "Sisa kas sesuai ringkasan pengurus.",
     icon: "shield",
   },
 ] as const;
@@ -71,7 +71,7 @@ export default function KeuanganPage() {
           <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.16em] text-accent-soft">
-                Financial Period
+                Periode Laporan
               </p>
               <h1 className="mt-5 text-3xl font-semibold tracking-tight text-white sm:text-5xl">
                 {reportTitle}
@@ -97,9 +97,9 @@ export default function KeuanganPage() {
                 {formatCurrency(financeTotals.endingBalance)}
               </p>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-white/78">
-                Laporan ini memakai angka resmi pengurus. Saldo awal dihitung
-                dari total dana tersedia Rp11.010.000 dikurangi pemasukan
-                periode berjalan Rp2.500.000.
+                Angka di halaman ini mengikuti ringkasan pengurus untuk periode
+                yang tercantum. Grafik hanya membantu membaca alurnya; rincian
+                tetap ada di tabel transaksi.
               </p>
             </div>
           </div>
@@ -142,7 +142,7 @@ export default function KeuanganPage() {
           <SectionHeading
             eyebrow="Visual Laporan"
             title="Alur dana periode Januari-Juni 2026."
-            text="Diagram ini memakai angka resmi yang sama dengan summary dan rincian transaksi."
+            text="Grafik ini membantu membaca angka. Rincian lengkapnya tetap ada di tabel transaksi."
           />
 
           <div className="mt-10 grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
@@ -237,8 +237,8 @@ export default function KeuanganPage() {
                     Grafik Pengeluaran
                   </h2>
                   <p className="mt-2 text-sm leading-6 text-muted">
-                    Panjang bar menunjukkan perbandingan nominal antar item,
-                    bukan nilai baru.
+                    Panjang bar hanya menunjukkan perbandingan nominal antar
+                    item, bukan angka tambahan.
                   </p>
                 </div>
                 <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
@@ -310,7 +310,7 @@ export default function KeuanganPage() {
             ))}
             <div className="rounded-2xl border border-primary/20 bg-primary-soft p-4 text-right">
               <p className="text-sm font-semibold text-muted">
-                Total expenditure
+                Total Pengeluaran
               </p>
               <p className="mt-1 text-2xl font-semibold text-primary">
                 {formatCurrency(financeTotals.expense)}
@@ -370,7 +370,7 @@ export default function KeuanganPage() {
                       colSpan={4}
                       className="px-4 py-4 text-right font-semibold text-foreground"
                     >
-                      Total expenditure
+                      Total Pengeluaran
                     </td>
                     <td className="px-4 py-4 text-right font-semibold text-primary">
                       {formatCurrency(financeTotals.expense)}
@@ -391,11 +391,11 @@ export default function KeuanganPage() {
                 Iuran Warga
               </p>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                Konfirmasi iuran atau tanyakan catatan pembayaran.
+                Sudah bayar iuran? Kirim buktinya di sini.
               </h2>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
-                Warga bisa mengirim konfirmasi iuran dengan nama, cluster,
-                nomor WhatsApp, periode, nominal, dan bukti pembayaran.
+                Isi nama, rumah, periode, nominal, dan bukti bayar sekali saja,
+                supaya bendahara bisa cocokkan tanpa tebak-tebakan.
               </p>
             </div>
             <AuthAwareAction
