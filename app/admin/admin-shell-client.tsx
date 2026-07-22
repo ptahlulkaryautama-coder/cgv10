@@ -34,6 +34,11 @@ type PermissionRow = {
   permission: string;
 };
 
+type DashboardResidentRegistrationRequest = {
+  id: string;
+  status: "pending_review" | "approved" | "rejected" | "cancelled";
+};
+
 type PortalPostStatus = "draft" | "review" | "published" | "archived";
 type UnifiedPortalPostStatus = PortalPostStatus | "local_archive";
 type PortalPostDashboardFilter = "all" | PortalPostStatus;
@@ -240,6 +245,8 @@ export function AdminShellClient() {
   const [portalPosts, setPortalPosts] = useState<DashboardPortalPost[]>([]);
   const [portalPostsMessage, setPortalPostsMessage] = useState("Menunggu akses admin...");
   const [portalPostFilter, setPortalPostFilter] = useState<PortalPostDashboardFilter>("all");
+  const [residentPendingCount, setResidentPendingCount] = useState(0);
+  const [residentMessage, setResidentMessage] = useState("Menunggu akses data warga...");
 
   useEffect(() => {
     if (!supabase) {
@@ -278,6 +285,8 @@ export function AdminShellClient() {
         setPalugadaMessage("Login diperlukan untuk membaca daftar PALUGADA.");
         setPortalPosts([]);
         setPortalPostsMessage("Login diperlukan untuk membaca arsip kabar.");
+        setResidentPendingCount(0);
+        setResidentMessage("Login diperlukan untuk membaca pendaftaran warga.");
         setState("not_logged_in");
         setMessage("Belum ada session login aktif.");
         return;
@@ -330,6 +339,8 @@ export function AdminShellClient() {
         setPalugadaMessage("Role aktif tidak memiliki akses admin production.");
         setPortalPosts([]);
         setPortalPostsMessage("Role aktif tidak memiliki akses admin production.");
+        setResidentPendingCount(0);
+        setResidentMessage("Role aktif tidak memiliki akses data warga.");
         setState("no_admin_role");
         setMessage("Akun aktif, tetapi belum punya role admin production.");
         return;
@@ -353,7 +364,34 @@ export function AdminShellClient() {
         const loadedPermissions = (permissionData ?? []) as PermissionRow[];
         const hasPalugadaRead = loadedPermissions.some((row) => row.permission === "palugada:read");
         const hasContentRead = loadedPermissions.some((row) => row.permission === "content:read");
+        const hasResidentRead = loadedPermissions.some((row) => row.permission === "resident:read");
         setCanReadPalugada(hasPalugadaRead);
+
+        if (hasResidentRead) {
+          setResidentMessage("Memuat notifikasi pendaftaran warga...");
+          const { data: residentRequestData, error: residentRequestError, count } = await client
+            .from("resident_registration_requests")
+            .select("id, status", { count: "exact" })
+            .eq("status", "pending_review");
+
+          if (!mounted) return;
+
+          if (residentRequestError) {
+            setResidentPendingCount(0);
+            setResidentMessage(`Pendaftaran warga gagal dimuat: ${residentRequestError.message}`);
+          } else {
+            const latestRequests = (residentRequestData ?? []) as DashboardResidentRegistrationRequest[];
+            setResidentPendingCount(count ?? latestRequests.length);
+            setResidentMessage(
+              (count ?? latestRequests.length) > 0
+                ? `${count ?? latestRequests.length} pendaftaran warga menunggu verifikasi.`
+                : "Tidak ada pendaftaran warga yang menunggu.",
+            );
+          }
+        } else {
+          setResidentPendingCount(0);
+          setResidentMessage("Permission resident:read diperlukan untuk notifikasi warga.");
+        }
 
         if (hasPalugadaRead) {
           setPalugadaMessage("Memuat listing PALUGADA terbaru...");
@@ -449,6 +487,8 @@ export function AdminShellClient() {
     setPalugadaFilter("all");
     setPortalPosts([]);
     setPortalPostsMessage("Login diperlukan untuk membaca arsip kabar.");
+    setResidentPendingCount(0);
+    setResidentMessage("Login diperlukan untuk membaca pendaftaran warga.");
     setPortalPostFilter("all");
     setState("not_logged_in");
     setMessage("Belum ada session login aktif.");
@@ -571,7 +611,13 @@ export function AdminShellClient() {
       <section aria-label="Ringkasan admin" className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-6">
         <ProductionMetricCard label="Akun" value={user ? "Aktif" : "Perlu masuk"} helper={visibleEmail} icon="users" />
         <ProductionMetricCard label="Peran" value={primaryRole ? formatRole(primaryRole) : "-"} helper={roleDescriptions[primaryRole ?? "sekretaris"] ?? "Peran pengelola."} icon="shield" tone="gold" />
-        <ProductionMetricCard label="Permintaan" value="Aktif" helper="Layanan dan pesan warga" icon="message" tone="green" />
+        <ProductionMetricCard
+          label="Warga Baru"
+          value={String(residentPendingCount)}
+          helper={residentMessage}
+          icon="message"
+          tone={residentPendingCount > 0 ? "gold" : "green"}
+        />
         <ProductionMetricCard
           label="Kabar"
           value={String(allPortalPosts.length)}

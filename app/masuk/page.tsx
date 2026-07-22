@@ -47,9 +47,9 @@ export default function MasukWargaPage() {
               Gerbang masuk untuk fase profil rumah CGV10.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-white/82 sm:text-lg sm:leading-8">
-              portalwargacgv.id sudah siap menjadi alamat utama. Akses tulis
-              seperti pendaftaran lapak PALUGADA akan dibuka setelah warga
-              masuk dan terverifikasi.
+              Daftar dengan data rumah, lalu pengurus akan memeriksa dari
+              dashboard. Akses warga aktif setelah blok dan nomor rumah cocok
+              dengan data RT.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -81,9 +81,9 @@ export default function MasukWargaPage() {
               Login warga dibuat bertahap supaya data rumah tetap terlindungi.
             </h2>
             <p className="mt-5 text-base leading-7 text-muted">
-              Halaman ini menjadi kerangka UX sebelum pilihan backend produksi
-              dipasang. Fokusnya adalah kejelasan status, izin akses, dan
-              kebutuhan verifikasi.
+              Pendaftaran baru masuk ke antrean pengurus. Setelah disetujui,
+              akun mendapat role warga untuk membuka akses privat dan layanan
+              yang membutuhkan verifikasi.
             </p>
           </div>
 
@@ -106,9 +106,9 @@ export default function MasukWargaPage() {
 
           <div className="mt-8">
             <PlaceholderNotice>
-              Login warga memakai Supabase Auth. Setelah session aktif, menu
-              layanan, konfirmasi iuran, dan pendaftaran PALUGADA dapat dibuka
-              tanpa berputar kembali ke halaman masuk.
+              Login warga memakai Supabase Auth. Pendaftaran baru tetap
+              menunggu verifikasi pengurus sebelum akses warga terverifikasi
+              dibuka.
             </PlaceholderNotice>
           </div>
         </div>
