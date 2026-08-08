@@ -18,6 +18,7 @@ const adminRoles = new Set([
 const knownPengurusEmails = new Set([
   "dharma.doddy9@yahoo.co.uk",
   "zulhendy@gmail.com",
+  "nikodiponako7@gmail.com",
 ]);
 
 export function AdminDashboardShortcut() {
@@ -61,7 +62,7 @@ export function AdminDashboardShortcut() {
       setHelper(
         hasAdminRole
           ? `Role aktif: ${roles.join(", ")}`
-          : "Email pengurus terdeteksi. Jika admin belum terbuka, jalankan role migration di Supabase.",
+          : "Email pengurus terdeteksi. Hak akses admin belum terbaca dari sesi ini.",
       );
     }
 

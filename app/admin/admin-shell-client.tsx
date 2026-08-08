@@ -247,6 +247,9 @@ export function AdminShellClient() {
   const [portalPostFilter, setPortalPostFilter] = useState<PortalPostDashboardFilter>("all");
   const [residentPendingCount, setResidentPendingCount] = useState(0);
   const [residentMessage, setResidentMessage] = useState("Menunggu akses data warga...");
+  const [canReadBilling, setCanReadBilling] = useState(false);
+  const [canWriteBilling, setCanWriteBilling] = useState(false);
+  const [canVerifyBilling, setCanVerifyBilling] = useState(false);
 
   useEffect(() => {
     if (!supabase) {
@@ -287,6 +290,9 @@ export function AdminShellClient() {
         setPortalPostsMessage("Login diperlukan untuk membaca arsip kabar.");
         setResidentPendingCount(0);
         setResidentMessage("Login diperlukan untuk membaca pendaftaran warga.");
+        setCanReadBilling(false);
+        setCanWriteBilling(false);
+        setCanVerifyBilling(false);
         setState("not_logged_in");
         setMessage("Belum ada session login aktif.");
         return;
@@ -341,6 +347,9 @@ export function AdminShellClient() {
         setPortalPostsMessage("Role aktif tidak memiliki akses admin production.");
         setResidentPendingCount(0);
         setResidentMessage("Role aktif tidak memiliki akses data warga.");
+        setCanReadBilling(false);
+        setCanWriteBilling(false);
+        setCanVerifyBilling(false);
         setState("no_admin_role");
         setMessage("Akun aktif, tetapi belum punya role admin production.");
         return;
@@ -360,12 +369,21 @@ export function AdminShellClient() {
         setPalugadaMessage(`Permission PALUGADA gagal dimuat: ${permissionError.message}`);
         setPortalPosts([]);
         setPortalPostsMessage(`Permission kabar gagal dimuat: ${permissionError.message}`);
+        setCanReadBilling(false);
+        setCanWriteBilling(false);
+        setCanVerifyBilling(false);
       } else {
         const loadedPermissions = (permissionData ?? []) as PermissionRow[];
         const hasPalugadaRead = loadedPermissions.some((row) => row.permission === "palugada:read");
         const hasContentRead = loadedPermissions.some((row) => row.permission === "content:read");
         const hasResidentRead = loadedPermissions.some((row) => row.permission === "resident:read");
+        const hasBillingRead = loadedPermissions.some((row) => row.permission === "billing:read" || row.permission === "finance:read");
+        const hasBillingWrite = loadedPermissions.some((row) => row.permission === "billing:write");
+        const hasBillingVerify = loadedPermissions.some((row) => row.permission === "billing:verify");
         setCanReadPalugada(hasPalugadaRead);
+        setCanReadBilling(hasBillingRead);
+        setCanWriteBilling(hasBillingWrite);
+        setCanVerifyBilling(hasBillingVerify);
 
         if (hasResidentRead) {
           setResidentMessage("Memuat notifikasi pendaftaran warga...");
@@ -489,6 +507,9 @@ export function AdminShellClient() {
     setPortalPostsMessage("Login diperlukan untuk membaca arsip kabar.");
     setResidentPendingCount(0);
     setResidentMessage("Login diperlukan untuk membaca pendaftaran warga.");
+    setCanReadBilling(false);
+    setCanWriteBilling(false);
+    setCanVerifyBilling(false);
     setPortalPostFilter("all");
     setState("not_logged_in");
     setMessage("Belum ada session login aktif.");
@@ -631,6 +652,13 @@ export function AdminShellClient() {
           helper={canReadPalugada ? `${palugadaTotal} Supabase · ${localOnlyCount} katalog lokal` : "Hak akses diperlukan"}
           icon="store"
           tone="blue"
+        />
+        <ProductionMetricCard
+          label="Iuran"
+          value={canWriteBilling ? "Input manual" : canReadBilling ? "Read-only" : "Tanpa akses"}
+          helper={canVerifyBilling ? "Bisa verifikasi dan posting kas" : canReadBilling ? "Buka /admin/iuran untuk ringkasan" : "Butuh billing:read"}
+          icon="wallet"
+          tone={canWriteBilling ? "green" : canReadBilling ? "gold" : "red"}
         />
         <ProductionMetricCard label="Tampilan uji" value="Tersedia" helper="Untuk pengecekan desain" icon="building" tone="dark" />
       </section>
@@ -865,6 +893,35 @@ export function AdminShellClient() {
                 </div>
                 <span className="pt-2 font-bold text-primary group-hover:text-primary-hover">
                   Buka Kabar Portal
+                </span>
+              </div>
+            </a>
+
+            <a
+              href="/admin/iuran/"
+              className="group rounded-[16px] border border-black/8 bg-white p-4 transition-colors duration-200 hover:border-primary/25 hover:bg-primary-soft/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[12px] bg-primary-soft text-primary [&>svg]:h-5 [&>svg]:w-5">
+                  <ProductionPortalIcon />
+                </span>
+                <ProductionStatusPill>{canWriteBilling ? "Input manual aktif" : canReadBilling ? "Read-only" : "Perlu akses"}</ProductionStatusPill>
+              </div>
+              <h3 className="mt-4 text-base font-bold text-foreground">Iuran & Keuangan</h3>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                Catat transfer manual, cek konfirmasi warga, dan posting pembayaran ke kas.
+              </p>
+              <div className="mt-4 grid gap-2 border-t border-border pt-3 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-semibold text-muted">Input manual</span>
+                  <span className="font-bold text-primary">{canWriteBilling ? "Tersedia" : "Tidak aktif"}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-semibold text-muted">Hak akses</span>
+                  <span className="font-bold text-primary">billing:read/write/verify</span>
+                </div>
+                <span className="pt-2 font-bold text-primary group-hover:text-primary-hover">
+                  Buka Iuran
                 </span>
               </div>
             </a>

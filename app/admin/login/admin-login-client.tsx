@@ -94,14 +94,14 @@ export function AdminLoginClient() {
               CGV10 Portal Warga
             </Link>
             <p className="mt-10 text-xs font-bold uppercase tracking-[0.2em] text-accent">
-              Production Admin
+              Portal Pengurus
             </p>
             <h1 className="mt-4 max-w-xl text-4xl font-black leading-tight text-primary sm:text-5xl">
               Masuk ke admin operasional CGV10.
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-muted">
-              Shell ini memakai Supabase Auth client-side karena build masih static export.
-              Akses data tetap dikunci oleh RLS dan role yang tersimpan di Supabase.
+              Ruang kerja pengurus untuk mengelola informasi, layanan, dan data
+              warga sesuai kewenangan masing-masing.
             </p>
           </div>
 
@@ -112,10 +112,10 @@ export function AdminLoginClient() {
             <div className="flex items-start justify-between gap-4 border-b border-border pb-5">
               <div>
                 <h2 className="text-xl font-black text-foreground">Login admin</h2>
-                <p className="mt-1 text-sm leading-6 text-muted">Email/password Supabase.</p>
+                <p className="mt-1 text-sm leading-6 text-muted">Gunakan akun pengurus yang sudah terdaftar.</p>
               </div>
               <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-bold text-primary">
-                RLS aktif
+                Akses terlindungi
               </span>
             </div>
 
@@ -165,8 +165,7 @@ export function AdminLoginClient() {
             </button>
 
             <p className="mt-4 text-xs leading-5 text-muted">
-              Tidak ada service role key di frontend. Jika akun belum punya role admin,
-              halaman admin akan menampilkan status terlindungi.
+              Jika akun belum memiliki akses pengurus, hubungi administrator portal.
             </p>
           </form>
         </section>

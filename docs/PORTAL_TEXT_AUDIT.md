@@ -238,7 +238,7 @@ Contoh:
 
 | Saat Ini | Usulan |
 | --- | --- |
-| Struktur resmi Pengurus RT 010 / RW 021 rev.01... | Ini susunan pengurus RT 010 / RW 021 yang sedang berjalan, lengkap dengan penasehat, bidang, dan koordinator cluster. |
+| Struktur resmi Pengurus RT 010 / RW 021 rev.01... | Ini susunan pengurus RT 010 / RW 021 yang sedang berjalan, lengkap dengan pimpinan utama, bidang kerja, dan koordinator cluster. |
 | Ketua, Sekretaris, dan Bendahara. | Tiga orang yang paling sering jadi rujukan warga. |
 | Tiga peran utama tetap ditampilkan terpisah... | Biar warga tidak bingung: urusan umum ke Ketua, data dan administrasi ke Sekretaris, iuran dan kas ke Bendahara. |
 | Pimpinan utama RT 010 / RW 021 untuk koordinasi resmi warga... | Rujukan utama untuk koordinasi warga sehari-hari. |
@@ -548,4 +548,3 @@ Area yang harus tetap tenang:
 - Keamanan
 - Privasi
 - Login dan data warga
-

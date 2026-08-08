@@ -18,28 +18,28 @@ const actionTiles: {
 }[] = [
   {
     title: "Layanan Warga",
-    text: "Laporkan kendala, urus administrasi, atau kirim usulan tanpa mulai dari nol.",
+    text: "Sampaikan kendala, urus administrasi, atau bagikan usulan Anda dengan mudah demi kenyamanan bersama.",
     href: "/layanan/",
     icon: "home",
     badge: "Aksi warga",
   },
   {
     title: "PALUGADA CGV",
-    text: "Cari produk, jasa, dan lapak tetangga yang sudah masuk katalog warga.",
+    text: "Dukung usaha lokal! Temukan beragam produk, jasa, dan lapak menarik milik tetangga sendiri.",
     href: "/palugada/",
     icon: "store",
     badge: "Katalog warga",
   },
   {
     title: "Kabar Warga",
-    text: "Baca pengumuman, agenda, dan cerita kecil yang dekat dengan lingkungan.",
+    text: "Simak pengumuman penting, agenda warga, serta cerita hangat seputar lingkungan tempat tinggal kita.",
     href: "/kabar-warga/",
     icon: "calendar",
     badge: "Aktif",
   },
   {
     title: "Transparansi Keuangan",
-    text: "Cek ringkasan kas RT dan penggunaan iuran dalam bahasa yang mudah dibaca.",
+    text: "Pantau bersama penggunaan iuran dan ringkasan kas RT secara terbuka, jujur, dan mudah dipahami.",
     href: "/keuangan/",
     icon: "wallet",
     badge: "Kas RT",
@@ -101,8 +101,9 @@ export default function Home() {
               Portal Warga CGV10
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-white/78 sm:text-lg sm:leading-8">
-              Kabar lingkungan, layanan warga, kas RT, sampai lapak tetangga
-              dikumpulkan di sini, biar tidak tercecer di chat.
+              Lebih dekat, lebih peduli. Tempat kita berbagi kabar lingkungan
+              terbaru, menjaga transparansi RT, serta bersama-sama memajukan
+              lapak tetangga.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -145,7 +146,7 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/76 via-primary/18 to-primary/6" />
                 <div className="absolute left-5 right-5 top-5 flex items-center justify-between gap-3">
                   <span className="rounded-full border border-white/22 bg-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-white backdrop-blur">
-                    Kabar Hari Ini
+                    Pilihan Warga
                   </span>
                   <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-foreground">
                     CGV10
@@ -184,7 +185,7 @@ export default function Home() {
                   </div>
                   <div className="p-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent-soft">
-                      Dari Warga
+                      Kabar lingkungan
                     </p>
                     <p className="mt-2 line-clamp-2 text-base font-semibold leading-tight text-white">
                       {card.title}
@@ -213,8 +214,8 @@ export default function Home() {
                 Mau urus apa hari ini? Pilih pintunya di sini.
               </h2>
               <p className="mt-3 text-base leading-7 text-muted">
-                Dibuat pendek saja: warga cepat ketemu tujuan, pengurus juga
-                tidak perlu tanya ulang dari awal.
+                Layanan ringkas dan terintegrasi agar kebutuhan Anda cepat
+                terpenuhi dan pengurus dapat melayani dengan sepenuh hati.
               </p>
             </div>
             <span className="w-fit rounded-full border border-accent/35 bg-accent-soft px-4 py-2 text-sm font-semibold text-foreground">
@@ -246,7 +247,7 @@ export default function Home() {
                       {item.text}
                     </p>
                     <span className="mt-4 inline-flex text-sm font-semibold text-primary transition-colors duration-200 group-hover:text-primary-hover">
-                      Buka area ini
+                      Lihat selengkapnya
                     </span>
                   </div>
                 </div>
@@ -267,10 +268,11 @@ export default function Home() {
                 Info Cepat
               </p>
               <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-                Yang penting, langsung kelihatan.
+                Sekilas Info Lingkungan Kita
               </h2>
               <p className="mt-5 text-base leading-7 text-white/78">
-                Ringkasan pendek untuk cek kondisi lingkungan hari ini.
+                Ringkasan informasi penting hari ini agar kita selalu terhubung
+                dan saling peduli.
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">

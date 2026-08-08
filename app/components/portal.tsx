@@ -196,7 +196,8 @@ export function SiteFooter() {
               CGV10 - Portal Warga
             </p>
             <p className="mt-1 text-xs text-muted">
-              Info warga, layanan, dan kabar lingkungan.
+              Lebih dekat, lebih peduli. Portal CGV10 hadir untuk kebersamaan
+              dan kemajuan lingkungan kita.
             </p>
           </div>
         </div>

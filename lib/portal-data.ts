@@ -655,7 +655,7 @@ export const kabarArticles: KabarArticle[] = [
     author: "Ketua RT 010",
     publishedAt: "10 Jul 2026",
     readTime: "4 menit baca",
-    coverImageSrc: "/assets/pengurus/RT10-Official-Pengurus.png",
+    coverImageSrc: "/assets/pengurus/RT10-Official-Pengurus.jpeg",
     coverImageAlt: "Bagan susunan Kepengurusan RT 010 periode baru",
   },
   {

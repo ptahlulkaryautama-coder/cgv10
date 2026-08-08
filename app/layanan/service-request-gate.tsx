@@ -70,9 +70,8 @@ export function ServiceRequestGate() {
               yang sudah masuk.
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-foreground/78">
-              Masuk sebagai warga CGV10 agar laporan, administrasi, dan
-              aspirasi terhubung ke akun serta bisa ditindaklanjuti pengurus
-              dengan konteks yang jelas.
+              Mari masuk ke akun Anda agar setiap laporan dan aspirasi dapat
+              kami tindak lanjuti dengan lebih personal, tepat, dan transparan.
             </p>
             {state === "unconfigured" ? (
               <p className="mt-3 text-xs leading-5 text-foreground/68">

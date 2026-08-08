@@ -38,12 +38,12 @@ export default function LayananPage() {
               Meja Layanan Warga
             </p>
             <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
-              Layanan warga yang rapi, jelas, dan mudah diakses.
+              Layanan Warga yang Cepat, Ramah, dan Terbuka
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-white/84 sm:text-lg sm:leading-8">
-              Layanan CGV10 ditata sebagai pintu bantuan warga: laporan,
-              administrasi, iuran, dan aspirasi masuk ke alur yang jelas untuk
-              ditindaklanjuti pengurus.
+              Kami siap membantu setiap kebutuhan Anda. Sampaikan laporan, urus
+              administrasi, atau bagikan aspirasi Anda melalui alur yang rapi
+              untuk kenyamanan bersama.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <AuthAwareAction

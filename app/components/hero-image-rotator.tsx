@@ -2,11 +2,35 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
-type HeroImage = {
+export type HeroImage = {
   src: string;
   alt: string;
 };
+
+type HeroSettings = {
+  enabled: boolean;
+  interval_ms: number;
+  slides: HeroImage[];
+};
+
+function isHeroSettings(value: unknown): value is HeroSettings {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<HeroSettings>;
+  return (
+    typeof candidate.enabled === "boolean" &&
+    typeof candidate.interval_ms === "number" &&
+    Array.isArray(candidate.slides) &&
+    candidate.slides.every(
+      (slide) =>
+        slide &&
+        typeof slide === "object" &&
+        typeof slide.src === "string" &&
+        typeof slide.alt === "string",
+    )
+  );
+}
 
 type HeroImageRotatorProps = {
   slides: HeroImage[];
@@ -21,9 +45,41 @@ export function HeroImageRotator({
   intervalMs = 6500,
   className = "",
 }: HeroImageRotatorProps) {
-  const safeSlides = useMemo(() => slides.filter(Boolean), [slides]);
+  const [remoteSettings, setRemoteSettings] = useState<HeroSettings | null>(null);
+  const configuredSlides =
+    remoteSettings?.enabled && remoteSettings.slides.length > 0
+      ? remoteSettings.slides
+      : slides;
+  const activeInterval = remoteSettings?.enabled
+    ? remoteSettings.interval_ms
+    : intervalMs;
+  const safeSlides = useMemo(
+    () => configuredSlides.filter((slide) => slide.src.trim() && slide.alt.trim()),
+    [configuredSlides],
+  );
   const [activeIndex, setActiveIndex] = useState(0);
   const [previousIndex, setPreviousIndex] = useState<number | null>(null);
+  const safeActiveIndex = safeSlides.length > 0 ? activeIndex % safeSlides.length : 0;
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadSettings() {
+      try {
+        const supabase = getSupabaseBrowserClient();
+        const { data, error } = await supabase.rpc("get_home_hero_settings");
+        if (!mounted || error || !isHeroSettings(data)) return;
+        setRemoteSettings(data);
+      } catch {
+        // The local slides remain available when the data service is offline.
+      }
+    }
+
+    void loadSettings();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (safeSlides.length <= 1) {
@@ -31,19 +87,19 @@ export function HeroImageRotator({
     }
 
     const interval = window.setInterval(() => {
-      setPreviousIndex(activeIndex);
+      setPreviousIndex(safeActiveIndex);
       setActiveIndex((currentIndex) => (currentIndex + 1) % safeSlides.length);
       window.setTimeout(() => setPreviousIndex(null), 700);
-    }, intervalMs);
+    }, activeInterval);
 
     return () => window.clearInterval(interval);
-  }, [activeIndex, intervalMs, safeSlides.length]);
+  }, [activeInterval, safeActiveIndex, safeSlides.length]);
 
   if (safeSlides.length === 0) {
     return null;
   }
 
-  const activeSlide = safeSlides[activeIndex];
+  const activeSlide = safeSlides[safeActiveIndex];
   const previousSlide =
     previousIndex === null ? null : safeSlides[previousIndex] ?? null;
 
@@ -65,7 +121,7 @@ export function HeroImageRotator({
         src={activeSlide.src}
         alt={activeSlide.alt}
         fill
-        priority={activeIndex === 0}
+        priority={safeActiveIndex === 0}
         sizes={sizes}
         className={`${className} hero-fade-in`}
       />

@@ -10,14 +10,14 @@ import {
 } from "@/lib/cgv10-master-data";
 
 const officialChart = {
-  src: "/assets/pengurus/RT10-Official-Pengurus.png",
-  alt: "Bagan resmi Pengurus RT 010 RW 021 rev.01 termasuk Penasehat",
+  src: "/assets/pengurus/RT10-Official-Pengurus.jpeg",
+  alt: "Bagan resmi Pengurus RT 010 RW 021",
 };
 
 export const metadata: Metadata = {
   title: "Pengurus RT 010 / RW 021 | CGV10",
   description:
-    "Struktur resmi Pengurus RT 010 / RW 021 Cipta Greenville rev.01 termasuk Penasehat.",
+    "Struktur resmi Pengurus RT 010 / RW 021 Cipta Greenville.",
 };
 
 function getInitials(name: string) {
@@ -140,9 +140,8 @@ export default function PengurusPage() {
               {pengurusIdentity.title}
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-white/82 sm:text-lg sm:leading-8">
-              Struktur resmi Pengurus RT 010 / RW 021 rev.01 untuk wilayah{" "}
-              {pengurusIdentity.wilayah}, termasuk Penasehat, pimpinan utama,
-              bidang, dan koordinator cluster.
+              Pengurus wilayah {pengurusIdentity.wilayah} yang siap melayani
+              warga dengan tulus, transparan, dan penuh kebersamaan.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -162,7 +161,7 @@ export default function PengurusPage() {
                 </span>
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-soft">
-                    Bagan Resmi Rev.01
+                    Bagan Resmi
                   </p>
                   <h2 className="mt-2 text-2xl font-semibold tracking-tight">
                     Referensi struktur terbaru
@@ -174,7 +173,7 @@ export default function PengurusPage() {
                 </div>
               </div>
               <div className="grid gap-2 sm:grid-cols-3">
-                {["Penasehat", "Pimpinan", "Bidang"].map((label) => (
+                {["Pimpinan", "Bidang", "Koordinator"].map((label) => (
                   <span
                     key={label}
                     className="rounded-xl border border-white/14 bg-white/10 px-3 py-2 text-center text-sm font-semibold text-white"
@@ -193,7 +192,7 @@ export default function PengurusPage() {
           <SectionHeading
             eyebrow="Pimpinan Utama"
             title="Ketua, Sekretaris, dan Bendahara."
-            text="Tiga peran utama tetap ditampilkan terpisah agar warga mudah mengenali rujukan koordinasi harian."
+            text="Hubungi kami kapan saja. Pimpinan utama hadir untuk memastikan koordinasi harian berjalan lancar dan kebutuhan warga terpenuhi."
           />
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {pengurusLeadership.map((member, index) => (
@@ -208,11 +207,11 @@ export default function PengurusPage() {
           <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <SectionHeading
               eyebrow="Struktur Organisasi"
-              title="Bagan resmi Pengurus RT 010 / RW 021 rev.01."
-              text="Bagan resmi menjadi sumber utama struktur organisasi, termasuk Penasehat. Ini menggantikan diagram digital sebelumnya agar garis hubungan tidak membingungkan di layar kecil."
+              title="Bagan resmi Pengurus RT 010 / RW 021."
+              text="Bagan resmi menjadi sumber utama struktur organisasi. Gambar ini dipakai apa adanya agar garis koordinasi tetap jelas di layar kecil maupun besar."
             />
             <span className="w-fit rounded-full border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-foreground">
-              Termasuk Penasehat
+              File resmi RT 010
             </span>
           </div>
 
@@ -236,8 +235,8 @@ export default function PengurusPage() {
             <ImagePreview
               src={officialChart.src}
               alt={officialChart.alt}
-              title="Bagan Resmi Pengurus RT 010 / RW 021 rev.01"
-              caption="Struktur resmi termasuk Penasehat, pimpinan utama, bidang, dan koordinator cluster."
+              title="Bagan Resmi Pengurus RT 010 / RW 021"
+              caption="Struktur resmi berisi pimpinan utama, bidang kerja, dan koordinator tiap cluster."
               className="block bg-background p-3 sm:p-5"
             >
               <Image

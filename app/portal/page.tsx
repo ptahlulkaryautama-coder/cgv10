@@ -146,11 +146,12 @@ export default function PortalWargaPage() {
               Cipta Greenville - RT 010 / RW 021
             </p>
             <p className="mt-2 max-w-2xl text-2xl font-semibold leading-tight tracking-tight sm:mt-3 sm:text-4xl">
-              Yang sering dicari warga, taruh di depan.
+              Semua Kebutuhan Warga, Kini Lebih Dekat
             </p>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-white/72 sm:mt-4 sm:text-base">
-              Urus layanan, cek iuran, baca kabar, atau cari lapak warga tanpa
-              muter-muter.
+              Mulai dari urusan administrasi, laporan kas RT, kabar lingkungan,
+              hingga lapak tetangga—semua hadir dalam satu wadah yang mudah
+              diakses.
             </p>
             <div className="mt-4 flex gap-2 sm:mt-6 sm:gap-3">
               <Link

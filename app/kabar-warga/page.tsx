@@ -137,11 +137,11 @@ export default function KabarWargaPage() {
                 Kabar Warga
               </p>
               <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-                Kabar yang dekat dengan kita.
+                Kabar Hangat dari Lingkungan Kita
               </h1>
               <p className="mt-3 text-base leading-7 text-muted">
-                Pengumuman, cerita kegiatan, foto lingkungan, dan kabar kecil
-                yang sayang kalau hilang begitu saja.
+                Tempat kita saling berbagi pengumuman penting, agenda kegiatan,
+                serta cerita-cerita kecil yang mempererat kebersamaan.
               </p>
             </div>
             <span className="w-fit rounded-full border border-border bg-surface px-4 py-2 text-sm font-semibold text-muted">

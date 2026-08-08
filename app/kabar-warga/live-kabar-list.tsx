@@ -26,7 +26,7 @@ const categoryLabel: Record<LivePost["category"], string> = {
 
 function formatDate(value: string | null) {
   if (!value) {
-    return "Published";
+    return "Sudah terbit";
   }
 
   return new Intl.DateTimeFormat("id-ID", {
@@ -254,7 +254,7 @@ export function LiveKabarList() {
                 onClick={() => setExpandedImage(null)}
                 className="inline-flex min-h-9 cursor-pointer items-center justify-center rounded-xl border border-border bg-white px-4 text-sm font-semibold text-primary transition-colors duration-200 hover:border-primary/35 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
-                Close
+                Tutup
               </button>
             </div>
             <div className="max-h-[calc(92vh-58px)] overflow-auto bg-cream p-3">
@@ -300,7 +300,7 @@ export function LiveKabarList() {
                 onClick={() => setSelectedPost(null)}
                 className="inline-flex min-h-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-border bg-white px-4 text-sm font-semibold text-primary transition-colors duration-200 hover:border-primary/35 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
-                Close
+                Tutup
               </button>
             </div>
             <div className="max-h-[calc(92vh-112px)] overflow-auto px-5 py-5">

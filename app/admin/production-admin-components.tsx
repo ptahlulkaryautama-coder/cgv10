@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Icon } from "../components/portal";
 import type { IconName } from "@/lib/portal-data";
 
-export type ProductionAdminSection = "dashboard" | "warga" | "iuran" | "intake" | "palugada" | "portal-posts" | "debug";
+export type ProductionAdminSection = "dashboard" | "warga" | "iuran" | "intake" | "palugada" | "portal-posts" | "pengaturan" | "debug";
 
 type ProductionNavItem = {
   id: ProductionAdminSection | "preview" | "login";
@@ -50,6 +50,13 @@ const productionNav: ProductionNavItem[] = [
     href: "/admin/portal-posts/",
     icon: "shield",
     badge: "Live",
+  },
+  {
+    id: "pengaturan",
+    label: "Pengaturan",
+    href: "/admin/pengaturan/",
+    icon: "users",
+    badge: "Akses",
   },
   {
     id: "debug",

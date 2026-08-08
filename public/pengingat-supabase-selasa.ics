@@ -1,0 +1,21 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//CGV10//Pengingat Supabase//ID
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:supabase-check-weekly@portalwargacgv.id
+DTSTAMP:20260807T000000Z
+DTSTART;TZID=Asia/Jakarta:20260811T200000
+DTEND;TZID=Asia/Jakarta:20260811T203000
+RRULE:FREQ=WEEKLY;BYDAY=TU
+SUMMARY:Cek layanan data Portal Warga CGV10
+DESCRIPTION:Buka portal dan pastikan login serta data warga dapat digunakan. Jika Supabase sedang dijeda\, buka dashboard Supabase lalu pilih Resume project.
+URL:https://portalwargacgv.id/admin/login/
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:Pengingat cek layanan data Portal Warga CGV10
+END:VALARM
+END:VEVENT
+END:VCALENDAR

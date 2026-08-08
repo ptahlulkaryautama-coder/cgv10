@@ -16,7 +16,7 @@ export type PengurusMember = {
 };
 
 export const pengurusIdentity = {
-  title: "Struktur Kepengurusan RT 010 / RW 021",
+  title: "Pengurus RT 010 / RW 021",
   wilayah: "Tembesi Sagulung",
   lingkungan: "Cipta Greenville",
   note:
