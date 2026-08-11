@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { kabarArticles, marketplaceItems } from "@/lib/portal-data";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
@@ -38,6 +39,13 @@ type DashboardResidentRegistrationRequest = {
   id: string;
   status: "pending_review" | "approved" | "rejected" | "cancelled";
 };
+
+type DashboardServiceRequest = {
+  id: string;
+  status: "submitted";
+};
+
+const serviceNotificationStorageKey = "cgv10:admin-seen-service-requests";
 
 type PortalPostStatus = "draft" | "review" | "published" | "archived";
 type UnifiedPortalPostStatus = PortalPostStatus | "local_archive";
@@ -247,6 +255,9 @@ export function AdminShellClient() {
   const [portalPostFilter, setPortalPostFilter] = useState<PortalPostDashboardFilter>("all");
   const [residentPendingCount, setResidentPendingCount] = useState(0);
   const [residentMessage, setResidentMessage] = useState("Menunggu akses data warga...");
+  const [servicePendingCount, setServicePendingCount] = useState(0);
+  const [serviceMessage, setServiceMessage] = useState("Menunggu akses layanan...");
+  const [serviceNotificationCount, setServiceNotificationCount] = useState(0);
   const [canReadBilling, setCanReadBilling] = useState(false);
   const [canWriteBilling, setCanWriteBilling] = useState(false);
   const [canVerifyBilling, setCanVerifyBilling] = useState(false);
@@ -258,6 +269,60 @@ export function AdminShellClient() {
     const client = supabase;
 
     let mounted = true;
+    let serviceRefreshTimer: number | null = null;
+
+    function readSeenServiceRequestIds() {
+      try {
+        const stored = window.localStorage.getItem(serviceNotificationStorageKey);
+        const parsed = stored ? JSON.parse(stored) : [];
+        return new Set(Array.isArray(parsed) ? parsed.filter((value): value is string => typeof value === "string") : []);
+      } catch {
+        return new Set<string>();
+      }
+    }
+
+    function saveSeenServiceRequestIds(ids: string[]) {
+      try {
+        window.localStorage.setItem(
+          serviceNotificationStorageKey,
+          JSON.stringify(ids.slice(-200)),
+        );
+      } catch {
+        // Notifikasi tetap berjalan pada sesi ini apabila penyimpanan perangkat tidak tersedia.
+      }
+    }
+
+    async function loadServiceNotifications(announceNew: boolean) {
+      const { data, error, count } = await client
+        .from("service_requests")
+        .select("id, status", { count: "exact" })
+        .eq("status", "submitted");
+
+      if (!mounted) return;
+
+      if (error) {
+        setServicePendingCount(0);
+        setServiceMessage(`Antrean layanan gagal dimuat: ${error.message}`);
+        return;
+      }
+
+      const requests = (data ?? []) as DashboardServiceRequest[];
+      const pendingCount = count ?? requests.length;
+      setServicePendingCount(pendingCount);
+      setServiceMessage(
+        pendingCount > 0
+          ? `${pendingCount} pengajuan layanan menunggu ditinjau.`
+          : "Tidak ada pengajuan layanan baru.",
+      );
+
+      const seenIds = readSeenServiceRequestIds();
+      const unseenCount = requests.filter((request) => !seenIds.has(request.id)).length;
+      saveSeenServiceRequestIds([...seenIds, ...requests.map((request) => request.id)]);
+
+      if (announceNew && unseenCount > 0) {
+        setServiceNotificationCount(unseenCount);
+      }
+    }
 
     async function loadSessionAndRole() {
       setState("checking");
@@ -290,6 +355,9 @@ export function AdminShellClient() {
         setPortalPostsMessage("Login diperlukan untuk membaca arsip kabar.");
         setResidentPendingCount(0);
         setResidentMessage("Login diperlukan untuk membaca pendaftaran warga.");
+        setServicePendingCount(0);
+        setServiceMessage("Login diperlukan untuk membaca antrean layanan.");
+        setServiceNotificationCount(0);
         setCanReadBilling(false);
         setCanWriteBilling(false);
         setCanVerifyBilling(false);
@@ -347,6 +415,9 @@ export function AdminShellClient() {
         setPortalPostsMessage("Role aktif tidak memiliki akses admin production.");
         setResidentPendingCount(0);
         setResidentMessage("Role aktif tidak memiliki akses data warga.");
+        setServicePendingCount(0);
+        setServiceMessage("Role aktif tidak memiliki akses layanan.");
+        setServiceNotificationCount(0);
         setCanReadBilling(false);
         setCanWriteBilling(false);
         setCanVerifyBilling(false);
@@ -377,6 +448,7 @@ export function AdminShellClient() {
         const hasPalugadaRead = loadedPermissions.some((row) => row.permission === "palugada:read");
         const hasContentRead = loadedPermissions.some((row) => row.permission === "content:read");
         const hasResidentRead = loadedPermissions.some((row) => row.permission === "resident:read");
+        const hasServiceRead = loadedPermissions.some((row) => row.permission === "services:read");
         const hasBillingRead = loadedPermissions.some((row) => row.permission === "billing:read" || row.permission === "finance:read");
         const hasBillingWrite = loadedPermissions.some((row) => row.permission === "billing:write");
         const hasBillingVerify = loadedPermissions.some((row) => row.permission === "billing:verify");
@@ -384,6 +456,18 @@ export function AdminShellClient() {
         setCanReadBilling(hasBillingRead);
         setCanWriteBilling(hasBillingWrite);
         setCanVerifyBilling(hasBillingVerify);
+
+        if (hasServiceRead) {
+          await loadServiceNotifications(true);
+          if (!mounted) return;
+          serviceRefreshTimer = window.setInterval(() => {
+            void loadServiceNotifications(true);
+          }, 30_000);
+        } else {
+          setServicePendingCount(0);
+          setServiceMessage("Permission services:read diperlukan untuk melihat antrean layanan.");
+          setServiceNotificationCount(0);
+        }
 
         if (hasResidentRead) {
           setResidentMessage("Memuat notifikasi pendaftaran warga...");
@@ -483,6 +567,7 @@ export function AdminShellClient() {
 
     return () => {
       mounted = false;
+      if (serviceRefreshTimer !== null) window.clearInterval(serviceRefreshTimer);
       subscription.unsubscribe();
     };
   }, [supabase]);
@@ -507,6 +592,9 @@ export function AdminShellClient() {
     setPortalPostsMessage("Login diperlukan untuk membaca arsip kabar.");
     setResidentPendingCount(0);
     setResidentMessage("Login diperlukan untuk membaca pendaftaran warga.");
+    setServicePendingCount(0);
+    setServiceMessage("Login diperlukan untuk membaca antrean layanan.");
+    setServiceNotificationCount(0);
     setCanReadBilling(false);
     setCanWriteBilling(false);
     setCanVerifyBilling(false);
@@ -627,6 +715,39 @@ export function AdminShellClient() {
         side={<ProductionStatusPill>{state === "authorized" ? "Akses aktif" : "Memeriksa akses"}</ProductionStatusPill>}
       />
 
+      {serviceNotificationCount > 0 ? (
+        <section
+          role="status"
+          aria-live="polite"
+          aria-label="Notifikasi pengajuan layanan baru"
+          className="mb-5 flex flex-col gap-3 rounded-2xl border border-accent/45 bg-accent-soft/65 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div>
+            <p className="text-sm font-bold text-foreground">
+              Ada {serviceNotificationCount} pengajuan layanan baru.
+            </p>
+            <p className="mt-1 text-sm leading-6 text-foreground/75">
+              Buka Intake untuk meninjau dan menentukan tindak lanjutnya.
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <Link
+              href="/admin/intake/?status=submitted"
+              className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[10px] bg-primary px-4 text-sm font-bold text-white transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              Lihat Intake
+            </Link>
+            <button
+              type="button"
+              onClick={() => setServiceNotificationCount(0)}
+              className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[10px] border border-primary/20 bg-white px-4 text-sm font-bold text-primary transition-colors duration-200 hover:border-primary/40 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              Tutup
+            </button>
+          </div>
+        </section>
+      ) : null}
+
       <AdminPwaInstallCard />
 
       <section aria-label="Ringkasan admin" className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-6">
@@ -638,6 +759,13 @@ export function AdminShellClient() {
           helper={residentMessage}
           icon="message"
           tone={residentPendingCount > 0 ? "gold" : "green"}
+        />
+        <ProductionMetricCard
+          label="Layanan Baru"
+          value={String(servicePendingCount)}
+          helper={serviceMessage}
+          icon="message"
+          tone={servicePendingCount > 0 ? "gold" : "green"}
         />
         <ProductionMetricCard
           label="Kabar"
