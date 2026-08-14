@@ -344,7 +344,7 @@ export function IntakeAdminClient() {
     setMessage(
       loadedRequests.length > 0
         ? `Berhasil membaca ${loadedRequests.length} permintaan warga.`
-        : "Tidak ada intake untuk filter ini.",
+        : "Tidak ada permintaan untuk filter ini.",
     );
   }, [filter, supabase]);
 
@@ -448,7 +448,7 @@ export function IntakeAdminClient() {
               <StateBadge state={state} canReadServices={canReadServices} />
             </div>
 
-            <div className="mt-5 flex flex-wrap gap-2" aria-label="Filter status intake">
+            <div className="mt-5 flex flex-wrap gap-2" aria-label="Filter status permintaan">
               {statusFilters.map((item) => (
                 <button
                   key={item.value}

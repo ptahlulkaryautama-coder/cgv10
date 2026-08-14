@@ -104,14 +104,6 @@ const roleLabels: Record<AdminRole, string> = {
   palugada_reviewer: "Reviewer PALUGADA",
 };
 
-const roleDescriptions: Record<AdminRole, string> = {
-  super_admin: "Akses penuh untuk aktivasi admin, role, konfigurasi, dan audit.",
-  ketua_rt: "Akses pengawasan lintas modul untuk operasional RT.",
-  sekretaris: "Akses data warga, layanan, konten, dan administrasi portal.",
-  bendahara: "Akses keuangan dan konfirmasi iuran.",
-  palugada_reviewer: "Akses khusus untuk review dan moderasi submission PALUGADA.",
-};
-
 const palugadaStatusLabels: Record<DashboardPalugadaStatus, string> = {
   draft: "Draft",
   submitted: "Baru masuk",
@@ -246,7 +238,7 @@ export function AdminShellClient() {
   const [roles, setRoles] = useState<UserRoleRow[]>([]);
   const [primaryRole, setPrimaryRole] = useState<AdminRole | null>(null);
   const [palugadaListings, setPalugadaListings] = useState<DashboardPalugadaListing[]>([]);
-  const [palugadaTotal, setPalugadaTotal] = useState(0);
+  const [, setPalugadaTotal] = useState(0);
   const [canReadPalugada, setCanReadPalugada] = useState(false);
   const [palugadaMessage, setPalugadaMessage] = useState("Menunggu akses admin...");
   const [palugadaFilter, setPalugadaFilter] = useState<PalugadaDashboardFilter>("all");
@@ -254,9 +246,9 @@ export function AdminShellClient() {
   const [portalPostsMessage, setPortalPostsMessage] = useState("Menunggu akses admin...");
   const [portalPostFilter, setPortalPostFilter] = useState<PortalPostDashboardFilter>("all");
   const [residentPendingCount, setResidentPendingCount] = useState(0);
-  const [residentMessage, setResidentMessage] = useState("Menunggu akses data warga...");
+  const [, setResidentMessage] = useState("Menunggu akses data warga...");
   const [servicePendingCount, setServicePendingCount] = useState(0);
-  const [serviceMessage, setServiceMessage] = useState("Menunggu akses layanan...");
+  const [, setServiceMessage] = useState("Menunggu akses layanan...");
   const [serviceNotificationCount, setServiceNotificationCount] = useState(0);
   const [canReadBilling, setCanReadBilling] = useState(false);
   const [canWriteBilling, setCanWriteBilling] = useState(false);
@@ -607,7 +599,6 @@ export function AdminShellClient() {
   const roleNames = roles.length > 0 ? roles.map((row) => row.role).join(", ") : "Belum ada role";
   const roleLabel = primaryRole ? formatRole(primaryRole) : roleNames;
   const isSuperAdmin = primaryRole === "super_admin";
-  const isLoading = state === "checking" || state === "loading_profile";
   const allPalugadaListings = useMemo<UnifiedDashboardPalugadaListing[]>(() => {
     const supabaseNames = new Set(
       palugadaListings.map((listing) => normalizePalugadaName(listing.name)),
@@ -646,12 +637,6 @@ export function AdminShellClient() {
 
     return [...supabasePosts, ...localOnlyPosts];
   }, [portalPosts]);
-  const localOnlyCount = allPalugadaListings.filter((listing) => listing.source === "local").length;
-  const localArchivePostCount = allPortalPosts.filter((post) => post.source === "local").length;
-  const publishedPostCount = allPortalPosts.filter((post) => post.status === "published").length;
-  const archivedPostCount = allPortalPosts.filter(
-    (post) => post.status === "archived" || post.status === "local_archive",
-  ).length;
   const filteredPortalPosts = portalPostFilter === "all"
     ? allPortalPosts
     : allPortalPosts.filter((post) =>
@@ -692,26 +677,23 @@ export function AdminShellClient() {
       roleLabel={roleLabel}
       isSuperAdmin={isSuperAdmin}
       action={
-        user ? (
-          <ProductionActionButton onClick={handleLogout} primary>
-            Logout
-          </ProductionActionButton>
-        ) : (
-          <ProductionActionButton href="/admin/login/" primary>
-            Masuk
-          </ProductionActionButton>
-        )
+        <span className="hidden md:block">
+          {user ? (
+            <ProductionActionButton onClick={handleLogout} primary>
+              Logout
+            </ProductionActionButton>
+          ) : (
+            <ProductionActionButton href="/admin/login/" primary>
+              Masuk
+            </ProductionActionButton>
+          )}
+        </span>
       }
     >
       <ProductionPageIntro
         eyebrow="Cipta Greenville - RT 010 / RW 021"
-        title={
-          <>
-            Pusat Pengelolaan <br />
-            <span className="italic">Portal Warga CGV10</span>
-          </>
-        }
-        text="Lihat permintaan warga, pendaftaran PALUGADA, kabar, dan akses pengelola dari satu halaman."
+        title="Operasional hari ini"
+        text="Tinjau yang baru, lalu lanjutkan pekerjaan."
         side={<ProductionStatusPill>{state === "authorized" ? "Akses aktif" : "Memeriksa akses"}</ProductionStatusPill>}
       />
 
@@ -720,29 +702,27 @@ export function AdminShellClient() {
           role="status"
           aria-live="polite"
           aria-label="Notifikasi pengajuan layanan baru"
-          className="mb-5 flex flex-col gap-3 rounded-2xl border border-accent/45 bg-accent-soft/65 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+          className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 shadow-sm"
         >
-          <div>
+          <div className="min-w-0">
             <p className="text-sm font-bold text-foreground">
-              Ada {serviceNotificationCount} pengajuan layanan baru.
-            </p>
-            <p className="mt-1 text-sm leading-6 text-foreground/75">
-              Buka Intake untuk meninjau dan menentukan tindak lanjutnya.
+              {serviceNotificationCount} permintaan layanan baru
             </p>
           </div>
-          <div className="flex shrink-0 flex-wrap gap-2">
+          <div className="flex shrink-0 gap-2">
             <Link
               href="/admin/intake/?status=submitted"
-              className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[10px] bg-primary px-4 text-sm font-bold text-white transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[10px] bg-primary px-3 text-xs font-bold text-white transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
-              Lihat Intake
+              Lihat Permintaan
             </Link>
             <button
               type="button"
               onClick={() => setServiceNotificationCount(0)}
-              className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[10px] border border-primary/20 bg-white px-4 text-sm font-bold text-primary transition-colors duration-200 hover:border-primary/40 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              aria-label="Tutup notifikasi permintaan layanan"
+              className="inline-flex min-h-10 w-10 cursor-pointer items-center justify-center rounded-[10px] border border-amber-200 bg-white text-sm font-bold text-primary transition-colors duration-200 hover:border-primary/40 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
-              Tutup
+              ×
             </button>
           </div>
         </section>
@@ -750,52 +730,36 @@ export function AdminShellClient() {
 
       <AdminPwaInstallCard />
 
-      <section aria-label="Ringkasan admin" className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-6">
-        <ProductionMetricCard label="Akun" value={user ? "Aktif" : "Perlu masuk"} helper={visibleEmail} icon="users" />
-        <ProductionMetricCard label="Peran" value={primaryRole ? formatRole(primaryRole) : "-"} helper={roleDescriptions[primaryRole ?? "sekretaris"] ?? "Peran pengelola."} icon="shield" tone="gold" />
+      <section aria-label="Ringkasan operasional admin" className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         <ProductionMetricCard
-          label="Warga Baru"
+          label="Warga"
           value={String(residentPendingCount)}
-          helper={residentMessage}
-          icon="message"
+          helper={residentPendingCount > 0 ? "Perlu ditinjau" : "Tidak ada baru"}
+          icon="users"
           tone={residentPendingCount > 0 ? "gold" : "green"}
         />
         <ProductionMetricCard
-          label="Layanan Baru"
+          label="Permintaan"
           value={String(servicePendingCount)}
-          helper={serviceMessage}
+          helper={servicePendingCount > 0 ? "Perlu ditinjau" : "Tidak ada baru"}
           icon="message"
           tone={servicePendingCount > 0 ? "gold" : "green"}
         />
-        <ProductionMetricCard
-          label="Kabar"
-          value={String(allPortalPosts.length)}
-          helper={`${publishedPostCount} terbit - ${archivedPostCount} arsip`}
-          icon="file"
-          tone="gold"
-        />
+        <ProductionMetricCard label="Iuran" value={canVerifyBilling ? "Siap" : canReadBilling ? "Lihat" : "Terkunci"} helper={canVerifyBilling ? "Verifikasi pembayaran" : canReadBilling ? "Ringkasan iuran" : "Akses diperlukan"} icon="wallet" tone={canWriteBilling ? "green" : canReadBilling ? "gold" : "red"} />
         <ProductionMetricCard
           label="PALUGADA"
-          value={canReadPalugada ? String(allPalugadaListings.length) : "Tanpa akses"}
-          helper={canReadPalugada ? `${palugadaTotal} Supabase · ${localOnlyCount} katalog lokal` : "Hak akses diperlukan"}
+          value={canReadPalugada ? String(allPalugadaListings.length) : "Terkunci"}
+          helper={canReadPalugada ? "Lapak aktif" : "Akses diperlukan"}
           icon="store"
           tone="blue"
         />
-        <ProductionMetricCard
-          label="Iuran"
-          value={canWriteBilling ? "Input manual" : canReadBilling ? "Read-only" : "Tanpa akses"}
-          helper={canVerifyBilling ? "Bisa verifikasi dan posting kas" : canReadBilling ? "Buka /admin/iuran untuk ringkasan" : "Butuh billing:read"}
-          icon="wallet"
-          tone={canWriteBilling ? "green" : canReadBilling ? "gold" : "red"}
-        />
-        <ProductionMetricCard label="Tampilan uji" value="Tersedia" helper="Untuk pengecekan desain" icon="building" tone="dark" />
       </section>
 
       <ProductionPanel className="mb-5">
         <ProductionPanelHeader
-          title="Arsip Kabar Portal"
-          subtitle={`${portalPostsMessage} ${localArchivePostCount} arsip lokal dari folder project. Filter: ${activePortalPostFilterLabel}.`}
-          action={<ProductionActionButton href="/admin/portal-posts/">Kelola kabar</ProductionActionButton>}
+          title="Kabar"
+          subtitle={state === "authorized" ? `${filteredPortalPosts.length} kabar · ${activePortalPostFilterLabel}` : portalPostsMessage}
+          action={<ProductionActionButton href="/admin/portal-posts/">Kelola</ProductionActionButton>}
         />
         {state === "authorized" ? (
           <div className="flex gap-2 overflow-x-auto border-y border-border bg-[#f8f6f0] px-5 py-3 [scrollbar-width:thin]" aria-label="Filter status Kabar Portal">
@@ -862,9 +826,9 @@ export function AdminShellClient() {
 
       <ProductionPanel className="mb-5">
         <ProductionPanelHeader
-          title="Daftar PALUGADA"
-          subtitle={canReadPalugada ? `${allPalugadaListings.length} lapak: ${palugadaTotal} dari Supabase dan ${localOnlyCount} masih di katalog lokal. Filter: ${activePalugadaFilterLabel}.` : palugadaMessage}
-          action={canReadPalugada ? <ProductionActionButton href="/admin/palugada/">Kelola semua</ProductionActionButton> : undefined}
+          title="PALUGADA"
+          subtitle={canReadPalugada ? `${filteredPalugadaListings.length} lapak · ${activePalugadaFilterLabel}` : palugadaMessage}
+          action={canReadPalugada ? <ProductionActionButton href="/admin/palugada/">Kelola</ProductionActionButton> : undefined}
         />
         {canReadPalugada ? (
           <div className="flex gap-2 overflow-x-auto border-y border-border bg-[#f8f6f0] px-5 py-3 [scrollbar-width:thin]" aria-label="Filter status PALUGADA">
@@ -931,165 +895,66 @@ export function AdminShellClient() {
         )}
       </ProductionPanel>
 
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.8fr)]">
-        <ProductionPanel>
-          <ProductionPanelHeader
-            title="Fitur yang aktif"
-            subtitle="Kelola data yang sudah terhubung ke portal warga."
-          />
-          <div className="grid gap-3 px-5 pb-5 sm:grid-cols-2">
+      <ProductionPanel className="mb-5">
+        <ProductionPanelHeader title="Akses cepat" subtitle="Pilih pekerjaan yang ingin dibuka." />
+        <div className="grid gap-3 px-5 pb-5 sm:grid-cols-2 xl:grid-cols-4">
             <a
               href="/admin/intake/"
               className="group rounded-[16px] border border-black/8 bg-white p-4 transition-colors duration-200 hover:border-primary/25 hover:bg-primary-soft/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
-              <div className="flex items-start justify-between gap-4">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[12px] bg-primary-soft text-primary [&>svg]:h-5 [&>svg]:w-5">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-primary-soft text-primary [&>svg]:h-5 [&>svg]:w-5">
                   <ProductionPortalIcon />
                 </span>
-                <ProductionStatusPill>Data aktif</ProductionStatusPill>
+                <h3 className="text-base font-bold text-foreground">Permintaan</h3>
               </div>
-              <h3 className="mt-4 text-base font-bold text-foreground">Permintaan Warga</h3>
-              <p className="mt-2 text-sm leading-6 text-muted">
-                Lihat permintaan dari formulir layanan dan halaman kontak.
-              </p>
-              <div className="mt-4 grid gap-2 border-t border-border pt-3 text-sm">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-semibold text-muted">Status</span>
-                  <span className="font-bold text-primary">Terhubung</span>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-semibold text-muted">Hak akses</span>
-                  <span className="font-bold text-primary">services:read</span>
-                </div>
-                <span className="pt-2 font-bold text-primary group-hover:text-primary-hover">
-                  Buka Permintaan
-                </span>
-              </div>
+              <p className="mt-2 text-sm text-muted">Lihat dan tindak lanjuti.</p>
+              <span className="mt-3 block text-sm font-bold text-primary">Buka →</span>
             </a>
 
             <a
               href="/admin/palugada/"
               className="group rounded-[16px] border border-black/8 bg-white p-4 transition-colors duration-200 hover:border-primary/25 hover:bg-primary-soft/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
-              <div className="flex items-start justify-between gap-4">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[12px] bg-primary-soft text-primary [&>svg]:h-5 [&>svg]:w-5">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-primary-soft text-primary [&>svg]:h-5 [&>svg]:w-5">
                   <ProductionPortalIcon />
                 </span>
-                <ProductionStatusPill>Perlu diperiksa</ProductionStatusPill>
+                <h3 className="text-base font-bold text-foreground">PALUGADA</h3>
               </div>
-              <h3 className="mt-4 text-base font-bold text-foreground">PALUGADA</h3>
-              <p className="mt-2 text-sm leading-6 text-muted">
-                Periksa, setujui, tolak, atau sembunyikan pendaftaran lapak.
-              </p>
-              <div className="mt-4 grid gap-2 border-t border-border pt-3 text-sm">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-semibold text-muted">Status</span>
-                  <span className="font-bold text-primary">Terhubung</span>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-semibold text-muted">Hak akses</span>
-                  <span className="font-bold text-primary">palugada:read/write</span>
-                </div>
-                <span className="pt-2 font-bold text-primary group-hover:text-primary-hover">
-                  Buka PALUGADA
-                </span>
-              </div>
+              <p className="mt-2 text-sm text-muted">Periksa lapak warga.</p>
+              <span className="mt-3 block text-sm font-bold text-primary">Buka →</span>
             </a>
 
             <a
               href="/admin/portal-posts/"
               className="group rounded-[16px] border border-black/8 bg-white p-4 transition-colors duration-200 hover:border-primary/25 hover:bg-primary-soft/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
-              <div className="flex items-start justify-between gap-4">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[12px] bg-primary-soft text-primary [&>svg]:h-5 [&>svg]:w-5">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-primary-soft text-primary [&>svg]:h-5 [&>svg]:w-5">
                   <ProductionPortalIcon />
                 </span>
-                <ProductionStatusPill>Editor aktif</ProductionStatusPill>
+                <h3 className="text-base font-bold text-foreground">Kabar</h3>
               </div>
-              <h3 className="mt-4 text-base font-bold text-foreground">Kabar Portal</h3>
-              <p className="mt-2 text-sm leading-6 text-muted">
-                Tulis, periksa, tayangkan, atau arsipkan kabar warga.
-              </p>
-              <div className="mt-4 grid gap-2 border-t border-border pt-3 text-sm">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-semibold text-muted">Status</span>
-                  <span className="font-bold text-primary">Super Admin editor</span>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-semibold text-muted">Hak akses</span>
-                  <span className="font-bold text-primary">content:write</span>
-                </div>
-                <span className="pt-2 font-bold text-primary group-hover:text-primary-hover">
-                  Buka Kabar Portal
-                </span>
-              </div>
+              <p className="mt-2 text-sm text-muted">Tulis dan tayangkan.</p>
+              <span className="mt-3 block text-sm font-bold text-primary">Buka →</span>
             </a>
 
             <a
               href="/admin/iuran/"
               className="group rounded-[16px] border border-black/8 bg-white p-4 transition-colors duration-200 hover:border-primary/25 hover:bg-primary-soft/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
-              <div className="flex items-start justify-between gap-4">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[12px] bg-primary-soft text-primary [&>svg]:h-5 [&>svg]:w-5">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-primary-soft text-primary [&>svg]:h-5 [&>svg]:w-5">
                   <ProductionPortalIcon />
                 </span>
-                <ProductionStatusPill>{canWriteBilling ? "Input manual aktif" : canReadBilling ? "Read-only" : "Perlu akses"}</ProductionStatusPill>
+                <h3 className="text-base font-bold text-foreground">Iuran</h3>
               </div>
-              <h3 className="mt-4 text-base font-bold text-foreground">Iuran & Keuangan</h3>
-              <p className="mt-2 text-sm leading-6 text-muted">
-                Catat transfer manual, cek konfirmasi warga, dan posting pembayaran ke kas.
-              </p>
-              <div className="mt-4 grid gap-2 border-t border-border pt-3 text-sm">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-semibold text-muted">Input manual</span>
-                  <span className="font-bold text-primary">{canWriteBilling ? "Tersedia" : "Tidak aktif"}</span>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-semibold text-muted">Hak akses</span>
-                  <span className="font-bold text-primary">billing:read/write/verify</span>
-                </div>
-                <span className="pt-2 font-bold text-primary group-hover:text-primary-hover">
-                  Buka Iuran
-                </span>
-              </div>
+              <p className="mt-2 text-sm text-muted">Cek dan verifikasi.</p>
+              <span className="mt-3 block text-sm font-bold text-primary">Buka →</span>
             </a>
-
-            <a
-              href="/admin-preview/"
-              className="group rounded-[16px] border border-black/8 bg-white p-4 transition-colors duration-200 hover:border-primary/25 hover:bg-primary-soft/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[12px] bg-accent-soft text-foreground [&>svg]:h-5 [&>svg]:w-5">
-                  <ProductionPreviewIcon />
-                </span>
-                <ProductionStatusPill>Tampilan uji</ProductionStatusPill>
-              </div>
-              <h3 className="mt-4 text-base font-bold text-foreground">Tampilan Uji Admin</h3>
-              <p className="mt-2 text-sm leading-6 text-muted">
-                Gunakan untuk mengecek rancangan halaman dan alur kerja.
-              </p>
-              <div className="mt-4 border-t border-border pt-3">
-                <span className="text-sm font-bold text-primary group-hover:text-primary-hover">
-                  Buka tampilan uji
-                </span>
-              </div>
-            </a>
-          </div>
-        </ProductionPanel>
-
-        <ProductionPanel>
-          <ProductionPanelHeader
-            title="Akses akun"
-            subtitle="Status akun dan peran pengelola saat ini."
-          />
-          <div className="space-y-3 px-5 pb-5">
-            <InfoRow label="Status" value={isLoading ? "Memuat akses..." : message} />
-            <InfoRow label="Email" value={visibleEmail} />
-            <InfoRow label="Peran" value={roleNames} />
-            <InfoRow label="Menu pemeriksaan" value={isSuperAdmin ? "Tersedia" : "Disembunyikan"} />
-          </div>
-        </ProductionPanel>
-      </section>
+        </div>
+      </ProductionPanel>
 
       {state === "not_logged_in" ? (
         <ProtectedMessage
@@ -1116,15 +981,6 @@ export function AdminShellClient() {
         />
       ) : null}
     </ProductionAdminShell>
-  );
-}
-
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[14px] border border-black/8 bg-white p-3">
-      <p className="text-xs font-bold text-muted">{label}</p>
-      <p className="mt-1 break-words text-sm font-bold text-foreground">{value}</p>
-    </div>
   );
 }
 
@@ -1167,15 +1023,6 @@ function ProductionPortalIcon() {
     <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8">
       <path d="M12 3.5 19 6v5.2c0 4.1-2.8 7.9-7 9.3-4.2-1.4-7-5.2-7-9.3V6l7-2.5Z" />
       <path d="M8.5 10.5h7M8.5 14h5" />
-    </svg>
-  );
-}
-
-function ProductionPreviewIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8">
-      <path d="M4.5 5.5h15v11h-15z" />
-      <path d="M8 20h8M10 16.5 9.5 20M14 16.5l.5 3.5M8 9h8M8 12.5h5" />
     </svg>
   );
 }

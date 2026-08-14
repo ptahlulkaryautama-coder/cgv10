@@ -2,10 +2,14 @@ import Link from "next/link";
 import { Icon, PwaInstallGuide } from "../components/portal";
 import type { IconName } from "@/lib/portal-data";
 import { AdminDashboardShortcut } from "./admin-dashboard-shortcut";
+import { PortalMobileDashboard } from "./portal-mobile-dashboard";
+import { PortalMobileNavigation } from "./portal-mobile-navigation";
 
 type PortalAction = {
   title: string;
   text: string;
+  helper: string;
+  cta: string;
   href: string;
   icon: IconName;
   tone: "primary" | "accent" | "surface";
@@ -15,13 +19,17 @@ const primaryActions: PortalAction[] = [
   {
     title: "Layanan Warga",
     text: "Ajukan surat, laporan lingkungan, keamanan, atau urusan iuran.",
+    helper: "Ditindaklanjuti oleh pengurus RT",
+    cta: "Ajukan kebutuhan",
     href: "/layanan/#form-layanan",
     icon: "message",
-    tone: "surface",
+    tone: "primary",
   },
   {
     title: "PALUGADA CGV",
     text: "Cari produk dan jasa dari tetangga sendiri.",
+    helper: "Untuk belanja atau mencari jasa di CGV",
+    cta: "Cari lapak",
     href: "/palugada/",
     icon: "store",
     tone: "accent",
@@ -29,6 +37,8 @@ const primaryActions: PortalAction[] = [
   {
     title: "Kabar Warga",
     text: "Baca pengumuman, agenda, dan kabar yang dekat dengan kita.",
+    helper: "Untuk mengetahui info terbaru lingkungan",
+    cta: "Baca kabar",
     href: "/kabar-warga/",
     icon: "megaphone",
     tone: "surface",
@@ -36,6 +46,8 @@ const primaryActions: PortalAction[] = [
   {
     title: "Keuangan",
     text: "Cek kas RT dan catatan iuran secara ringkas.",
+    helper: "Untuk memantau informasi iuran dan kas",
+    cta: "Lihat keuangan",
     href: "/keuangan/",
     icon: "wallet",
     tone: "surface",
@@ -46,6 +58,8 @@ const secondaryActions: PortalAction[] = [
   {
     title: "Pengurus",
     text: "Lihat siapa mengurus apa, biar tidak salah pintu.",
+    helper: "Kenali struktur dan penanggung jawab RT",
+    cta: "Lihat pengurus",
     href: "/pengurus/",
     icon: "users",
     tone: "surface",
@@ -53,6 +67,8 @@ const secondaryActions: PortalAction[] = [
   {
     title: "Kontak Penting",
     text: "Pilih jalur pesan sesuai urusannya.",
+    helper: "Hubungi pihak yang tepat untuk kebutuhan Anda",
+    cta: "Buka kontak",
     href: "/kontak/",
     icon: "phone",
     tone: "surface",
@@ -60,6 +76,8 @@ const secondaryActions: PortalAction[] = [
   {
     title: "Daftar PALUGADA",
     text: "Punya usaha atau jasa? Masukkan ke katalog warga.",
+    helper: "Untuk warga yang ingin menawarkan produk atau jasa",
+    cta: "Daftarkan lapak",
     href: "/masuk/?next=/palugada/daftar/",
     icon: "briefcase",
     tone: "surface",
@@ -84,10 +102,10 @@ function ArrowIcon() {
 function ActionTile({ action }: { action: PortalAction }) {
   const toneClass = {
     primary:
-      "border-primary/20 bg-primary text-white shadow-[0_18px_50px_rgba(0,61,52,0.22)]",
+      "border-primary bg-primary text-white shadow-[0_14px_30px_rgba(0,61,52,0.22)]",
     accent:
-      "border-accent/45 bg-accent-soft text-foreground shadow-[0_18px_45px_rgba(212,175,55,0.18)]",
-    surface: "border-border bg-surface text-foreground shadow-sm",
+      "border-accent bg-accent-soft text-foreground shadow-[0_10px_24px_rgba(212,175,55,0.13)]",
+    surface: "border-[#c8d0c9] bg-surface text-foreground shadow-[0_6px_18px_rgba(0,61,52,0.06)]",
   }[action.tone];
 
   const iconClass = {
@@ -101,19 +119,23 @@ function ActionTile({ action }: { action: PortalAction }) {
   return (
     <Link
       href={action.href}
-      className={`group grid min-h-32 cursor-pointer rounded-xl border p-3 transition-colors duration-200 hover:border-primary/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-h-40 sm:rounded-2xl sm:p-4 ${toneClass}`}
+      className={`group flex min-h-30 cursor-pointer flex-col rounded-xl border p-4 transition-colors duration-200 hover:border-primary hover:shadow-[0_10px_24px_rgba(0,61,52,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-h-32 sm:rounded-2xl ${toneClass}`}
     >
       <div className="flex items-start justify-between gap-4">
-        <span className={`grid h-10 w-10 place-items-center rounded-lg sm:h-12 sm:w-12 sm:rounded-xl ${iconClass}`}>
+        <span className={`grid h-10 w-10 place-items-center rounded-lg sm:h-11 sm:w-11 sm:rounded-xl ${iconClass}`}>
           <Icon name={action.icon} />
         </span>
-        <span className="hidden h-9 w-9 place-items-center rounded-full border border-current/15 text-current transition-colors duration-200 group-hover:bg-current/8 sm:grid">
+        <span className="grid h-9 w-9 place-items-center rounded-full border border-current/25 text-current transition-colors duration-200 group-hover:bg-current/10">
           <ArrowIcon />
         </span>
       </div>
-      <div className="mt-3 sm:mt-5">
-        <h2 className="text-sm font-semibold tracking-tight sm:text-lg">{action.title}</h2>
-        <p className={`mt-1.5 line-clamp-2 text-xs leading-5 sm:mt-2 sm:text-sm sm:leading-6 ${textClass}`}>{action.text}</p>
+      <div className="mt-3">
+        <h2 className="text-[0.95rem] font-semibold tracking-tight sm:text-base">{action.title}</h2>
+        <p className={`mt-1.5 text-sm leading-5 sm:leading-6 ${textClass}`}>{action.text}</p>
+      </div>
+      <div className={`mt-auto pt-3 text-xs font-medium leading-5 ${textClass}`}>
+        <span className="block">{action.helper}</span>
+        <span className="mt-1 block font-semibold text-current">{action.cta} →</span>
       </div>
     </Link>
   );
@@ -121,9 +143,11 @@ function ActionTile({ action }: { action: PortalAction }) {
 
 export default function PortalWargaPage() {
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <>
+      <PortalMobileDashboard />
+      <main className="hidden min-h-screen bg-background text-foreground md:block">
       <section className="bg-primary px-4 pb-6 pt-4 text-white sm:px-6 sm:pb-8 sm:pt-5 lg:px-8">
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-6xl">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-soft">
@@ -141,30 +165,29 @@ export default function PortalWargaPage() {
             </Link>
           </div>
 
-          <div className="mt-5 rounded-2xl border border-white/14 bg-white/10 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.22)] backdrop-blur sm:mt-8 sm:p-5">
-            <p className="text-sm font-medium text-white/72">
-              Cipta Greenville - RT 010 / RW 021
+          <div className="mt-5 max-w-3xl rounded-2xl border border-white/18 bg-white/10 p-5 shadow-[0_18px_44px_rgba(0,0,0,0.18)] sm:mt-6 sm:p-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent-soft">
+              Untuk seluruh warga CGV10
             </p>
-            <p className="mt-2 max-w-2xl text-2xl font-semibold leading-tight tracking-tight sm:mt-3 sm:text-4xl">
-              Semua Kebutuhan Warga, Kini Lebih Dekat
+            <p className="mt-3 max-w-2xl text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
+              Apa yang ingin Anda lakukan hari ini?
             </p>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/72 sm:mt-4 sm:text-base">
-              Mulai dari urusan administrasi, laporan kas RT, kabar lingkungan,
-              hingga lapak tetangga—semua hadir dalam satu wadah yang mudah
-              diakses.
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/78 sm:mt-4 sm:text-base">
+              Pilih kebutuhan Anda di bawah. Setiap pintu menjelaskan tujuan,
+              langkah berikutnya, dan pihak yang akan membantu.
             </p>
-            <div className="mt-4 flex gap-2 sm:mt-6 sm:gap-3">
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/layanan/#form-layanan"
-                className="inline-flex min-h-11 flex-1 cursor-pointer items-center justify-center rounded-xl bg-accent px-4 text-sm font-semibold text-foreground transition-colors duration-200 hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft focus-visible:ring-offset-2 focus-visible:ring-offset-primary sm:flex-none sm:px-5"
+                className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-accent px-4 text-sm font-semibold text-foreground shadow-sm transition-colors duration-200 hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft focus-visible:ring-offset-2 focus-visible:ring-offset-primary sm:px-5"
               >
-                Ajukan layanan
+                Saya perlu bantuan pengurus
               </Link>
               <Link
                 href="/palugada/"
-                className="inline-flex min-h-11 flex-1 cursor-pointer items-center justify-center rounded-xl border border-white/18 bg-white/10 px-4 text-sm font-semibold text-white transition-colors duration-200 hover:bg-white/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary sm:flex-none sm:px-5"
+                className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-white/35 bg-transparent px-4 text-sm font-semibold text-white transition-colors duration-200 hover:bg-white/12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary sm:px-5"
               >
-                Cari lapak warga
+                Saya cari produk atau jasa
               </Link>
             </div>
           </div>
@@ -173,9 +196,20 @@ export default function PortalWargaPage() {
         </div>
       </section>
 
-      <section className="px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-        <div className="mx-auto max-w-5xl">
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+      <section className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+              Pilih kebutuhan
+            </p>
+            <h2 className="mt-2 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+              Semua pintu utama, tanpa perlu menebak.
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-muted">
+              Mulai dari satu kebutuhan yang paling sesuai; Anda selalu bisa kembali ke portal ini.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
             {primaryActions.map((action) => (
               <ActionTile key={action.title} action={action} />
             ))}
@@ -192,7 +226,7 @@ export default function PortalWargaPage() {
                 </h2>
               </div>
             </div>
-            <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
               {secondaryActions.map((action) => (
                 <Link
                   key={action.title}
@@ -214,6 +248,8 @@ export default function PortalWargaPage() {
           <PwaInstallGuide compact />
         </div>
       </section>
-    </main>
+      </main>
+      <PortalMobileNavigation />
+    </>
   );
 }

@@ -1,10 +1,5 @@
 import type { Metadata } from "next";
-import {
-  Icon,
-  PageShell,
-  SectionHeading,
-} from "../components/portal";
-import { AuthAwareAction } from "../components/auth-aware-action";
+import { PageShell, SectionHeading } from "../components/portal";
 import { DuesConfirmationGate } from "./dues-confirmation-gate";
 import {
   financeTotals,
@@ -21,35 +16,54 @@ const reportTitle = "Laporan Keuangan RT 010";
 const reportSubtitle = "Perumahan Cipta Green Ville";
 const reportPeriod = "Januari-Juni 2026";
 const reportStatus = "Ringkasan Pengurus";
-const totalAvailableFunds = financeTotals.openingBalance + financeTotals.income;
-const maxExpense = Math.max(...transactions.map((item) => item.subtotal));
 
-const summaryCards = [
+const financeSummary = [
   {
     title: "Saldo Awal",
     value: financeTotals.openingBalance,
-    detail: "Saldo yang menjadi dasar laporan periode ini.",
-    icon: "wallet",
+    tone: "bg-[#dce8f1] text-[#2f6f9f]",
   },
   {
-    title: "Pemasukan Januari-Juni 2026",
+    title: "Pemasukan",
     value: financeTotals.income,
-    detail: "Dana masuk yang tercatat pada periode laporan.",
-    icon: "message",
+    tone: "bg-[#dcefe4] text-[#25775f]",
   },
   {
-    title: "Pengeluaran Januari-Juni 2026",
+    title: "Total tersedia",
+    value: financeTotals.openingBalance + financeTotals.income,
+    tone: "bg-[#e5ebef] text-[#24465e]",
+  },
+  {
+    title: "Pengeluaran",
     value: financeTotals.expense,
-    detail: "Total belanja lingkungan yang dirinci di bawah.",
-    icon: "file",
+    tone: "bg-[#fae8d8] text-[#bd6a1d]",
   },
   {
-    title: "Saldo Akhir per Juni 2026",
+    title: "Saldo akhir",
     value: financeTotals.endingBalance,
-    detail: "Sisa kas sesuai ringkasan pengurus.",
-    icon: "shield",
+    tone: "bg-[#f4dfdf] text-[#b34848]",
   },
 ] as const;
+
+const expenseCategories = [
+  { label: "Kegiatan & konsumsi", value: 4750000, color: "#2f6f9f" },
+  { label: "Panitia & kas RW", value: 3800000, color: "#4d87c2" },
+  { label: "Apresiasi", value: 2000000, color: "#61ae78" },
+  { label: "Administrasi & perlengkapan", value: 150000, color: "#d78f21" },
+  { label: "Sumbangan & transportasi", value: 300000, color: "#c75550" },
+] as const;
+
+const expenseDonutBackground = (() => {
+  let start = 0;
+  const segments = expenseCategories.map((category) => {
+    const end = start + (category.value / financeTotals.expense) * 100;
+    const segment = `${category.color} ${start}% ${end}%`;
+    start = end;
+    return segment;
+  });
+
+  return `conic-gradient(${segments.join(", ")})`;
+})();
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("id-ID", {
@@ -63,17 +77,29 @@ function formatNumber(value: number) {
   return new Intl.NumberFormat("id-ID").format(value);
 }
 
+function formatPercentage(value: number) {
+  return new Intl.NumberFormat("id-ID", {
+    maximumFractionDigits: 1,
+  }).format((value / financeTotals.expense) * 100);
+}
+
 export default function KeuanganPage() {
   return (
     <PageShell>
-      <section className="border-b border-border bg-primary text-white">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-20 xl:px-10">
-          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
-            <div>
+      <section className="relative isolate overflow-hidden border-b border-primary-hover bg-primary text-white">
+        <div aria-hidden="true" className="absolute inset-0 overflow-hidden opacity-40">
+          <div className="absolute -right-20 -top-24 h-80 w-80 rounded-full border-[28px] border-accent/30" />
+          <div className="absolute right-[17%] top-10 h-32 w-32 rounded-full border border-white/20" />
+          <div className="absolute bottom-0 right-0 h-24 w-[52%] border-l border-t border-white/10" />
+          <div className="absolute bottom-16 right-[34%] h-3 w-3 rounded-full bg-accent" />
+          <div className="absolute bottom-24 right-[42%] h-2 w-2 rounded-full bg-white/60" />
+        </div>
+        <div className="relative mx-auto max-w-7xl px-4 py-11 sm:px-6 lg:px-8 lg:py-16 xl:px-10">
+          <div className="max-w-3xl">
               <p className="text-sm font-semibold uppercase tracking-[0.16em] text-accent-soft">
                 Periode Laporan
               </p>
-              <h1 className="mt-5 text-3xl font-semibold tracking-tight text-white sm:text-5xl">
+              <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-5xl">
                 {reportTitle}
               </h1>
               <p className="mt-4 text-lg font-semibold text-white/88">
@@ -86,191 +112,65 @@ export default function KeuanganPage() {
                 <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white">
                   {reportStatus}
                 </span>
+                <a
+                  href="#konfirmasi-iuran"
+                  className="inline-flex min-h-9 items-center gap-2 rounded-full border border-white/25 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+                >
+                  Konfirmasi iuran
+                  <span aria-hidden="true">↓</span>
+                </a>
               </div>
-            </div>
-
-            <div className="rounded-2xl border border-white/14 bg-white/10 p-5 shadow-[0_24px_70px_rgba(0,0,0,0.18)]">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-soft">
-                Saldo akhir per Juni 2026
-              </p>
-              <p className="mt-3 text-4xl font-semibold tracking-tight text-white">
-                {formatCurrency(financeTotals.endingBalance)}
-              </p>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-white/78">
-                Angka di halaman ini mengikuti ringkasan pengurus untuk periode
-                yang tercantum. Grafik hanya membantu membaca alurnya; rincian
-                tetap ada di tabel transaksi.
-              </p>
-            </div>
           </div>
         </div>
       </section>
 
       <section className="border-y border-border bg-surface">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 xl:px-10">
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {summaryCards.map((item) => (
-              <article
-                key={item.title}
-                className="rounded-2xl border border-border bg-background p-5 shadow-sm"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-primary-soft text-primary">
-                    <Icon name={item.icon} />
-                  </div>
-                  <span className="rounded-full bg-accent-soft px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-foreground">
-                    RT 010
-                  </span>
-                </div>
-                <h2 className="mt-5 text-sm font-semibold text-muted">
-                  {item.title}
-                </h2>
-                <p className="mt-2 text-2xl font-semibold tracking-tight text-primary">
-                  {formatCurrency(item.value)}
-                </p>
-                <p className="mt-3 text-sm leading-6 text-muted">
-                  {item.detail}
-                </p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-background">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 xl:px-10">
           <SectionHeading
-            eyebrow="Visual Laporan"
-            title="Alur dana periode Januari-Juni 2026."
-            text="Grafik ini membantu membaca angka. Rincian lengkapnya tetap ada di tabel transaksi."
+            eyebrow="Laporan Keuangan"
+            title="Ringkasan kas."
+            text={`${reportPeriod} · angka utama dan komposisi pengeluaran.`}
           />
 
-          <div className="mt-10 grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
-            <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-semibold text-foreground">
-                    Diagram Dana Tersedia
-                  </h2>
-                  <p className="mt-2 text-sm leading-6 text-muted">
-                    Saldo awal ditambah pemasukan periode berjalan, lalu
-                    dikurangi pengeluaran resmi.
-                  </p>
+          <dl className="mt-8 grid overflow-hidden rounded-2xl border border-border bg-background sm:grid-cols-2 lg:grid-cols-5">
+            {financeSummary.map((item) => (
+              <div key={item.title} className={`min-h-28 border-b border-border p-5 last:border-b-0 sm:[&:nth-child(odd)]:border-r lg:min-h-32 lg:border-b-0 lg:border-r lg:last:border-r-0 ${item.tone}`}>
+                <dt className="text-xs font-semibold uppercase tracking-[0.12em]">{item.title}</dt>
+                <dd className="mt-4 text-xl font-semibold tracking-tight sm:text-2xl">{formatCurrency(item.value)}</dd>
+              </div>
+            ))}
+          </dl>
+
+          <article className="mt-8 rounded-2xl border border-border bg-background p-5 shadow-sm sm:p-7">
+            <div>
+              <h2 className="text-xl font-semibold text-foreground">Rincian pengeluaran</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">Dikelompokkan dalam lima kategori agar lebih mudah dibaca.</p>
+            </div>
+
+            <div className="mt-8 grid gap-9 lg:grid-cols-[minmax(14rem,0.65fr)_minmax(0,1.35fr)] lg:items-center">
+              <div className="mx-auto grid h-56 w-56 place-items-center rounded-full p-7 sm:h-64 sm:w-64" style={{ backgroundImage: expenseDonutBackground }} role="img" aria-label={`Komposisi total pengeluaran ${formatCurrency(financeTotals.expense)} dalam lima kategori.`}>
+                <div className="grid h-full w-full place-items-center rounded-full bg-background text-center shadow-inner">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.13em] text-muted">Total</p>
+                    <p className="mt-2 text-xl font-semibold tracking-tight text-primary sm:text-2xl">{formatCurrency(financeTotals.expense)}</p>
+                  </div>
                 </div>
-                <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary">
-                  {reportPeriod}
-                </span>
               </div>
 
-              <div className="mt-8 grid gap-4">
-                {[
-                  ["Saldo Awal", financeTotals.openingBalance, "bg-primary"],
-                  ["Pemasukan", financeTotals.income, "bg-emerald-600"],
-                ].map(([label, value, color]) => (
-                  <div key={label as string}>
-                    <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-                      <span className="font-semibold text-foreground">
-                        {label}
-                      </span>
-                      <span className="font-semibold text-primary">
-                        {formatCurrency(value as number)}
-                      </span>
+              <dl className="divide-y divide-border">
+                {expenseCategories.map((category) => (
+                  <div key={category.label} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 py-4 first:pt-0 last:pb-0">
+                    <span className="h-3.5 w-3.5 rounded-full" style={{ backgroundColor: category.color }} aria-hidden="true" />
+                    <div>
+                      <dt className="font-semibold text-foreground">{category.label}</dt>
+                      <dd className="mt-1 text-sm text-muted">{formatCurrency(category.value)}</dd>
                     </div>
-                    <div className="h-4 overflow-hidden rounded-full bg-primary-soft">
-                      <div
-                        className={`h-full rounded-full ${color}`}
-                        style={{
-                          width: `${((value as number) / totalAvailableFunds) * 100}%`,
-                        }}
-                      />
-                    </div>
+                    <span className="text-sm font-semibold text-primary">{formatPercentage(category.value)}%</span>
                   </div>
                 ))}
-
-                <div className="rounded-2xl border border-primary/15 bg-background p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <p className="text-sm font-semibold text-muted">
-                      Total dana tersedia
-                    </p>
-                    <p className="text-lg font-semibold text-primary">
-                      {formatCurrency(totalAvailableFunds)}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-                    <span className="font-semibold text-foreground">
-                      Pengeluaran
-                    </span>
-                    <span className="font-semibold text-red-700">
-                      {formatCurrency(financeTotals.expense)}
-                    </span>
-                  </div>
-                  <div className="h-4 overflow-hidden rounded-full bg-red-50">
-                    <div
-                      className="h-full rounded-full bg-red-700"
-                      style={{
-                        width: `${(financeTotals.expense / totalAvailableFunds) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-accent/35 bg-accent-soft p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <p className="text-sm font-semibold text-foreground">
-                      Saldo akhir
-                    </p>
-                    <p className="text-2xl font-semibold text-primary">
-                      {formatCurrency(financeTotals.endingBalance)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </article>
-
-            <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-semibold text-foreground">
-                    Grafik Pengeluaran
-                  </h2>
-                  <p className="mt-2 text-sm leading-6 text-muted">
-                    Panjang bar hanya menunjukkan perbandingan nominal antar
-                    item, bukan angka tambahan.
-                  </p>
-                </div>
-                <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
-                  Total {formatCurrency(financeTotals.expense)}
-                </span>
-              </div>
-
-              <div className="mt-8 grid gap-4">
-                {transactions.map((item, index) => (
-                  <div key={item.description}>
-                    <div className="mb-2 grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-                      <p className="min-w-0 text-sm font-semibold text-foreground">
-                        {index + 1}. {item.shortLabel}
-                      </p>
-                      <p className="text-sm font-semibold text-primary">
-                        {formatCurrency(item.subtotal)}
-                      </p>
-                    </div>
-                    <div className="h-3 overflow-hidden rounded-full bg-primary-soft">
-                      <div
-                        className="h-full rounded-full bg-primary"
-                        style={{
-                          width: `${(item.subtotal / maxExpense) * 100}%`,
-                          backgroundColor: item.color,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </article>
-          </div>
+              </dl>
+            </div>
+          </article>
         </div>
       </section>
 
@@ -379,32 +279,6 @@ export default function KeuanganPage() {
                 </tfoot>
               </table>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="border-y border-border bg-surface">
-        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 xl:px-10">
-          <div className="grid gap-5 rounded-2xl border border-border bg-background p-5 shadow-sm lg:grid-cols-[1fr_auto] lg:items-center">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">
-                Iuran Warga
-              </p>
-              <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                Sudah bayar iuran? Kirim buktinya di sini.
-              </h2>
-              <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
-                Isi nama, rumah, periode, nominal, dan bukti bayar sekali saja,
-                supaya bendahara bisa cocokkan tanpa tebak-tebakan.
-              </p>
-            </div>
-            <AuthAwareAction
-              href="/keuangan/#konfirmasi-iuran"
-              guestHref="/masuk/?next=/keuangan/%23konfirmasi-iuran"
-              guestLabel="Masuk untuk konfirmasi"
-              authenticatedLabel="Konfirmasi iuran"
-              className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-            />
           </div>
         </div>
       </section>

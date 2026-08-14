@@ -29,6 +29,19 @@ type AdminAccessRow = {
   last_sign_in_at: string | null;
   created_at: string;
 };
+type AdminInviteRow = {
+  id: string;
+  email: string;
+  role: ManagedRole;
+  status: "invited" | "active" | "suspended";
+  note: string | null;
+  created_at: string;
+};
+type AdminInviteForm = {
+  email: string;
+  role: ManagedRole;
+  note: string;
+};
 
 const managedRoles: Array<{ role: ManagedRole; label: string }> = [
   { role: "ketua_rt", label: "Ketua RT" },
@@ -41,6 +54,12 @@ const defaultHeroSettings: HeroSettings = {
   enabled: true,
   interval_ms: 6500,
   slides: [],
+};
+
+const defaultAdminInviteForm: AdminInviteForm = {
+  email: "",
+  role: "sekretaris",
+  note: "",
 };
 
 function parseHeroSettings(value: unknown): HeroSettings {
@@ -136,6 +155,11 @@ export function AdminSettingsClient() {
   const [user, setUser] = useState<User | null>(null);
   const [roles, setRoles] = useState<AdminRole[]>([]);
   const [admins, setAdmins] = useState<AdminAccessRow[]>([]);
+  const [adminInvites, setAdminInvites] = useState<AdminInviteRow[]>([]);
+  const [adminInviteForm, setAdminInviteForm] = useState<AdminInviteForm>(defaultAdminInviteForm);
+  const [adminInviteMessage, setAdminInviteMessage] = useState("");
+  const [isSavingAdminInvite, setIsSavingAdminInvite] = useState(false);
+  const [updatingInviteId, setUpdatingInviteId] = useState<string | null>(null);
   const [permissions, setPermissions] = useState<PermissionRow[]>([]);
   const [message, setMessage] = useState("Memuat pengaturan akses...");
   const [savingKey, setSavingKey] = useState<string | null>(null);
@@ -170,7 +194,7 @@ export function AdminSettingsClient() {
     setRoles(loadedRoles);
 
     const isLoadedSuperAdmin = loadedRoles.includes("super_admin");
-    const [{ data: overviewData, error: overviewError }, permissionResult, heroResult] = await Promise.all([
+    const [{ data: overviewData, error: overviewError }, permissionResult, heroResult, inviteResult] = await Promise.all([
       supabase.rpc("get_admin_access_overview"),
       isLoadedSuperAdmin
         ? supabase
@@ -179,6 +203,13 @@ export function AdminSettingsClient() {
             .in("role", managedRoles.map((item) => item.role))
         : Promise.resolve({ data: [], error: null }),
       supabase.rpc("get_home_hero_settings"),
+      isLoadedSuperAdmin
+        ? supabase
+            .from("admin_invites")
+            .select("id, email, role, status, note, created_at")
+            .in("role", managedRoles.map((item) => item.role))
+            .order("created_at", { ascending: false })
+        : Promise.resolve({ data: [], error: null }),
     ]);
 
     if (overviewError) {
@@ -191,8 +222,14 @@ export function AdminSettingsClient() {
       return;
     }
 
+    if (inviteResult.error) {
+      setMessage(inviteResult.error.message);
+      return;
+    }
+
     setAdmins((overviewData ?? []) as AdminAccessRow[]);
     setPermissions((permissionResult.data ?? []) as PermissionRow[]);
+    setAdminInvites((inviteResult.data ?? []) as AdminInviteRow[]);
     if (heroResult.error) {
       setHeroMessage("Pengaturan slideshow belum tersedia. Jalankan migration terbaru terlebih dahulu.");
     } else {
@@ -240,6 +277,65 @@ export function AdminSettingsClient() {
     await loadData();
     setMessage(`${permission} untuk ${roleLabel(role)} sudah diperbarui.`);
     setSavingKey(null);
+  }
+
+  async function createAdminInvite(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!user || !isSuperAdmin) return;
+
+    const email = adminInviteForm.email.trim().toLowerCase();
+    const note = adminInviteForm.note.trim();
+    if (!email) {
+      setAdminInviteMessage("Masukkan email calon admin.");
+      return;
+    }
+
+    if (adminInvites.some((invite) => invite.email.toLowerCase() === email && invite.role === adminInviteForm.role && invite.status !== "suspended")) {
+      setAdminInviteMessage("Email ini sudah memiliki undangan aktif untuk role tersebut.");
+      return;
+    }
+
+    setIsSavingAdminInvite(true);
+    setAdminInviteMessage("Menyimpan calon admin...");
+    const { error } = await supabase.from("admin_invites").insert({
+      email,
+      role: adminInviteForm.role,
+      status: "invited",
+      note: note || null,
+      invited_by: user.id,
+    });
+    setIsSavingAdminInvite(false);
+
+    if (error) {
+      setAdminInviteMessage(error.message);
+      return;
+    }
+
+    setAdminInviteForm(defaultAdminInviteForm);
+    setAdminInviteMessage(`Undangan untuk ${email} disimpan. Role aktif saat akun didaftarkan.`);
+    await loadData();
+  }
+
+  async function updateAdminInvite(
+    invite: AdminInviteRow,
+    changes: Partial<Pick<AdminInviteRow, "role" | "status">>,
+  ) {
+    if (!isSuperAdmin) return;
+    setUpdatingInviteId(invite.id);
+    setAdminInviteMessage("Memperbarui undangan admin...");
+    const { error } = await supabase
+      .from("admin_invites")
+      .update(changes)
+      .eq("id", invite.id);
+    setUpdatingInviteId(null);
+
+    if (error) {
+      setAdminInviteMessage(error.message);
+      return;
+    }
+
+    setAdminInviteMessage(`Undangan ${invite.email} sudah diperbarui.`);
+    await loadData();
   }
 
   function updateHeroSlide(index: number, field: keyof HeroSlide, value: string) {
@@ -459,12 +555,12 @@ export function AdminSettingsClient() {
       </ProductionPanel>
 
       <ProductionPanel className="mt-5">
-            <ProductionPanelHeader
-              title="Admin yang sudah login"
-              subtitle="Diurutkan berdasarkan aktivitas masuk terbaru."
-            />
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[820px] border-t border-border text-left text-sm">
+        <ProductionPanelHeader
+          title="Admin yang sudah login"
+          subtitle="Diurutkan berdasarkan aktivitas masuk terbaru."
+        />
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[820px] border-t border-border text-left text-sm">
                 <thead className="bg-cream text-xs uppercase tracking-[0.12em] text-muted">
                   <tr>
                     <th className="px-4 py-3">Admin</th>
@@ -503,12 +599,126 @@ export function AdminSettingsClient() {
                     </tr>
                   ) : null}
                 </tbody>
-              </table>
-            </div>
+          </table>
+        </div>
       </ProductionPanel>
 
       {isSuperAdmin ? (
         <>
+          <ProductionPanel className="mt-5">
+            <ProductionPanelHeader
+              title="Tambah admin"
+              subtitle="Simpan email dan role calon pengurus. Saat pemilik email mendaftar melalui halaman Masuk Warga, role admin diberikan otomatis."
+            />
+            <div className="border-t border-border p-4 sm:p-5">
+              <form onSubmit={(event) => void createAdminInvite(event)} className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_minmax(0,1fr)_auto] lg:items-end">
+                <label className="grid gap-1.5 text-sm font-bold text-foreground">
+                  Email calon admin
+                  <input
+                    type="email"
+                    required
+                    autoComplete="email"
+                    value={adminInviteForm.email}
+                    onChange={(event) => setAdminInviteForm((current) => ({ ...current, email: event.target.value }))}
+                    disabled={isSavingAdminInvite}
+                    placeholder="nama@email.com"
+                    className="min-h-11 rounded-xl border border-border bg-white px-3 font-medium outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
+                  />
+                </label>
+                <label className="grid gap-1.5 text-sm font-bold text-foreground">
+                  Role
+                  <select
+                    value={adminInviteForm.role}
+                    onChange={(event) => setAdminInviteForm((current) => ({ ...current, role: event.target.value as ManagedRole }))}
+                    disabled={isSavingAdminInvite}
+                    className="min-h-11 cursor-pointer rounded-xl border border-border bg-white px-3 font-medium outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
+                  >
+                    {managedRoles.map((item) => <option key={item.role} value={item.role}>{item.label}</option>)}
+                  </select>
+                </label>
+                <label className="grid gap-1.5 text-sm font-bold text-foreground">
+                  Catatan <span className="font-medium text-muted">(opsional)</span>
+                  <input
+                    type="text"
+                    maxLength={280}
+                    value={adminInviteForm.note}
+                    onChange={(event) => setAdminInviteForm((current) => ({ ...current, note: event.target.value }))}
+                    disabled={isSavingAdminInvite}
+                    placeholder="Contoh: Pengganti bendahara periode 2026"
+                    className="min-h-11 rounded-xl border border-border bg-white px-3 font-medium outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
+                  />
+                </label>
+                <ProductionActionButton type="submit" disabled={isSavingAdminInvite} primary>
+                  {isSavingAdminInvite ? "Menyimpan..." : "Simpan admin"}
+                </ProductionActionButton>
+              </form>
+              <p className="mt-3 text-xs font-semibold leading-5 text-muted" aria-live="polite">
+                {adminInviteMessage || "Super Admin tidak dapat ditambahkan dari panel ini untuk menjaga akses tertinggi tetap terkendali."}
+              </p>
+            </div>
+          </ProductionPanel>
+
+          <ProductionPanel className="mt-5">
+            <ProductionPanelHeader
+              title="Calon admin"
+              subtitle="Kelola role atau nonaktifkan undangan sebelum akun dibuat."
+            />
+            <div className="overflow-x-auto border-t border-border">
+              <table className="w-full min-w-[720px] text-left text-sm">
+                <thead className="bg-cream text-xs uppercase tracking-[0.12em] text-muted">
+                  <tr>
+                    <th className="px-4 py-3">Email</th>
+                    <th className="px-4 py-3">Role</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Catatan</th>
+                    <th className="px-4 py-3">Ditambahkan</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {adminInvites.map((invite) => {
+                    const isUpdating = updatingInviteId === invite.id;
+                    return (
+                      <tr key={invite.id} className="bg-white">
+                        <td className="px-4 py-3 font-semibold text-foreground">{invite.email}</td>
+                        <td className="px-4 py-3">
+                          <select
+                            value={invite.role}
+                            onChange={(event) => void updateAdminInvite(invite, { role: event.target.value as ManagedRole })}
+                            disabled={isUpdating}
+                            aria-label={`Ubah role ${invite.email}`}
+                            className="min-h-9 cursor-pointer rounded-lg border border-border bg-white px-2 text-xs font-semibold text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
+                          >
+                            {managedRoles.map((item) => <option key={item.role} value={item.role}>{item.label}</option>)}
+                          </select>
+                        </td>
+                        <td className="px-4 py-3">
+                          <select
+                            value={invite.status}
+                            onChange={(event) => void updateAdminInvite(invite, { status: event.target.value as AdminInviteRow["status"] })}
+                            disabled={isUpdating}
+                            aria-label={`Ubah status ${invite.email}`}
+                            className="min-h-9 cursor-pointer rounded-lg border border-border bg-white px-2 text-xs font-semibold text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
+                          >
+                            <option value="invited">Menunggu daftar</option>
+                            <option value="active">Aktif</option>
+                            <option value="suspended">Nonaktif</option>
+                          </select>
+                        </td>
+                        <td className="max-w-56 px-4 py-3 text-xs font-medium leading-5 text-muted">{invite.note || "—"}</td>
+                        <td className="px-4 py-3 text-xs font-medium text-muted">{formatDateTime(invite.created_at)}</td>
+                      </tr>
+                    );
+                  })}
+                  {adminInvites.length === 0 ? (
+                    <tr>
+                      <td className="px-4 py-6 text-center text-muted" colSpan={5}>Belum ada calon admin.</td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+          </ProductionPanel>
+
           <ProductionPanel className="mt-5">
             <ProductionPanelHeader
               title="Hak akses setiap peran"

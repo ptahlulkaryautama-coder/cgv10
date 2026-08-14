@@ -2,11 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { Icon } from "../components/portal";
 import type { IconName } from "@/lib/portal-data";
+import { AdminMobileNavigation } from "./admin-mobile-navigation";
 
 export type ProductionAdminSection = "dashboard" | "warga" | "iuran" | "intake" | "palugada" | "portal-posts" | "pengaturan" | "debug";
 
 type ProductionNavItem = {
-  id: ProductionAdminSection | "preview" | "login";
+  id: ProductionAdminSection | "login";
   label: string;
   href: string;
   icon: IconName;
@@ -32,7 +33,7 @@ const productionNav: ProductionNavItem[] = [
   },
   {
     id: "intake",
-    label: "Intake",
+    label: "Permintaan",
     href: "/admin/intake/",
     icon: "message",
     badge: "New",
@@ -69,7 +70,6 @@ const productionNav: ProductionNavItem[] = [
 ];
 
 const supportNav: ProductionNavItem[] = [
-  { id: "preview", label: "Tampilan Uji", href: "/admin-preview/", icon: "file" },
   { id: "login", label: "Login", href: "/admin/login/", icon: "users" },
 ];
 
@@ -113,55 +113,6 @@ function NavItem({
   );
 }
 
-function MobileProductionNav({
-  active,
-  isSuperAdmin,
-}: {
-  active: ProductionAdminSection;
-  isSuperAdmin: boolean;
-}) {
-  const items = [...getVisibleNav(isSuperAdmin), ...supportNav];
-
-  return (
-    <nav
-      aria-label="Navigasi admin production mobile"
-      className="flex gap-2 overflow-x-auto border-b border-black/8 bg-[#efe8da] px-4 py-3 [-ms-overflow-style:none] [scrollbar-width:none] sm:px-6 lg:hidden [&::-webkit-scrollbar]:hidden"
-    >
-      {items.map((item) => {
-        const isActive = item.id === active;
-
-        return (
-          <Link
-            key={item.id}
-            href={item.href}
-            className={cx(
-              "inline-flex min-h-10 shrink-0 items-center gap-2 rounded-[10px] border px-3 text-xs font-bold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-              isActive
-                ? "border-primary bg-primary text-accent"
-                : "border-black/10 bg-white text-muted hover:border-primary/30 hover:text-primary",
-            )}
-          >
-            <span className="[&>svg]:h-4 [&>svg]:w-4">
-              <Icon name={item.icon} />
-            </span>
-            {item.label}
-            {item.badge ? (
-              <span
-                className={cx(
-                  "rounded-full px-1.5 py-0.5 text-[10px]",
-                  isActive ? "bg-accent/18 text-accent" : "bg-primary-soft text-primary",
-                )}
-              >
-                {item.badge}
-              </span>
-            ) : null}
-          </Link>
-        );
-      })}
-    </nav>
-  );
-}
-
 export function ProductionAdminShell({
   active,
   title,
@@ -183,8 +134,14 @@ export function ProductionAdminShell({
 }) {
   return (
     <main className="min-h-screen bg-[#f3efe6] text-foreground">
+      <a
+        href="#admin-main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-xl focus:bg-primary focus:px-4 focus:py-3 focus:text-sm focus:font-bold focus:text-white focus:outline-none focus:ring-2 focus:ring-accent"
+      >
+        Lewati navigasi admin
+      </a>
       <div className="flex min-h-screen">
-        <aside className="hidden w-64 shrink-0 bg-primary text-white lg:block">
+        <aside className="hidden w-64 shrink-0 bg-primary text-white md:block">
           <div className="sticky top-0 flex h-screen flex-col border-r border-accent/10">
             <div className="relative flex items-center gap-3 border-b border-white/7 px-5 py-5">
               <div className="grid h-11 w-11 place-items-center overflow-hidden rounded-[10px] border border-white/10 bg-white/6 p-1.5 shadow-sm">
@@ -250,13 +207,23 @@ export function ProductionAdminShell({
         </aside>
 
         <div className="min-w-0 flex-1">
-          <div className="h-7 border-b border-accent/10 bg-primary text-center text-[11px] font-semibold leading-7 tracking-[0.04em] text-accent/75">
-            Production Admin CGV10 - Supabase Auth + RLS
+          <div className="hidden h-7 border-b border-accent/10 bg-primary text-center text-[11px] font-semibold leading-7 tracking-[0.04em] text-accent/75 md:block">
+            CGV10 Admin · Pengelolaan Lingkungan
           </div>
-          <header className="sticky top-0 z-30 border-b border-black/8 bg-[#f3efe6]/90 backdrop-blur-xl">
-            <div className="flex min-h-[60px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+          <header className="sticky top-0 z-30 border-b border-white/10 bg-primary text-white md:border-black/8 md:bg-[#f3efe6]/90 md:text-foreground md:backdrop-blur-xl">
+            <div className="flex min-h-[60px] items-center justify-between gap-4 px-4 sm:px-6 md:px-8">
               <div className="min-w-0">
-                <div className="flex items-center gap-2 text-xs sm:text-sm">
+                <div className="flex items-center gap-2 md:hidden">
+                  <span className="grid h-9 w-9 place-items-center rounded-xl border border-white/12 bg-white/8 text-accent">
+                    <Icon name="building" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-accent">CGV10 Admin</p>
+                    <h1 className="truncate text-sm font-bold text-white">{title}</h1>
+                    <p className="mt-0.5 truncate text-[10px] font-semibold text-white/62">{roleLabel}</p>
+                  </div>
+                </div>
+                <div className="hidden items-center gap-2 text-xs sm:text-sm md:flex">
                   <Link
                     href="/admin/"
                     className="hidden font-semibold text-muted transition-colors hover:text-primary sm:inline"
@@ -266,10 +233,13 @@ export function ProductionAdminShell({
                   <span className="hidden text-muted sm:inline">/</span>
                   <h1 className="truncate font-bold text-foreground">{title}</h1>
                   <span className="text-muted">/</span>
-                  <p className="truncate text-muted">{subtitle}</p>
+                  <p className="hidden truncate text-muted sm:block">{subtitle}</p>
                 </div>
+                <p className="hidden mt-0.5 truncate text-[11px] font-semibold text-muted sm:hidden">
+                  {userLabel} · {roleLabel}
+                </p>
               </div>
-              <div className="flex shrink-0 items-center gap-2">
+              <div className="hidden shrink-0 items-center gap-2 md:flex">
                 <Link
                   href="/"
                   className="hidden min-h-9 items-center justify-center rounded-[10px] border border-black/10 bg-white px-4 text-[13px] font-semibold text-muted transition-colors duration-200 hover:border-accent/35 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:inline-flex"
@@ -279,11 +249,11 @@ export function ProductionAdminShell({
                 {action}
               </div>
             </div>
-            <MobileProductionNav active={active} isSuperAdmin={isSuperAdmin} />
           </header>
-          <div className="px-4 py-7 sm:px-6 lg:px-8">{children}</div>
+          <div id="admin-main-content" className="px-4 py-5 pb-28 sm:px-6 sm:py-7 sm:pb-28 md:px-8 md:pb-7">{children}</div>
         </div>
       </div>
+      <AdminMobileNavigation active={active} isSuperAdmin={isSuperAdmin} />
     </main>
   );
 }
@@ -300,15 +270,15 @@ export function ProductionPageIntro({
   side?: React.ReactNode;
 }) {
   return (
-    <section className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <section className="mb-5 flex flex-col gap-3 md:mb-6 md:flex-row md:items-end md:justify-between">
       <div>
         <p className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.18em] text-accent before:h-px before:w-5 before:bg-accent/70">
           {eyebrow}
         </p>
-        <h2 className="mt-3 max-w-3xl text-[28px] font-bold leading-[1.08] tracking-tight text-primary sm:text-[34px]">
+        <h2 className="mt-2 max-w-3xl text-2xl font-bold leading-[1.12] tracking-tight text-primary sm:text-[28px] md:mt-3 md:text-[34px]">
           {title}
         </h2>
-        <p className="mt-3 max-w-3xl text-[13px] leading-6 text-muted sm:text-sm">
+        <p className="mt-2 max-w-3xl text-[13px] leading-5 text-muted sm:mt-3 sm:leading-6 sm:text-sm">
           {text}
         </p>
       </div>
@@ -362,12 +332,14 @@ export function ProductionActionButton({
   primary,
   onClick,
   disabled,
+  type = "button",
 }: {
   children: React.ReactNode;
   href?: string;
   primary?: boolean;
   onClick?: () => void;
   disabled?: boolean;
+  type?: "button" | "submit";
 }) {
   const className = cx(
     "inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-[10px] px-4 text-[13px] font-bold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60",
@@ -385,7 +357,7 @@ export function ProductionActionButton({
   }
 
   return (
-    <button type="button" onClick={onClick} disabled={disabled} className={className}>
+    <button type={type} onClick={onClick} disabled={disabled} className={className}>
       {children}
     </button>
   );
@@ -449,7 +421,7 @@ export function ProductionMetricCard({
   return (
     <article
       className={cx(
-        "min-h-32 rounded-[18px] border p-5 shadow-[0_12px_30px_rgba(12,24,16,0.07)]",
+        "min-h-0 rounded-[16px] border p-3 shadow-[0_6px_18px_rgba(12,24,16,0.06)] md:min-h-32 md:rounded-[18px] md:p-5 md:shadow-[0_12px_30px_rgba(12,24,16,0.07)]",
         cardTone,
       )}
     >
@@ -461,10 +433,10 @@ export function ProductionMetricCard({
           <Icon name={icon} />
         </span>
       </div>
-      <p className="mt-4 text-2xl font-bold tracking-tight" suppressHydrationWarning>
+      <p className="mt-3 text-xl font-bold tracking-tight md:mt-4 md:text-2xl" suppressHydrationWarning>
         {value}
       </p>
-      <p className={cx("mt-2 text-xs leading-5", tone === "dark" ? "text-white/70" : "text-muted")}>
+      <p className={cx("mt-1.5 text-[11px] leading-4 md:mt-2 md:text-xs md:leading-5", tone === "dark" ? "text-white/70" : "text-muted")}>
         {helper}
       </p>
     </article>

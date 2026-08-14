@@ -177,20 +177,19 @@ export function ContactRoutingForm() {
 
   return (
     <section id="kontak-cepat" className="border-y border-border bg-surface">
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-14 sm:px-6 lg:grid-cols-[0.82fr_1.18fr] lg:px-8 lg:py-20 xl:px-10">
+      <div className="mx-auto grid max-w-5xl gap-6 px-4 py-7 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8 lg:py-10">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
             Kontak Cepat
           </p>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            Pilih kanal agar pesan warga langsung punya konteks.
+          <h2 className="mt-2 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+            Pilih kebutuhan Anda.
           </h2>
-          <p className="mt-5 text-base leading-7 text-muted">
-            Pesan akan tersimpan dan juga dapat diteruskan melalui WhatsApp
-            agar warga bisa langsung menghubungi pengurus.
+          <p className="mt-2 text-sm leading-6 text-muted">
+            Kanal yang dipilih menentukan arah tindak lanjut pesan Anda.
           </p>
 
-          <div className="mt-8 grid gap-3 sm:grid-cols-2">
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
             {contactRoutes.map((route) => {
               const selected = route.id === selectedRoute.id;
 
@@ -200,7 +199,7 @@ export function ContactRoutingForm() {
                   type="button"
                   onClick={() => selectRoute(route.id)}
                   className={[
-                    "cursor-pointer rounded-2xl border p-4 text-left transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
+                    "cursor-pointer rounded-xl border p-3 text-left transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
                     selected
                       ? "border-primary bg-primary text-white"
                       : "border-border bg-background text-foreground hover:border-primary/35 hover:bg-primary-soft/35",
@@ -209,19 +208,16 @@ export function ContactRoutingForm() {
                   <div className="flex items-start justify-between gap-3">
                     <span
                       className={[
-                        "grid h-11 w-11 place-items-center rounded-xl",
+                        "grid h-9 w-9 place-items-center rounded-lg",
                         selected ? "bg-white/12 text-accent-soft" : "bg-primary-soft text-primary",
                       ].join(" ")}
                     >
                       <Icon name={route.icon} />
                     </span>
-                    <span className="rounded-full bg-accent-soft px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-foreground">
-                      {route.label}
-                    </span>
                   </div>
-                  <h3 className="mt-4 font-semibold">{route.title}</h3>
-                  <p className={["mt-2 text-sm leading-6", selected ? "text-white/78" : "text-muted"].join(" ")}>
-                    {route.helper}
+                  <h3 className="mt-2 text-sm font-semibold">{route.title}</h3>
+                  <p className={["mt-1 text-xs leading-5", selected ? "text-white/78" : "text-muted"].join(" ")}>
+                    {route.label} · {route.helper}
                   </p>
                 </button>
               );
@@ -229,8 +225,8 @@ export function ContactRoutingForm() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-background p-4 shadow-sm sm:p-5">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <div className="rounded-xl border border-border bg-background p-4 shadow-sm">
+          <div className="grid gap-3 sm:grid-cols-2">
             <label className="block">
               <span className="text-sm font-semibold text-foreground">Nama warga</span>
               <input
@@ -240,7 +236,7 @@ export function ContactRoutingForm() {
                 onChange={(event) => updateField("name", event.target.value)}
                 onInput={(event) => updateField("name", event.currentTarget.value)}
                 placeholder="Nama lengkap"
-                className="mt-2 min-h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm outline-none transition-colors duration-200 focus:border-primary"
+                className="mt-1.5 min-h-11 w-full rounded-lg border border-border bg-surface px-3 text-sm outline-none transition-colors duration-200 focus:border-primary"
               />
             </label>
             <label className="block">
@@ -252,7 +248,7 @@ export function ContactRoutingForm() {
                 onChange={(event) => updateField("cluster", event.target.value)}
                 onInput={(event) => updateField("cluster", event.currentTarget.value)}
                 placeholder="Contoh: Cluster Aurora"
-                className="mt-2 min-h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm outline-none transition-colors duration-200 focus:border-primary"
+                className="mt-1.5 min-h-11 w-full rounded-lg border border-border bg-surface px-3 text-sm outline-none transition-colors duration-200 focus:border-primary"
               />
             </label>
             <label className="block sm:col-span-2">
@@ -266,7 +262,7 @@ export function ContactRoutingForm() {
                 onChange={(event) => updateField("phone", event.target.value)}
                 onInput={(event) => updateField("phone", event.currentTarget.value)}
                 placeholder="Nomor WhatsApp"
-                className="mt-2 min-h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm outline-none transition-colors duration-200 focus:border-primary"
+                className="mt-1.5 min-h-11 w-full rounded-lg border border-border bg-surface px-3 text-sm outline-none transition-colors duration-200 focus:border-primary"
               />
             </label>
             <label className="block sm:col-span-2">
@@ -276,23 +272,23 @@ export function ContactRoutingForm() {
                 maxLength={3000}
                 onChange={(event) => updateField("message", event.target.value)}
                 onInput={(event) => updateField("message", event.currentTarget.value)}
-                rows={5}
+                rows={4}
                 placeholder="Tulis kebutuhan singkat agar pengurus bisa mengarahkan ke PIC yang tepat."
-                className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm leading-6 outline-none transition-colors duration-200 focus:border-primary"
+                className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm leading-6 outline-none transition-colors duration-200 focus:border-primary"
               />
             </label>
           </div>
 
-          <div className="mt-5 rounded-2xl border border-accent/35 bg-accent-soft/55 p-4">
+          <div className="mt-4 border-t border-border pt-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
                 Ringkasan pesan
               </p>
-              <span className="rounded-full bg-background px-3 py-1 text-xs font-semibold text-primary">
+              <span className="text-xs font-semibold text-muted">
                 {completedFields}/4 wajib
               </span>
             </div>
-            <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-border bg-background p-4 text-sm leading-6 text-foreground">
+            <pre className="mt-3 max-h-40 overflow-y-auto whitespace-pre-wrap rounded-lg border border-border bg-surface p-3 text-xs leading-5 text-foreground">
               {message}
             </pre>
             <button
@@ -300,7 +296,7 @@ export function ContactRoutingForm() {
               onClick={submitToSupabase}
               disabled={!ready || saveState === "saving" || saveState === "saved"}
               className={[
-                "mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-xl px-5 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60",
+                "mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-lg px-4 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60 md:ml-auto md:w-auto",
                 ready
                   ? "cursor-pointer bg-primary text-white hover:bg-primary-hover"
                   : "cursor-not-allowed bg-muted/20 text-muted",
