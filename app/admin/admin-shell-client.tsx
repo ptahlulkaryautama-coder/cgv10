@@ -16,7 +16,17 @@ import {
   ProductionStatusPill,
 } from "./production-admin-components";
 
-type AdminRole = "super_admin" | "ketua_rt" | "sekretaris" | "bendahara" | "palugada_reviewer";
+type AdminRole =
+  | "super_admin"
+  | "ketua_rt"
+  | "sekretaris"
+  | "bendahara"
+  | "palugada_reviewer"
+  | "admin_support_1"
+  | "admin_support_2"
+  | "admin_support_3"
+  | "admin_support_4"
+  | "admin_support_5";
 type LoadState = "checking" | "not_logged_in" | "loading_profile" | "no_admin_role" | "authorized" | "error";
 
 type Profile = {
@@ -94,7 +104,18 @@ type UnifiedDashboardPalugadaListing = Omit<DashboardPalugadaListing, "status" |
   href: string;
 };
 
-const adminRoles: AdminRole[] = ["super_admin", "ketua_rt", "sekretaris", "bendahara", "palugada_reviewer"];
+const adminRoles: AdminRole[] = [
+  "super_admin",
+  "ketua_rt",
+  "sekretaris",
+  "bendahara",
+  "palugada_reviewer",
+  "admin_support_1",
+  "admin_support_2",
+  "admin_support_3",
+  "admin_support_4",
+  "admin_support_5",
+];
 
 const roleLabels: Record<AdminRole, string> = {
   super_admin: "Super Admin",
@@ -102,6 +123,11 @@ const roleLabels: Record<AdminRole, string> = {
   sekretaris: "Sekretaris",
   bendahara: "Bendahara",
   palugada_reviewer: "Reviewer PALUGADA",
+  admin_support_1: "Admin Support 1",
+  admin_support_2: "Admin Support 2",
+  admin_support_3: "Admin Support 3",
+  admin_support_4: "Admin Support 4",
+  admin_support_5: "Admin Support 5",
 };
 
 const palugadaStatusLabels: Record<DashboardPalugadaStatus, string> = {

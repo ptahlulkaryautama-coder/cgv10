@@ -13,8 +13,19 @@ import {
   ProductionStatusPill,
 } from "../production-admin-components";
 
-type AdminRole = "super_admin" | "ketua_rt" | "sekretaris" | "bendahara" | "palugada_reviewer";
+type AdminRole =
+  | "super_admin"
+  | "ketua_rt"
+  | "sekretaris"
+  | "bendahara"
+  | "palugada_reviewer"
+  | "admin_support_1"
+  | "admin_support_2"
+  | "admin_support_3"
+  | "admin_support_4"
+  | "admin_support_5";
 type ManagedRole = Exclude<AdminRole, "super_admin">;
+type SupportRole = Extract<ManagedRole, `admin_support_${number}`>;
 type PermissionRow = { role: AdminRole; permission: string };
 type UserRoleRow = { role: AdminRole };
 type HeroSlide = { src: string; alt: string };
@@ -48,7 +59,19 @@ const managedRoles: Array<{ role: ManagedRole; label: string }> = [
   { role: "sekretaris", label: "Sekretaris" },
   { role: "bendahara", label: "Bendahara" },
   { role: "palugada_reviewer", label: "Reviewer PALUGADA" },
+  { role: "admin_support_1", label: "Admin Support 1" },
+  { role: "admin_support_2", label: "Admin Support 2" },
+  { role: "admin_support_3", label: "Admin Support 3" },
+  { role: "admin_support_4", label: "Admin Support 4" },
+  { role: "admin_support_5", label: "Admin Support 5" },
 ];
+
+const operationalRoles = managedRoles.filter(
+  (item) => !item.role.startsWith("admin_support_"),
+);
+const supportRoles = managedRoles.filter((item): item is { role: SupportRole; label: string } =>
+  item.role.startsWith("admin_support_"),
+);
 
 const defaultHeroSettings: HeroSettings = {
   enabled: true,
@@ -130,6 +153,10 @@ const featureGroups = [
     ],
   },
 ];
+
+const supportFeatureGroups = featureGroups.filter((group) =>
+  ["Layanan", "Konten Portal", "PALUGADA"].includes(group.title),
+);
 
 function formatDateTime(value: string | null) {
   if (!value) return "Belum pernah";
@@ -411,7 +438,7 @@ export function AdminSettingsClient() {
       <div className="grid gap-4 sm:grid-cols-3">
         <ProductionMetricCard label="Admin" value={String(admins.length)} helper={message} icon="users" />
         <ProductionMetricCard label="Pernah Masuk" value={String(signedInAdmins)} helper="Berdasarkan riwayat masuk akun" icon="shield" tone="green" />
-        <ProductionMetricCard label="Role Diatur" value={String(managedRoles.length)} helper="Ketua RT, sekretaris, bendahara, reviewer" icon="file" tone="gold" />
+        <ProductionMetricCard label="Role Diatur" value={String(managedRoles.length)} helper="4 pengurus utama + 5 Admin Support" icon="file" tone="gold" />
       </div>
 
       <ProductionPanel className="mt-5">
@@ -736,7 +763,7 @@ export function AdminSettingsClient() {
                       <thead className="bg-cream text-xs uppercase tracking-[0.12em] text-muted">
                         <tr>
                           <th className="px-4 py-3">Fitur</th>
-                          {managedRoles.map((item) => (
+                          {operationalRoles.map((item) => (
                             <th key={item.role} className="px-4 py-3 text-center">{item.label}</th>
                           ))}
                         </tr>
@@ -748,7 +775,69 @@ export function AdminSettingsClient() {
                               <p className="font-semibold text-foreground">{permission.label}</p>
                               <p className="mt-1 text-xs text-muted">{permission.key}</p>
                             </td>
-                            {managedRoles.map((item) => {
+                            {operationalRoles.map((item) => {
+                              const key = permissionKey(item.role, permission.key);
+                              const checked = permissionSet.has(key);
+                              const isSaving = savingKey === key;
+
+                              return (
+                                <td key={key} className="bg-white px-4 py-3 text-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => void togglePermission(item.role, permission.key, !checked)}
+                                    disabled={Boolean(savingKey)}
+                                    aria-pressed={checked}
+                                    className={`inline-flex min-h-9 min-w-24 cursor-pointer items-center justify-center rounded-full border px-3 text-xs font-bold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                                      checked
+                                        ? "border-primary bg-primary text-white"
+                                        : "border-border bg-surface text-muted hover:border-primary/30 hover:text-primary"
+                                    }`}
+                                  >
+                                    {isSaving ? "Simpan..." : checked ? "Aktif" : "Nonaktif"}
+                                  </button>
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+              ))}
+            </div>
+          </ProductionPanel>
+
+          <ProductionPanel className="mt-5">
+            <ProductionPanelHeader
+              title="Hak akses Admin Support"
+              subtitle="Admin Support 1–5 hanya dapat membantu Permintaan, Konten Portal, dan PALUGADA. Keuangan, data warga, serta pengaturan tidak tersedia."
+            />
+            <div className="grid gap-5 border-t border-border p-4">
+              {supportFeatureGroups.map((group) => (
+                <section key={group.title} className="rounded-[16px] border border-border bg-white">
+                  <div className="border-b border-border p-4">
+                    <h3 className="text-sm font-bold text-foreground">{group.title}</h3>
+                    <p className="mt-1 text-xs font-semibold leading-5 text-muted">{group.helper}</p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[760px] text-left text-sm">
+                      <thead className="bg-cream text-xs uppercase tracking-[0.12em] text-muted">
+                        <tr>
+                          <th className="px-4 py-3">Fitur</th>
+                          {supportRoles.map((item) => (
+                            <th key={item.role} className="px-4 py-3 text-center">{item.label}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {group.permissions.map((permission) => (
+                          <tr key={permission.key}>
+                            <td className="bg-white px-4 py-3">
+                              <p className="font-semibold text-foreground">{permission.label}</p>
+                              <p className="mt-1 text-xs text-muted">{permission.key}</p>
+                            </td>
+                            {supportRoles.map((item) => {
                               const key = permissionKey(item.role, permission.key);
                               const checked = permissionSet.has(key);
                               const isSaving = savingKey === key;

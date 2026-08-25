@@ -13,6 +13,11 @@ const productionAdminRoles = [
   "sekretaris",
   "bendahara",
   "palugada_reviewer",
+  "admin_support_1",
+  "admin_support_2",
+  "admin_support_3",
+  "admin_support_4",
+  "admin_support_5",
 ];
 
 export function AdminAuthGate({ children }: { children: React.ReactNode }) {

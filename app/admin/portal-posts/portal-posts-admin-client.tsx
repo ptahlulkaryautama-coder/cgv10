@@ -271,6 +271,8 @@ export function PortalPostsAdminClient() {
   const [formNotice, setFormNotice] = useState("");
   const [mediaColumnsReady, setMediaColumnsReady] = useState(true);
   const [uploadingTarget, setUploadingTarget] = useState<"cover" | "attachment" | null>(null);
+  const [pendingCoverFile, setPendingCoverFile] = useState<File | null>(null);
+  const [pendingAttachmentFile, setPendingAttachmentFile] = useState<File | null>(null);
 
   const loadPortalPosts = useCallback(async () => {
     if (!supabase) {
@@ -483,6 +485,8 @@ export function PortalPostsAdminClient() {
 
   function startNewPost() {
     setForm(emptyForm);
+    setPendingCoverFile(null);
+    setPendingAttachmentFile(null);
     setFormNotice(
       canWriteContent
         ? "Draft baru siap diisi."
@@ -588,19 +592,41 @@ export function PortalPostsAdminClient() {
 
     const savedPost = result.data as PortalPostRow;
     setForm(toForm(savedPost));
-    setFormNotice(
-      targetStatus === "published"
-        ? "Kabar berhasil dipublish. Public Kabar Warga dapat membaca status published."
-        : targetStatus === "archived"
-          ? "Kabar berhasil diarsipkan dan tidak tampil sebagai published."
-          : targetStatus === "review"
-            ? "Kabar berhasil disimpan untuk review."
-            : "Draft berhasil disimpan.",
-    );
+
+    const coverToUpload = pendingCoverFile;
+    const attachmentToUpload = pendingAttachmentFile;
+    setPendingCoverFile(null);
+    setPendingAttachmentFile(null);
+
+    if (coverToUpload || attachmentToUpload) {
+      setFormNotice("Draft tersimpan. Mengupload file yang sudah dipilih...");
+
+      if (coverToUpload) {
+        await uploadPortalMedia(coverToUpload, "cover", savedPost.id);
+      }
+
+      if (attachmentToUpload) {
+        await uploadPortalMedia(attachmentToUpload, "attachment", savedPost.id);
+      }
+    } else {
+      setFormNotice(
+        targetStatus === "published"
+          ? "Kabar berhasil dipublish. Public Kabar Warga dapat membaca status published."
+          : targetStatus === "archived"
+            ? "Kabar berhasil diarsipkan dan tidak tampil sebagai published."
+            : targetStatus === "review"
+              ? "Kabar berhasil disimpan untuk review."
+              : "Draft berhasil disimpan.",
+      );
+    }
     await loadPortalPosts();
   }
 
-  async function uploadPortalMedia(file: File | null, target: "cover" | "attachment") {
+  async function uploadPortalMedia(
+    file: File | null,
+    target: "cover" | "attachment",
+    postId = form.id,
+  ) {
     if (!file) {
       return;
     }
@@ -615,7 +641,7 @@ export function PortalPostsAdminClient() {
       return;
     }
 
-    if (!form.id) {
+    if (!postId) {
       setFormNotice("Simpan sebagai draft dulu, lalu upload media untuk post tersebut.");
       return;
     }
@@ -636,7 +662,7 @@ export function PortalPostsAdminClient() {
 
     const bucket = target === "cover" ? portalPostMediaBucket : portalPostAttachmentBucket;
     const folder = target === "cover" ? "cover" : "attachments";
-    const path = `${form.id}/${folder}/${getSafeStorageName(file.name)}`;
+    const path = `${postId}/${folder}/${getSafeStorageName(file.name)}`;
     const contentType = getUploadContentType(file);
     const { error: uploadError } = await supabase.storage.from(bucket).upload(path, file, {
       cacheControl: "31536000",
@@ -670,7 +696,7 @@ export function PortalPostsAdminClient() {
     const { data: updatedPost, error: updateError } = await supabase
       .from("portal_posts")
       .update(updatePayload)
-      .eq("id", form.id)
+      .eq("id", postId)
       .select(portalPostSelectWithMedia)
       .single<PortalPostRow>();
 
@@ -692,6 +718,24 @@ export function PortalPostsAdminClient() {
         : "Lampiran berhasil diupload dan tersimpan.",
     );
     await loadPortalPosts();
+  }
+
+  function selectPortalMedia(file: File | null, target: "cover" | "attachment") {
+    if (!file) return;
+
+    if (!form.id) {
+      if (target === "cover") {
+        setPendingCoverFile(file);
+      } else {
+        setPendingAttachmentFile(file);
+      }
+      setFormNotice(
+        `${file.name} siap dipasang. Lengkapi kabar lalu Simpan draft; upload akan berjalan otomatis.`,
+      );
+      return;
+    }
+
+    void uploadPortalMedia(file, target);
   }
 
   return (
@@ -1015,7 +1059,9 @@ export function PortalPostsAdminClient() {
                       </p>
                       <p className="mt-1 text-sm font-semibold leading-6 text-muted">
                         {mediaColumnsReady
-                          ? "Upload file akan menyimpan URL publik ke post ini. Untuk post baru, save draft dulu sebelum upload."
+                          ? form.id
+                            ? "Pilih file untuk langsung mengupload dan menyimpan URL publik ke post ini."
+                            : "Pilih file sekarang. File akan diupload otomatis setelah draft pertama disimpan."
                           : "Jalankan migration C1.6 agar field media dapat disimpan ke Supabase."}
                       </p>
                     </div>
@@ -1036,12 +1082,17 @@ export function PortalPostsAdminClient() {
                         type="file"
                         accept="image/png,image/jpeg,image/jpg,image/pjpeg,image/webp,image/gif,image/heic,image/heif"
                         onChange={(event) => {
-                          uploadPortalMedia(event.currentTarget.files?.[0] ?? null, "cover");
+                          selectPortalMedia(event.currentTarget.files?.[0] ?? null, "cover");
                           event.currentTarget.value = "";
                         }}
-                        disabled={isBusy || !mediaColumnsReady || !form.id || !canWriteContent}
+                        disabled={isBusy || !mediaColumnsReady || !canWriteContent}
                         className="block w-full cursor-pointer rounded-[10px] border border-dashed border-primary/25 bg-white px-3 py-3 text-sm font-semibold text-muted file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-bold file:text-accent hover:border-primary/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
                       />
+                      {!form.id && pendingCoverFile ? (
+                        <p className="mt-2 text-xs font-semibold text-primary">
+                          Siap diupload: {pendingCoverFile.name}
+                        </p>
+                      ) : null}
                     </FieldLabel>
                     <FieldLabel label="Alt text gambar">
                       <input
@@ -1066,12 +1117,17 @@ export function PortalPostsAdminClient() {
                         type="file"
                         accept="application/pdf,image/png,image/jpeg,image/jpg,image/pjpeg,image/webp,image/heic,image/heif,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                         onChange={(event) => {
-                          uploadPortalMedia(event.currentTarget.files?.[0] ?? null, "attachment");
+                          selectPortalMedia(event.currentTarget.files?.[0] ?? null, "attachment");
                           event.currentTarget.value = "";
                         }}
-                        disabled={isBusy || !mediaColumnsReady || !form.id || !canWriteContent}
+                        disabled={isBusy || !mediaColumnsReady || !canWriteContent}
                         className="block w-full cursor-pointer rounded-[10px] border border-dashed border-primary/25 bg-white px-3 py-3 text-sm font-semibold text-muted file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-bold file:text-accent hover:border-primary/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
                       />
+                      {!form.id && pendingAttachmentFile ? (
+                        <p className="mt-2 text-xs font-semibold text-primary">
+                          Siap diupload: {pendingAttachmentFile.name}
+                        </p>
+                      ) : null}
                     </FieldLabel>
                     <FieldLabel label="Label lampiran">
                       <input

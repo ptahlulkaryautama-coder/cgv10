@@ -22,6 +22,11 @@ const adminRoles = new Set([
   "sekretaris",
   "bendahara",
   "palugada_reviewer",
+  "admin_support_1",
+  "admin_support_2",
+  "admin_support_3",
+  "admin_support_4",
+  "admin_support_5",
 ]);
 
 const knownPengurusEmails = new Set([
@@ -36,6 +41,11 @@ const roleLabels: Record<string, string> = {
   sekretaris: "Sekretaris",
   bendahara: "Bendahara",
   palugada_reviewer: "Reviewer PALUGADA",
+  admin_support_1: "Admin Support 1",
+  admin_support_2: "Admin Support 2",
+  admin_support_3: "Admin Support 3",
+  admin_support_4: "Admin Support 4",
+  admin_support_5: "Admin Support 5",
 };
 
 function getSafeNextPath() {
