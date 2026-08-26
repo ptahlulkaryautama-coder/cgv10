@@ -89,16 +89,16 @@ function KabarCard({ item }: { item: KabarItem }) {
   return (
     <Link
       href={item.href}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-colors duration-200 hover:border-primary/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_15px_35px_rgba(0,61,52,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
       {item.imageSrc ? (
-        <div className="relative aspect-[4/3] bg-cream">
+        <div className="relative aspect-[16/9] w-full overflow-hidden bg-cream">
           <Image
             src={item.imageSrc}
             alt={item.imageAlt ?? item.title}
             fill
             sizes="(min-width: 1024px) 310px, (min-width: 640px) 45vw, 92vw"
-            className="object-cover transition-opacity duration-200 group-hover:opacity-95"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         </div>
       ) : null}
@@ -111,13 +111,13 @@ function KabarCard({ item }: { item: KabarItem }) {
             </span>
           ) : null}
         </div>
-        <h3 className="mt-4 text-lg font-semibold leading-snug tracking-tight text-foreground">
+        <h3 className="mt-3 text-lg font-bold leading-snug tracking-tight text-foreground transition-colors group-hover:text-primary">
           {item.title}
         </h3>
-        <p className="mt-3 line-clamp-3 text-sm leading-6 text-muted">
+        <p className="mt-2 line-clamp-3 text-xs leading-6 text-muted">
           {item.text}
         </p>
-        <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary transition-colors duration-200 group-hover:text-primary-hover">
+        <span className="mt-5 inline-flex items-center gap-2 text-xs font-bold text-primary transition-colors duration-200 group-hover:text-primary-hover">
           Baca selengkapnya
           <ArrowIcon />
         </span>

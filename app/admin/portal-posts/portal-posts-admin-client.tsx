@@ -231,7 +231,26 @@ function isAcceptedCoverImage(file: File) {
   const extension = getFileExtension(file.name);
   return (
     file.type.startsWith("image/") ||
-    ["jpg", "jpeg", "png", "webp", "gif", "heic", "heif"].includes(extension)
+    file.type.startsWith("video/") ||
+    ["jpg", "jpeg", "png", "webp", "gif", "heic", "heif", "mp4", "webm", "mov", "m4v"].includes(extension)
+  );
+}
+
+function isVideoFile(file: File) {
+  const extension = getFileExtension(file.name);
+  return file.type.startsWith("video/") || ["mp4", "webm", "mov", "m4v"].includes(extension);
+}
+
+function isVideoUrl(url: string | null | undefined) {
+  if (!url) return false;
+  const clean = url.toLowerCase();
+  return (
+    clean.includes("youtube.com") ||
+    clean.includes("youtu.be") ||
+    clean.includes("vimeo.com") ||
+    clean.endsWith(".mp4") ||
+    clean.endsWith(".webm") ||
+    clean.endsWith(".mov")
   );
 }
 
@@ -249,6 +268,10 @@ function getUploadContentType(file: File) {
     gif: "image/gif",
     heic: "image/heic",
     heif: "image/heif",
+    mp4: "video/mp4",
+    webm: "video/webm",
+    mov: "video/quicktime",
+    m4v: "video/mp4",
     pdf: "application/pdf",
     txt: "text/plain",
     doc: "application/msword",
@@ -1325,7 +1348,7 @@ export function PortalPostsAdminClient() {
                         <input
                           type="file"
                           multiple
-                          accept="image/png,image/jpeg,image/jpg,image/pjpeg,image/webp,image/gif,image/heic,image/heif"
+                          accept="image/png,image/jpeg,image/jpg,image/pjpeg,image/webp,image/gif,image/heic,image/heif,video/mp4,video/webm,video/quicktime,video/*"
                           onChange={(event) => {
                             void uploadGalleryFiles(event.currentTarget.files);
                             event.currentTarget.value = "";
@@ -1339,63 +1362,95 @@ export function PortalPostsAdminClient() {
                       {form.galleryImages.length > 0 || pendingGalleryFiles.length > 0 ? (
                         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                           {/* Uploaded Gallery Items */}
-                          {form.galleryImages.map((imgItem, idx) => (
-                            <div
-                              key={imgItem.id || idx}
-                              className="group relative overflow-hidden rounded-lg border border-emerald-300 bg-emerald-50/40 p-1 shadow-sm"
-                            >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={imgItem.url}
-                                alt={imgItem.alt || `Foto Galeri ${idx + 1}`}
-                                className="aspect-[4/3] w-full rounded-md object-cover"
-                              />
-                              <div className="mt-1 flex items-center justify-between gap-1 px-1 py-1">
-                                <span className="text-[9px] font-bold text-emerald-800">🟢 Terunggah</span>
-                                <div className="flex gap-1">
+                          {form.galleryImages.map((imgItem, idx) => {
+                            const isVid = isVideoUrl(imgItem.url);
+
+                            return (
+                              <div
+                                key={imgItem.id || idx}
+                                className="group relative overflow-hidden rounded-lg border border-emerald-300 bg-emerald-50/40 p-1 shadow-sm"
+                              >
+                                {isVid ? (
+                                  <video
+                                    src={imgItem.url}
+                                    controls
+                                    preload="metadata"
+                                    className="aspect-[4/3] w-full rounded-md object-cover"
+                                  />
+                                ) : (
+                                  /* eslint-disable-next-line @next/next/no-img-element */
+                                  <img
+                                    src={imgItem.url}
+                                    alt={imgItem.alt || `Foto Galeri ${idx + 1}`}
+                                    className="aspect-[4/3] w-full rounded-md object-cover"
+                                  />
+                                )}
+                                <div className="mt-1 flex items-center justify-between gap-1 px-1 py-1">
+                                  <span className="text-[9px] font-bold text-emerald-800">
+                                    {isVid ? "🎥 Video" : "🟢 Terunggah"}
+                                  </span>
+                                  <div className="flex gap-1">
+                                    {!isVid ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => setAsCoverFromGallery(imgItem.url)}
+                                        className="text-[10px] font-bold text-primary hover:underline"
+                                      >
+                                        Cover
+                                      </button>
+                                    ) : null}
+                                    <button
+                                      type="button"
+                                      onClick={() => deleteGalleryImage(imgItem.id)}
+                                      className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-600 hover:bg-red-200"
+                                    >
+                                      Hapus
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+
+                          {/* Pending Draft Gallery Items */}
+                          {pendingGalleryFiles.map((fileItem, idx) => {
+                            const isVid = isVideoFile(fileItem);
+
+                            return (
+                              <div
+                                key={`pending-${idx}`}
+                                className="group relative overflow-hidden rounded-lg border border-amber-300 bg-amber-50/50 p-1 shadow-sm"
+                              >
+                                {isVid ? (
+                                  <video
+                                    src={URL.createObjectURL(fileItem)}
+                                    controls
+                                    preload="metadata"
+                                    className="aspect-[4/3] w-full rounded-md object-cover"
+                                  />
+                                ) : (
+                                  /* eslint-disable-next-line @next/next/no-img-element */
+                                  <img
+                                    src={URL.createObjectURL(fileItem)}
+                                    alt={`Preview Pending ${idx + 1}`}
+                                    className="aspect-[4/3] w-full rounded-md object-cover"
+                                  />
+                                )}
+                                <div className="mt-1 flex items-center justify-between gap-1 px-1 py-1">
+                                  <span className="truncate text-[9px] font-bold text-amber-900">
+                                    {isVid ? "🎥 Video (Siap)" : "🟡 Siap Upload"}
+                                  </span>
                                   <button
                                     type="button"
-                                    onClick={() => setAsCoverFromGallery(imgItem.url)}
-                                    className="text-[10px] font-bold text-primary hover:underline"
-                                  >
-                                    Cover
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => deleteGalleryImage(imgItem.id)}
+                                    onClick={() => removePendingGalleryFile(idx)}
                                     className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-600 hover:bg-red-200"
                                   >
                                     Hapus
                                   </button>
                                 </div>
                               </div>
-                            </div>
-                          ))}
-
-                          {/* Pending Draft Gallery Items */}
-                          {pendingGalleryFiles.map((fileItem, idx) => (
-                            <div
-                              key={`pending-${idx}`}
-                              className="group relative overflow-hidden rounded-lg border border-amber-300 bg-amber-50/50 p-1 shadow-sm"
-                            >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={URL.createObjectURL(fileItem)}
-                                alt={`Preview Pending ${idx + 1}`}
-                                className="aspect-[4/3] w-full rounded-md object-cover"
-                              />
-                              <div className="mt-1 flex items-center justify-between gap-1 px-1 py-1">
-                                <span className="truncate text-[9px] font-bold text-amber-900">🟡 Siap Upload</span>
-                                <button
-                                  type="button"
-                                  onClick={() => removePendingGalleryFile(idx)}
-                                  className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-600 hover:bg-red-200"
-                                >
-                                  Hapus
-                                </button>
-                              </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       ) : null}
                     </div>
