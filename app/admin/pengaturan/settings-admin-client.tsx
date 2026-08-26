@@ -365,6 +365,8 @@ export function AdminSettingsClient() {
     await loadData();
   }
 
+  const [uploadingSlideIndex, setUploadingSlideIndex] = useState<number | null>(null);
+
   function updateHeroSlide(index: number, field: keyof HeroSlide, value: string) {
     setHeroSettings((current) => ({
       ...current,
@@ -372,6 +374,56 @@ export function AdminSettingsClient() {
         slideIndex === index ? { ...slide, [field]: value } : slide,
       ),
     }));
+  }
+
+  async function uploadHeroSlideFile(index: number, file: File | null) {
+    if (!file || !isSuperAdmin) return;
+
+    // Instant preview using Blob URL
+    const previewBlob = URL.createObjectURL(file);
+    updateHeroSlide(index, "src", previewBlob);
+
+    setUploadingSlideIndex(index);
+    setHeroMessage(`Mengunggah gambar ${index + 1} ke Supabase Storage...`);
+
+    try {
+      const extension = file.name.split(".").pop() || "jpg";
+      const filename = `hero-slide-${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${extension}`;
+      const storagePath = `hero-slides/${filename}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("portal-media")
+        .upload(storagePath, file, {
+          cacheControl: "3600",
+          upsert: true,
+          contentType: file.type || "image/jpeg",
+        });
+
+      if (uploadError) {
+        setHeroMessage(`Gagal mengunggah foto: ${uploadError.message}`);
+        setUploadingSlideIndex(null);
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from("portal-media")
+        .getPublicUrl(storagePath);
+
+      if (publicUrlData?.publicUrl) {
+        updateHeroSlide(index, "src", publicUrlData.publicUrl);
+        if (!heroSettings.slides[index]?.alt) {
+          updateHeroSlide(index, "alt", file.name.replace(/\.[^/.]+$/, ""));
+        }
+        setHeroMessage(
+          `🟢 Gambar ${index + 1} berhasil diunggah! Klik "Simpan slideshow" untuk menerapkan.`,
+        );
+      }
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : "Gagal mengunggah foto";
+      setHeroMessage(`Gagal mengunggah: ${errMsg}`);
+    } finally {
+      setUploadingSlideIndex(null);
+    }
   }
 
   function addHeroSlide() {
@@ -398,12 +450,12 @@ export function AdminSettingsClient() {
     };
 
     if (cleanedSettings.slides.some((slide) => !slide.src || !slide.alt)) {
-      setHeroMessage("Lengkapi alamat gambar dan deskripsinya sebelum menyimpan.");
+      setHeroMessage("Setiap gambar harus memiliki alamat foto dan deskripsi.");
       return;
     }
 
     setIsSavingHero(true);
-    setHeroMessage("Menyimpan slideshow beranda...");
+    setHeroMessage("Menyimpan pengaturan slideshow...");
     const { error } = await supabase.rpc("set_home_hero_settings", {
       settings: cleanedSettings,
     });
@@ -414,8 +466,8 @@ export function AdminSettingsClient() {
       return;
     }
 
-    setHeroSettings(cleanedSettings);
-    setHeroMessage("Slideshow beranda sudah diperbarui.");
+    setHeroMessage("🟢 Pengaturan slideshow beranda berhasil disimpan!");
+    await loadData();
   }
 
   return (
@@ -516,27 +568,41 @@ export function AdminSettingsClient() {
                     Preview gambar akan tampil di sini
                   </div>
                 )}
-                <div className="grid gap-4 p-4">
-                  <label className="grid gap-2 text-sm font-bold text-foreground">
-                    Alamat gambar
+                <div className="grid gap-3 p-4">
+                  <label className="grid gap-1.5 text-sm font-bold text-foreground">
+                    <span>Upload foto dari perangkat</span>
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,image/webp,image/gif,image/heic,image/heif"
+                      disabled={!isSuperAdmin || isSavingHero || uploadingSlideIndex === index}
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (file) void uploadHeroSlideFile(index, file);
+                        event.target.value = "";
+                      }}
+                      className="block w-full cursor-pointer rounded-xl border border-dashed border-primary/40 bg-cream p-2 text-xs font-semibold text-muted file:mr-2 file:cursor-pointer file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-white hover:border-primary focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                    />
+                  </label>
+                  <label className="grid gap-1.5 text-sm font-bold text-foreground">
+                    <span>URL Alamat Gambar (manual / hasil upload)</span>
                     <input
                       type="text"
                       value={slide.src}
                       onChange={(event) => updateHeroSlide(index, "src", event.target.value)}
                       placeholder="/assets/kegiatan/gambar.jpg atau https://..."
                       disabled={!isSuperAdmin || isSavingHero}
-                      className="min-h-11 rounded-xl border border-border bg-white px-3 font-medium outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      className="min-h-10 rounded-xl border border-border bg-white px-3 text-xs font-medium outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                     />
                   </label>
-                  <label className="grid gap-2 text-sm font-bold text-foreground">
-                    Deskripsi gambar
+                  <label className="grid gap-1.5 text-sm font-bold text-foreground">
+                    <span>Deskripsi Gambar</span>
                     <input
                       type="text"
                       value={slide.alt}
                       onChange={(event) => updateHeroSlide(index, "alt", event.target.value)}
                       placeholder="Contoh: Warga berkumpul saat kerja bakti"
                       disabled={!isSuperAdmin || isSavingHero}
-                      className="min-h-11 rounded-xl border border-border bg-white px-3 font-medium outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      className="min-h-10 rounded-xl border border-border bg-white px-3 text-xs font-medium outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                     />
                   </label>
                 </div>

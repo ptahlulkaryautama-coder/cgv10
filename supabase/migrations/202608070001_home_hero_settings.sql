@@ -49,7 +49,14 @@ declare
   slide_count integer;
   interval_value integer;
 begin
-  if auth.uid() is null or not public.has_permission('content:write') then
+  if auth.uid() is null or not (
+    public.has_permission('content:write') or
+    public.has_permission('settings:manage') or
+    exists (
+      select 1 from public.user_roles
+      where user_id = auth.uid() and role = 'super_admin'
+    )
+  ) then
     raise exception 'Anda tidak memiliki izin untuk mengubah tampilan beranda';
   end if;
 

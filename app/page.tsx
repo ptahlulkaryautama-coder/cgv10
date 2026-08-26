@@ -1,10 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Icon, PageShell, PwaInstallGuide } from "./components/portal";
-import { HeroImageRotator } from "./components/hero-image-rotator";
+import { LiveHomeHero } from "./components/live-home-hero";
 import {
-  kabarArticles,
-  kegiatanItems,
   quickInfo,
   type IconName,
 } from "@/lib/portal-data";
@@ -46,160 +43,10 @@ const actionTiles: {
   },
 ];
 
-const rhythmCards = [
-  {
-    title: kabarArticles[0].title,
-    text: kabarArticles[0].excerpt,
-    href: "/kabar-warga/#artikel-terbaru",
-    imageSrc:
-      kabarArticles[0].coverImageSrc ??
-      "/assets/kegiatan/keamanan-kebersihan-optimized.jpg",
-    imageAlt: kabarArticles[0].coverImageAlt ?? kabarArticles[0].title,
-    badge: kabarArticles[0].category,
-  },
-  {
-    title: kegiatanItems[0].title,
-    text: kegiatanItems[0].text,
-    href: kegiatanItems[0].href,
-    imageSrc: kegiatanItems[0].imageSrc,
-    imageAlt: kegiatanItems[0].imageAlt,
-    badge: "Dokumentasi",
-  },
-  {
-    title: kabarArticles[1].title,
-    text: kabarArticles[1].excerpt,
-    href: "/kabar-warga/#semua-kabar",
-    imageSrc:
-      kabarArticles[1].coverImageSrc ??
-      "/assets/kegiatan/keamanan-kebersihan-optimized.jpg",
-    imageAlt: kabarArticles[1].coverImageAlt ?? kabarArticles[1].title,
-    badge: kabarArticles[1].category,
-  },
-];
-
-const heroSlides = rhythmCards.map((item) => ({
-  src: item.imageSrc,
-  alt: item.imageAlt,
-}));
-
-const liveSignals = ["Kabar Warga", "Agenda", "PALUGADA", "Layanan"];
-
 export default function Home() {
   return (
     <PageShell>
-      <section className="relative overflow-hidden bg-primary text-white">
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,#002d27_0%,#003d34_46%,#006d5b_100%)]" />
-        <div className="absolute inset-0 opacity-[0.16] [background-image:linear-gradient(90deg,rgba(255,255,255,0.16)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:44px_44px]" />
-        <div className="absolute inset-x-0 bottom-0 h-px bg-white/18" />
-
-        <div className="relative mx-auto grid w-full max-w-7xl gap-8 px-4 pb-12 pt-10 sm:px-6 lg:min-h-[calc(100vh-92px)] lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:px-8 lg:pb-16 lg:pt-14 xl:px-10">
-          <div className="min-w-0 max-w-3xl">
-            <p className="inline-flex rounded-full border border-white/18 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-accent-soft shadow-sm backdrop-blur">
-              Cipta Greenville - RT 010 / RW 021
-            </p>
-            <h1 className="mt-6 max-w-full text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Portal Warga CGV10
-            </h1>
-            <p className="mt-6 max-w-2xl text-base leading-7 text-white/78 sm:text-lg sm:leading-8">
-              Lebih dekat, lebih peduli. Tempat kita berbagi kabar lingkungan
-              terbaru, menjaga transparansi RT, serta bersama-sama memajukan
-              lapak tetangga.
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/layanan/"
-                className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl bg-accent px-5 text-base font-semibold text-foreground shadow-[0_18px_42px_rgba(212,175,55,0.28)] transition-colors duration-200 hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft focus-visible:ring-offset-2 focus-visible:ring-offset-primary sm:px-6"
-              >
-                Ajukan Layanan
-              </Link>
-              <Link
-                href="/kabar-warga/"
-                className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl border border-white/20 bg-white/10 px-5 text-base font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-white/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary sm:px-6"
-              >
-                Cek Kabar Terbaru
-              </Link>
-            </div>
-            <div className="mt-9 max-w-xl border-y border-white/12 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-soft">
-                Jalur cepat warga
-              </p>
-              <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold text-white/82">
-                {liveSignals.map((signal, index) => (
-                  <span key={signal} className="inline-flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-accent-soft community-pulse" />
-                    <span className="text-white/44">0{index + 1}</span>
-                    {signal}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="relative">
-            <div className="relative overflow-hidden rounded-[1.5rem] border border-white/16 bg-primary shadow-[0_28px_80px_rgba(0,0,0,0.32)]">
-              <div className="relative min-h-[360px] sm:min-h-[430px]">
-                <HeroImageRotator
-                  slides={heroSlides}
-                  sizes="(min-width: 1024px) 620px, 92vw"
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/76 via-primary/18 to-primary/6" />
-                <div className="absolute left-5 right-5 top-5 flex items-center justify-between gap-3">
-                  <span className="rounded-full border border-white/22 bg-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-white backdrop-blur">
-                    Pilihan Warga
-                  </span>
-                  <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-foreground">
-                    CGV10
-                  </span>
-                </div>
-                <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4">
-                  <p className="max-w-[15rem] text-sm font-semibold leading-6 text-white/88">
-                    Kabar, pengumuman, dan dokumentasi warga yang paling baru.
-                  </p>
-                  <span className="rounded-full border border-white/22 bg-white/14 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
-                    Sorotan
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative mt-3 grid gap-3 sm:grid-cols-3">
-              {rhythmCards.map((card) => (
-                <Link
-                  key={card.title}
-                  href={card.href}
-                  className="group overflow-hidden rounded-2xl border border-white/14 bg-white/10 text-white shadow-sm backdrop-blur transition-colors duration-200 hover:bg-white/14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
-                >
-                  <div className="relative aspect-[16/9] bg-primary">
-                    <Image
-                      src={card.imageSrc}
-                      alt={card.imageAlt}
-                      fill
-                      sizes="(min-width: 1024px) 300px, (min-width: 640px) 45vw, 92vw"
-                      className="object-cover transition-opacity duration-200 group-hover:opacity-95"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-primary/70 via-primary/12 to-transparent" />
-                    <span className="absolute left-3 top-3 rounded-full border border-white/14 bg-white/14 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-white backdrop-blur">
-                      {card.badge}
-                    </span>
-                  </div>
-                  <div className="p-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent-soft">
-                      Kabar lingkungan
-                    </p>
-                    <p className="mt-2 line-clamp-2 text-base font-semibold leading-tight text-white">
-                      {card.title}
-                    </p>
-                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-white/70">
-                      {card.text}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      <LiveHomeHero />
 
       <PwaInstallGuide />
 
