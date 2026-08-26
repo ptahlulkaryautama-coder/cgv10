@@ -156,12 +156,21 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <Link
-          href="/layanan/"
-          className="hidden min-h-11 shrink-0 items-center justify-center rounded-xl bg-primary px-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:inline-flex sm:px-4"
-        >
-          Layanan Warga
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/"
+            className="hidden min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-accent/45 bg-accent-soft px-3.5 text-sm font-bold text-foreground shadow-sm transition-colors hover:border-accent hover:bg-accent-soft/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:inline-flex"
+          >
+            <span>🔑</span>
+            <span>Portal Admin</span>
+          </Link>
+          <Link
+            href="/layanan/"
+            className="hidden min-h-11 shrink-0 items-center justify-center rounded-xl bg-primary px-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:inline-flex sm:px-4"
+          >
+            Layanan Warga
+          </Link>
+        </div>
       </div>
       <nav
         aria-label="Navigasi utama mobile"
@@ -172,6 +181,9 @@ export function SiteHeader() {
             {label}
           </ActiveNavLink>
         ))}
+        <ActiveNavLink href="/admin/" mobile>
+          🔑 Admin
+        </ActiveNavLink>
       </nav>
     </header>
   );
@@ -208,6 +220,13 @@ export function SiteFooter() {
             className="font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             Privasi
+          </Link>
+          <span className="text-muted/40">•</span>
+          <Link
+            href="/admin/"
+            className="font-bold text-foreground/80 underline-offset-4 hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            Portal Admin (Pengurus)
           </Link>
         </div>
       </div>

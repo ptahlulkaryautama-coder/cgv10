@@ -3,6 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
+type GalleryImageItem = {
+  id: string;
+  url: string;
+  alt?: string | null;
+  caption?: string | null;
+};
+
 type LivePost = {
   id: string;
   title: string;
@@ -14,6 +21,7 @@ type LivePost = {
   cover_image_alt?: string | null;
   attachment_url?: string | null;
   attachment_label?: string | null;
+  gallery_images?: GalleryImageItem[] | null;
   published_at: string | null;
   updated_at: string;
 };
@@ -75,7 +83,7 @@ export function LiveKabarList() {
     async function loadPublishedPosts() {
       setState("loading");
       const baseSelect = "id, title, slug, category, excerpt, body, published_at, updated_at";
-      const mediaSelect = `${baseSelect}, cover_image_url, cover_image_alt, attachment_url, attachment_label`;
+      const mediaSelect = `${baseSelect}, cover_image_url, cover_image_alt, attachment_url, attachment_label, gallery_images`;
       const initialResult = await supabase
         .from("portal_posts")
         .select(mediaSelect)
@@ -312,6 +320,40 @@ export function LiveKabarList() {
                   <p key={paragraph}>{paragraph}</p>
                 ))}
               </div>
+
+              {selectedPost.gallery_images && selectedPost.gallery_images.length > 0 ? (
+                <div className="mt-8 border-t border-border pt-6">
+                  <h4 className="text-sm font-bold uppercase tracking-[0.12em] text-primary">
+                    Dokumentasi Galeri Foto ({selectedPost.gallery_images.length})
+                  </h4>
+                  <p className="mt-1 text-xs font-semibold text-muted">
+                    Klik foto untuk memperbesar.
+                  </p>
+                  <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {selectedPost.gallery_images.map((img, idx) => (
+                      <button
+                        key={img.id || idx}
+                        type="button"
+                        onClick={() =>
+                          setExpandedImage({
+                            src: img.url,
+                            alt: img.alt || selectedPost.title,
+                          })
+                        }
+                        className="group relative overflow-hidden rounded-xl border border-border bg-cream shadow-sm transition-transform duration-200 hover:scale-[1.02]"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={img.url}
+                          alt={img.alt || selectedPost.title}
+                          className="aspect-[4/3] w-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
               {selectedPost.attachment_url ? (
                 <a
                   href={selectedPost.attachment_url}

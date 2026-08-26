@@ -45,6 +45,14 @@ type PermissionRow = {
   permission: string;
 };
 
+type GalleryImage = {
+  id: string;
+  url: string;
+  alt?: string | null;
+  caption?: string | null;
+  file_name?: string | null;
+};
+
 type PortalPostRow = {
   id: string;
   title: string;
@@ -56,6 +64,7 @@ type PortalPostRow = {
   cover_image_alt?: string | null;
   attachment_url?: string | null;
   attachment_label?: string | null;
+  gallery_images?: GalleryImage[] | null;
   status: PublishStatus;
   author_id: string | null;
   approved_by: string | null;
@@ -81,6 +90,7 @@ type EditorForm = {
   coverImageAlt: string;
   attachmentUrl: string;
   attachmentLabel: string;
+  galleryImages: GalleryImage[];
   status: PublishStatus;
 };
 
@@ -104,6 +114,7 @@ const emptyForm: EditorForm = {
   coverImageAlt: "",
   attachmentUrl: "",
   attachmentLabel: "",
+  galleryImages: [],
   status: "draft",
 };
 
@@ -143,7 +154,7 @@ const statusTone: Record<PublishStatus, string> = {
 
 const portalPostSelectBase =
   "id, title, slug, category, excerpt, body, status, author_id, approved_by, published_at, created_at, updated_at";
-const portalPostSelectWithMedia = `${portalPostSelectBase}, cover_image_url, cover_image_alt, attachment_url, attachment_label`;
+const portalPostSelectWithMedia = `${portalPostSelectBase}, cover_image_url, cover_image_alt, attachment_url, attachment_label, gallery_images`;
 const portalPostMediaBucket = "portal-post-media";
 const portalPostAttachmentBucket = "portal-post-attachments";
 
@@ -191,6 +202,7 @@ function toForm(post: PortalPostRow): EditorForm {
     coverImageAlt: post.cover_image_alt ?? "",
     attachmentUrl: post.attachment_url ?? "",
     attachmentLabel: post.attachment_label ?? "",
+    galleryImages: Array.isArray(post.gallery_images) ? post.gallery_images : [],
     status: post.status,
   };
 }
@@ -559,6 +571,7 @@ export function PortalPostsAdminClient() {
           cover_image_alt: coverImageAlt || null,
           attachment_url: attachmentUrl || null,
           attachment_label: attachmentLabel || null,
+          gallery_images: form.galleryImages || [],
         }
       : {};
 
@@ -666,7 +679,7 @@ export function PortalPostsAdminClient() {
     const contentType = getUploadContentType(file);
     const { error: uploadError } = await supabase.storage.from(bucket).upload(path, file, {
       cacheControl: "31536000",
-      upsert: false,
+      upsert: true,
       contentType,
     });
 
@@ -718,6 +731,133 @@ export function PortalPostsAdminClient() {
         : "Lampiran berhasil diupload dan tersimpan.",
     );
     await loadPortalPosts();
+  }
+
+  async function uploadGalleryFiles(fileList: FileList | File[] | null) {
+    if (!fileList || fileList.length === 0) return;
+    const files = Array.from(fileList);
+
+    if (!supabase || !user) {
+      setFormNotice("Login admin diperlukan sebelum upload galeri.");
+      return;
+    }
+
+    if (!canWriteContent) {
+      setFormNotice("Upload galeri membutuhkan permission content:write.");
+      return;
+    }
+
+    let targetPostId = form.id;
+
+    if (!targetPostId) {
+      setFormNotice("Menyimpan draft artikel terlebih dahulu untuk mengunggah galeri foto...");
+      const payload = {
+        title: form.title.trim() || "Kabar Baru",
+        slug: form.slug.trim() || undefined,
+        category: form.category,
+        excerpt: form.excerpt.trim(),
+        body: form.body.trim(),
+        status: form.status,
+        author_id: user.id,
+      };
+      const { data: createdPost, error: createError } = await supabase
+        .from("portal_posts")
+        .insert(payload)
+        .select(portalPostSelectWithMedia)
+        .single<PortalPostRow>();
+
+      if (createError || !createdPost) {
+        setFormNotice("Gagal menyimpan draft artikel sebelum upload galeri.");
+        return;
+      }
+
+      targetPostId = createdPost.id;
+      setForm(toForm(createdPost));
+    }
+
+    setUploadingTarget("cover");
+    setFormNotice(`Mengupload ${files.length} foto ke galeri artikel...`);
+    setDbError(null);
+
+    const newGalleryItems: GalleryImage[] = [...form.galleryImages];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (!isAcceptedCoverImage(file)) continue;
+
+      const path = `${targetPostId}/gallery/${getSafeStorageName(file.name)}`;
+      const contentType = getUploadContentType(file);
+
+      const { error: uploadError } = await supabase.storage.from(portalPostMediaBucket).upload(path, file, {
+        cacheControl: "31536000",
+        upsert: true,
+        contentType,
+      });
+
+      if (!uploadError) {
+        const { data: publicUrlData } = supabase.storage.from(portalPostMediaBucket).getPublicUrl(path);
+        newGalleryItems.push({
+          id: crypto.randomUUID(),
+          url: publicUrlData.publicUrl,
+          alt: file.name,
+          caption: "",
+          file_name: file.name,
+        });
+      }
+    }
+
+    const { data: updatedPost, error: updateError } = await supabase
+      .from("portal_posts")
+      .update({ gallery_images: newGalleryItems })
+      .eq("id", targetPostId)
+      .select(portalPostSelectWithMedia)
+      .single<PortalPostRow>();
+
+    setUploadingTarget(null);
+
+    if (updateError || !updatedPost) {
+      setFormNotice("Foto diunggah ke storage, tetapi galeri gagal diperbarui di database.");
+      return;
+    }
+
+    setForm(toForm(updatedPost));
+    setFormNotice(`Berhasil mengunggah ${files.length} foto ke galeri artikel.`);
+    await loadPortalPosts();
+  }
+
+  async function deleteGalleryImage(imageId: string) {
+    if (!form.id || !supabase) return;
+    const nextGallery = form.galleryImages.filter((item) => item.id !== imageId);
+
+    const { data: updatedPost, error } = await supabase
+      .from("portal_posts")
+      .update({ gallery_images: nextGallery })
+      .eq("id", form.id)
+      .select(portalPostSelectWithMedia)
+      .single<PortalPostRow>();
+
+    if (!error && updatedPost) {
+      setForm(toForm(updatedPost));
+      setFormNotice("Foto dihapus dari galeri.");
+      await loadPortalPosts();
+    }
+  }
+
+  async function setAsCoverFromGallery(url: string) {
+    if (!form.id || !supabase) return;
+
+    const { data: updatedPost, error } = await supabase
+      .from("portal_posts")
+      .update({ cover_image_url: url })
+      .eq("id", form.id)
+      .select(portalPostSelectWithMedia)
+      .single<PortalPostRow>();
+
+    if (!error && updatedPost) {
+      setForm(toForm(updatedPost));
+      setFormNotice("Foto galeri dipasang sebagai gambar utama kabar.");
+      await loadPortalPosts();
+    }
   }
 
   function selectPortalMedia(file: File | null, target: "cover" | "attachment") {
@@ -1067,78 +1207,184 @@ export function PortalPostsAdminClient() {
                     </div>
                   </div>
 
-                  <div className="mt-4 grid gap-3">
-                    <FieldLabel label="URL gambar utama">
-                      <input
-                        value={form.coverImageUrl}
-                        onChange={(event) => updateForm("coverImageUrl", event.target.value)}
-                        disabled={isBusy || !mediaColumnsReady || !canWriteContent}
-                        className={fieldClass}
-                        placeholder="https://..."
-                      />
-                    </FieldLabel>
-                    <FieldLabel label="Upload gambar utama">
-                      <input
-                        type="file"
-                        accept="image/png,image/jpeg,image/jpg,image/pjpeg,image/webp,image/gif,image/heic,image/heif"
-                        onChange={(event) => {
-                          selectPortalMedia(event.currentTarget.files?.[0] ?? null, "cover");
-                          event.currentTarget.value = "";
-                        }}
-                        disabled={isBusy || !mediaColumnsReady || !canWriteContent}
-                        className="block w-full cursor-pointer rounded-[10px] border border-dashed border-primary/25 bg-white px-3 py-3 text-sm font-semibold text-muted file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-bold file:text-accent hover:border-primary/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
-                      />
-                      {!form.id && pendingCoverFile ? (
-                        <p className="mt-2 text-xs font-semibold text-primary">
-                          Siap diupload: {pendingCoverFile.name}
-                        </p>
-                      ) : null}
-                    </FieldLabel>
-                    <FieldLabel label="Alt text gambar">
-                      <input
-                        value={form.coverImageAlt}
-                        onChange={(event) => updateForm("coverImageAlt", event.target.value)}
-                        disabled={isBusy || !mediaColumnsReady || !canWriteContent}
-                        className={fieldClass}
-                        placeholder="Deskripsi singkat gambar"
-                      />
-                    </FieldLabel>
-                    <FieldLabel label="URL lampiran">
-                      <input
-                        value={form.attachmentUrl}
-                        onChange={(event) => updateForm("attachmentUrl", event.target.value)}
-                        disabled={isBusy || !mediaColumnsReady || !canWriteContent}
-                        className={fieldClass}
-                        placeholder="https://.../dokumen.pdf"
-                      />
-                    </FieldLabel>
-                    <FieldLabel label="Upload lampiran">
-                      <input
-                        type="file"
-                        accept="application/pdf,image/png,image/jpeg,image/jpg,image/pjpeg,image/webp,image/heic,image/heif,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                        onChange={(event) => {
-                          selectPortalMedia(event.currentTarget.files?.[0] ?? null, "attachment");
-                          event.currentTarget.value = "";
-                        }}
-                        disabled={isBusy || !mediaColumnsReady || !canWriteContent}
-                        className="block w-full cursor-pointer rounded-[10px] border border-dashed border-primary/25 bg-white px-3 py-3 text-sm font-semibold text-muted file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-bold file:text-accent hover:border-primary/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
-                      />
-                      {!form.id && pendingAttachmentFile ? (
-                        <p className="mt-2 text-xs font-semibold text-primary">
-                          Siap diupload: {pendingAttachmentFile.name}
-                        </p>
-                      ) : null}
-                    </FieldLabel>
-                    <FieldLabel label="Label lampiran">
-                      <input
-                        value={form.attachmentLabel}
-                        onChange={(event) => updateForm("attachmentLabel", event.target.value)}
-                        disabled={isBusy || !mediaColumnsReady || !canWriteContent}
-                        className={fieldClass}
-                        placeholder="Contoh: Lampiran Tata Tertib"
-                      />
-                    </FieldLabel>
+                <div className="rounded-[14px] border border-border bg-cream p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted">
+                        Media, Foto Galeri & Lampiran
+                      </p>
+                      <p className="mt-1 text-sm font-semibold leading-6 text-muted">
+                        Upload foto utama, beberapa foto galeri kegiatan, atau file lampiran PDF untuk kabar ini.
+                      </p>
+                    </div>
                   </div>
+
+                  <div className="mt-4 grid gap-4">
+                    {/* Cover Photo Section */}
+                    <div className="rounded-xl border border-border bg-white p-3">
+                      <p className="text-xs font-bold uppercase tracking-[0.1em] text-primary">1. Gambar Utama (Cover Photo)</p>
+                      {form.coverImageUrl ? (
+                        <div className="relative mt-2 overflow-hidden rounded-lg border border-border bg-cream">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={form.coverImageUrl}
+                            alt={form.coverImageAlt || "Cover Preview"}
+                            className="aspect-[16/9] w-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => updateForm("coverImageUrl", "")}
+                            className="absolute right-2 top-2 rounded-full bg-red-600 px-2 py-1 text-xs font-bold text-white shadow hover:bg-red-700"
+                          >
+                            Hapus Cover
+                          </button>
+                        </div>
+                      ) : null}
+
+                      <div className="mt-3 grid gap-3">
+                        <FieldLabel label="Upload foto utama">
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg,image/pjpeg,image/webp,image/gif,image/heic,image/heif"
+                            onChange={(event) => {
+                              selectPortalMedia(event.currentTarget.files?.[0] ?? null, "cover");
+                              event.currentTarget.value = "";
+                            }}
+                            disabled={isBusy || !mediaColumnsReady || !canWriteContent}
+                            className="block w-full cursor-pointer rounded-[10px] border border-dashed border-primary/25 bg-cream px-3 py-3 text-sm font-semibold text-muted file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-bold file:text-accent hover:border-primary/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
+                          />
+                          {!form.id && pendingCoverFile ? (
+                            <p className="mt-2 text-xs font-semibold text-primary">
+                              Siap diupload: {pendingCoverFile.name}
+                            </p>
+                          ) : null}
+                        </FieldLabel>
+                        <FieldLabel label="Alt text gambar utama">
+                          <input
+                            value={form.coverImageAlt}
+                            onChange={(event) => updateForm("coverImageAlt", event.target.value)}
+                            disabled={isBusy || !mediaColumnsReady || !canWriteContent}
+                            className={fieldClass}
+                            placeholder="Deskripsi singkat gambar utama"
+                          />
+                        </FieldLabel>
+                        <FieldLabel label="URL gambar utama (manual)">
+                          <input
+                            value={form.coverImageUrl}
+                            onChange={(event) => updateForm("coverImageUrl", event.target.value)}
+                            disabled={isBusy || !mediaColumnsReady || !canWriteContent}
+                            className={fieldClass}
+                            placeholder="https://..."
+                          />
+                        </FieldLabel>
+                      </div>
+                    </div>
+
+                    {/* Multi-Photo Gallery Section */}
+                    <div className="rounded-xl border border-border bg-white p-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold uppercase tracking-[0.1em] text-primary">
+                          2. Galeri Foto Artikel ({form.galleryImages.length} Foto)
+                        </p>
+                      </div>
+                      <p className="mt-1 text-xs font-semibold text-muted">
+                        Pilih beberapa foto sekaligus untuk ditampilkan sebagai galeri kegiatan di artikel warga.
+                      </p>
+
+                      {/* Gallery Upload Dropzone */}
+                      <div className="mt-3">
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/png,image/jpeg,image/jpg,image/pjpeg,image/webp,image/gif,image/heic,image/heif"
+                          onChange={(event) => {
+                            void uploadGalleryFiles(event.currentTarget.files);
+                            event.currentTarget.value = "";
+                          }}
+                          disabled={isBusy || !mediaColumnsReady || !canWriteContent}
+                          className="block w-full cursor-pointer rounded-[10px] border border-dashed border-primary/40 bg-primary-soft/30 px-3 py-3 text-sm font-semibold text-muted file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-bold file:text-accent hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
+                        />
+                      </div>
+
+                      {/* Gallery Items Grid */}
+                      {form.galleryImages.length > 0 ? (
+                        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                          {form.galleryImages.map((imgItem, idx) => (
+                            <div
+                              key={imgItem.id || idx}
+                              className="group relative overflow-hidden rounded-lg border border-border bg-cream p-1 shadow-sm"
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={imgItem.url}
+                                alt={imgItem.alt || `Foto Galeri ${idx + 1}`}
+                                className="aspect-[4/3] w-full rounded-md object-cover"
+                              />
+                              <div className="mt-1 flex items-center justify-between gap-1 px-1 py-1">
+                                <button
+                                  type="button"
+                                  onClick={() => setAsCoverFromGallery(imgItem.url)}
+                                  className="text-[10px] font-bold text-primary hover:underline"
+                                >
+                                  Jadikan Cover
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => deleteGalleryImage(imgItem.id)}
+                                  className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-600 hover:bg-red-200"
+                                >
+                                  Hapus
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* Attachment Document Section */}
+                    <div className="rounded-xl border border-border bg-white p-3">
+                      <p className="text-xs font-bold uppercase tracking-[0.1em] text-primary">3. Lampiran Dokumen (PDF/Doc)</p>
+                      <div className="mt-3 grid gap-3">
+                        <FieldLabel label="Upload lampiran">
+                          <input
+                            type="file"
+                            accept="application/pdf,image/png,image/jpeg,image/jpg,image/pjpeg,image/webp,image/heic,image/heif,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            onChange={(event) => {
+                              selectPortalMedia(event.currentTarget.files?.[0] ?? null, "attachment");
+                              event.currentTarget.value = "";
+                            }}
+                            disabled={isBusy || !mediaColumnsReady || !canWriteContent}
+                            className="block w-full cursor-pointer rounded-[10px] border border-dashed border-primary/25 bg-cream px-3 py-3 text-sm font-semibold text-muted file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-bold file:text-accent hover:border-primary/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
+                          />
+                          {!form.id && pendingAttachmentFile ? (
+                            <p className="mt-2 text-xs font-semibold text-primary">
+                              Siap diupload: {pendingAttachmentFile.name}
+                            </p>
+                          ) : null}
+                        </FieldLabel>
+                        <FieldLabel label="Label lampiran">
+                          <input
+                            value={form.attachmentLabel}
+                            onChange={(event) => updateForm("attachmentLabel", event.target.value)}
+                            disabled={isBusy || !mediaColumnsReady || !canWriteContent}
+                            className={fieldClass}
+                            placeholder="Contoh: Lampiran Tata Tertib (PDF)"
+                          />
+                        </FieldLabel>
+                        <FieldLabel label="URL lampiran (manual)">
+                          <input
+                            value={form.attachmentUrl}
+                            onChange={(event) => updateForm("attachmentUrl", event.target.value)}
+                            disabled={isBusy || !mediaColumnsReady || !canWriteContent}
+                            className={fieldClass}
+                            placeholder="https://.../dokumen.pdf"
+                          />
+                        </FieldLabel>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 </div>
               </div>
 

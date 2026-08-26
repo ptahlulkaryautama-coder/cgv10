@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CGV10 — Alur Kas Januari–Juni 2026</title>
+    <style>
+      :root { --paper:#f6f4ef; --ink:#24312c; --muted:#61706a; --rule:rgba(36,49,44,.16); --primary:#003d34; --danger:#a34e45; }
+      body { margin:0; padding:40px; background:var(--paper); color:var(--ink); font:16px/1.5 Arial,sans-serif; }
+      main { max-width:900px; margin:auto; } h1 { margin:0; font-size:28px; } p { color:var(--muted); }
+      svg { width:100%; height:auto; margin-top:20px; } .node { fill:#fffdf8; stroke:var(--rule); } .focal { fill:rgba(0,61,52,.08); stroke:var(--primary); stroke-width:2; } .expense { fill:rgba(163,78,69,.07); stroke:var(--danger); }
+      .connector { fill:none; stroke:var(--muted); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+      .expense-line { stroke:var(--danger); } .eyebrow { fill:var(--muted); font-size:12px; font-weight:700; letter-spacing:1.2px; } .value { fill:var(--ink); font-size:19px; font-weight:700; } .note { fill:var(--muted); font-size:12px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Bagaimana posisi kas RT pada akhir Juni 2026?</h1>
+      <p>Saldo awal dan pemasukan membentuk dana tersedia; pengeluaran adalah penggunaan dana. Sumber angka: ringkasan keuangan CGV10.</p>
+      <svg viewBox="0 0 560 390" role="img" aria-labelledby="cash-flow-title cash-flow-desc">
+        <title id="cash-flow-title">Alur dana kas RT Januari sampai Juni 2026</title>
+        <desc id="cash-flow-desc">Saldo awal Rp8.510.000 dan pemasukan Rp2.500.000 membentuk dana tersedia Rp11.010.000. Pengeluaran Rp11.000.000 menyisakan saldo akhir Rp10.000.</desc>
+        <path class="connector" d="M164 100H208V214H244M164 276H208V214H244M372 214H412" />
+        <path class="connector expense-line" d="M308 274V316" />
+        <rect class="node" x="28" y="48" width="136" height="104" rx="8" /><text class="eyebrow" x="44" y="76">SALDO AWAL</text><text class="value" x="44" y="112">Rp8.510.000</text><text class="note" x="44" y="134">Awal periode</text>
+        <rect class="node" x="28" y="224" width="136" height="104" rx="8" /><text class="eyebrow" x="44" y="252">PEMASUKAN</text><text class="value" x="44" y="288">Rp2.500.000</text><text class="note" x="44" y="310">Januari–Juni</text>
+        <rect class="focal" x="244" y="164" width="128" height="100" rx="8" /><text class="eyebrow" x="260" y="192" fill="#003d34">DANA TERSEDIA</text><text class="value" x="260" y="228">Rp11.010.000</text>
+        <rect class="node" x="412" y="164" width="120" height="100" rx="8" /><text class="eyebrow" x="428" y="192">SALDO AKHIR</text><text class="value" x="428" y="228">Rp10.000</text><text class="note" x="428" y="250">Per Juni 2026</text>
+        <rect class="expense" x="226" y="316" width="164" height="50" rx="8" /><text x="242" y="337" fill="#a34e45" font-size="11" font-weight="700" letter-spacing="1">PENGELUARAN</text><text x="242" y="355" fill="#24312c" font-size="15" font-weight="700">Rp11.000.000</text>
+      </svg>
+    </main>
+  </body>
+</html>

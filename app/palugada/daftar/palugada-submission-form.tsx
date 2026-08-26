@@ -231,7 +231,7 @@ export function PalugadaSubmissionForm() {
             .upload(storagePath, attachment.file, {
               cacheControl: "3600",
               contentType: getUploadContentType(attachment.file),
-              upsert: false,
+              upsert: true,
             });
           if (uploadError) throw uploadError;
           uploadedPathsRef.current[attachment.id] = storagePath;
