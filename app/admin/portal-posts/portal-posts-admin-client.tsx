@@ -285,6 +285,7 @@ export function PortalPostsAdminClient() {
   const [uploadingTarget, setUploadingTarget] = useState<"cover" | "attachment" | null>(null);
   const [pendingCoverFile, setPendingCoverFile] = useState<File | null>(null);
   const [pendingAttachmentFile, setPendingAttachmentFile] = useState<File | null>(null);
+  const [pendingGalleryFiles, setPendingGalleryFiles] = useState<File[]>([]);
 
   const loadPortalPosts = useCallback(async () => {
     if (!supabase) {
@@ -499,6 +500,7 @@ export function PortalPostsAdminClient() {
     setForm(emptyForm);
     setPendingCoverFile(null);
     setPendingAttachmentFile(null);
+    setPendingGalleryFiles([]);
     setFormNotice(
       canWriteContent
         ? "Draft baru siap diisi."
@@ -608,11 +610,13 @@ export function PortalPostsAdminClient() {
 
     const coverToUpload = pendingCoverFile;
     const attachmentToUpload = pendingAttachmentFile;
+    const galleryToUpload = [...pendingGalleryFiles];
     setPendingCoverFile(null);
     setPendingAttachmentFile(null);
+    setPendingGalleryFiles([]);
 
-    if (coverToUpload || attachmentToUpload) {
-      setFormNotice("Draft tersimpan. Mengupload file yang sudah dipilih...");
+    if (coverToUpload || attachmentToUpload || galleryToUpload.length > 0) {
+      setFormNotice("Draft tersimpan. Mengupload file & foto galeri ke Supabase Storage...");
 
       if (coverToUpload) {
         await uploadPortalMedia(coverToUpload, "cover", savedPost.id);
@@ -621,15 +625,21 @@ export function PortalPostsAdminClient() {
       if (attachmentToUpload) {
         await uploadPortalMedia(attachmentToUpload, "attachment", savedPost.id);
       }
+
+      if (galleryToUpload.length > 0) {
+        await uploadGalleryFiles(galleryToUpload, savedPost.id);
+      }
+
+      setFormNotice("🟢 ✓ Draft tersimpan dan seluruh file media/foto galeri berhasil diupload ke Supabase Storage!");
     } else {
       setFormNotice(
         targetStatus === "published"
-          ? "Kabar berhasil dipublish. Public Kabar Warga dapat membaca status published."
+          ? "🟢 ✓ Kabar berhasil dipublish ke warga."
           : targetStatus === "archived"
-            ? "Kabar berhasil diarsipkan dan tidak tampil sebagai published."
+            ? "Kabar berhasil diarsipkan."
             : targetStatus === "review"
               ? "Kabar berhasil disimpan untuk review."
-              : "Draft berhasil disimpan.",
+              : "🟢 ✓ Draft berhasil disimpan.",
       );
     }
     await loadPortalPosts();
@@ -733,7 +743,7 @@ export function PortalPostsAdminClient() {
     await loadPortalPosts();
   }
 
-  async function uploadGalleryFiles(fileList: FileList | File[] | null) {
+  async function uploadGalleryFiles(fileList: FileList | File[] | null, targetId = form.id) {
     if (!fileList || fileList.length === 0) return;
     const files = Array.from(fileList);
 
@@ -747,32 +757,14 @@ export function PortalPostsAdminClient() {
       return;
     }
 
-    let targetPostId = form.id;
+    const targetPostId = targetId || form.id;
 
     if (!targetPostId) {
-      setFormNotice("Menyimpan draft artikel terlebih dahulu untuk mengunggah galeri foto...");
-      const payload = {
-        title: form.title.trim() || "Kabar Baru",
-        slug: form.slug.trim() || undefined,
-        category: form.category,
-        excerpt: form.excerpt.trim(),
-        body: form.body.trim(),
-        status: form.status,
-        author_id: user.id,
-      };
-      const { data: createdPost, error: createError } = await supabase
-        .from("portal_posts")
-        .insert(payload)
-        .select(portalPostSelectWithMedia)
-        .single<PortalPostRow>();
-
-      if (createError || !createdPost) {
-        setFormNotice("Gagal menyimpan draft artikel sebelum upload galeri.");
-        return;
-      }
-
-      targetPostId = createdPost.id;
-      setForm(toForm(createdPost));
+      setPendingGalleryFiles((current) => [...current, ...files]);
+      setFormNotice(
+        `🟢 ${files.length} foto galeri siap diupload. Foto akan otomatis diunggah ke Supabase saat Anda mengeklik 'Simpan draft' atau 'Terbitkan'.`,
+      );
+      return;
     }
 
     setUploadingTarget("cover");
@@ -821,8 +813,13 @@ export function PortalPostsAdminClient() {
     }
 
     setForm(toForm(updatedPost));
-    setFormNotice(`Berhasil mengunggah ${files.length} foto ke galeri artikel.`);
+    setFormNotice(`🟢 ✓ Berhasil mengunggah ${files.length} foto ke galeri artikel.`);
     await loadPortalPosts();
+  }
+
+  function removePendingGalleryFile(index: number) {
+    setPendingGalleryFiles((current) => current.filter((_, i) => i !== index));
+    setFormNotice("Foto galeri draf dihapus.");
   }
 
   async function deleteGalleryImage(imageId: string) {
@@ -1222,7 +1219,19 @@ export function PortalPostsAdminClient() {
                   <div className="mt-4 grid gap-4">
                     {/* Cover Photo Section */}
                     <div className="rounded-xl border border-border bg-white p-3">
-                      <p className="text-xs font-bold uppercase tracking-[0.1em] text-primary">1. Gambar Utama (Cover Photo)</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold uppercase tracking-[0.1em] text-primary">1. Gambar Utama (Cover Photo)</p>
+                        {form.coverImageUrl ? (
+                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
+                            🟢 ✓ Terunggah di Supabase
+                          </span>
+                        ) : pendingCoverFile ? (
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">
+                            🟡 Siap Diupload saat Simpan Draft
+                          </span>
+                        ) : null}
+                      </div>
+
                       {form.coverImageUrl ? (
                         <div className="relative mt-2 overflow-hidden rounded-lg border border-border bg-cream">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1234,10 +1243,30 @@ export function PortalPostsAdminClient() {
                           <button
                             type="button"
                             onClick={() => updateForm("coverImageUrl", "")}
-                            className="absolute right-2 top-2 rounded-full bg-red-600 px-2 py-1 text-xs font-bold text-white shadow hover:bg-red-700"
+                            className="absolute right-2 top-2 rounded-full bg-red-600 px-2.5 py-1 text-xs font-bold text-white shadow hover:bg-red-700"
                           >
                             Hapus Cover
                           </button>
+                        </div>
+                      ) : pendingCoverFile ? (
+                        <div className="relative mt-2 overflow-hidden rounded-lg border border-amber-300 bg-amber-50/50 p-2">
+                          <p className="mb-1 text-xs font-bold text-amber-900">Preview Foto Utama yang Dipilih:</p>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={URL.createObjectURL(pendingCoverFile)}
+                            alt="Preview Pending Cover"
+                            className="aspect-[16/9] w-full rounded-md object-cover"
+                          />
+                          <div className="mt-1 flex items-center justify-between text-xs text-amber-900">
+                            <span className="font-semibold">{pendingCoverFile.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => setPendingCoverFile(null)}
+                              className="font-bold text-red-600 hover:underline"
+                            >
+                              Batal
+                            </button>
+                          </div>
                         </div>
                       ) : null}
 
@@ -1253,11 +1282,6 @@ export function PortalPostsAdminClient() {
                             disabled={isBusy || !mediaColumnsReady || !canWriteContent}
                             className="block w-full cursor-pointer rounded-[10px] border border-dashed border-primary/25 bg-cream px-3 py-3 text-sm font-semibold text-muted file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-bold file:text-accent hover:border-primary/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
                           />
-                          {!form.id && pendingCoverFile ? (
-                            <p className="mt-2 text-xs font-semibold text-primary">
-                              Siap diupload: {pendingCoverFile.name}
-                            </p>
-                          ) : null}
                         </FieldLabel>
                         <FieldLabel label="Alt text gambar utama">
                           <input
@@ -1284,11 +1308,16 @@ export function PortalPostsAdminClient() {
                     <div className="rounded-xl border border-border bg-white p-3">
                       <div className="flex items-center justify-between">
                         <p className="text-xs font-bold uppercase tracking-[0.1em] text-primary">
-                          2. Galeri Foto Artikel ({form.galleryImages.length} Foto)
+                          2. Galeri Foto Artikel ({form.galleryImages.length + pendingGalleryFiles.length} Foto)
                         </p>
+                        {form.galleryImages.length > 0 ? (
+                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
+                            🟢 {form.galleryImages.length} Foto Terunggah
+                          </span>
+                        ) : null}
                       </div>
                       <p className="mt-1 text-xs font-semibold text-muted">
-                        Pilih beberapa foto sekaligus untuk ditampilkan sebagai galeri kegiatan di artikel warga.
+                        Pilih satu atau beberapa foto sekaligus untuk ditampilkan sebagai galeri kegiatan di artikel warga.
                       </p>
 
                       {/* Gallery Upload Dropzone */}
@@ -1306,13 +1335,14 @@ export function PortalPostsAdminClient() {
                         />
                       </div>
 
-                      {/* Gallery Items Grid */}
-                      {form.galleryImages.length > 0 ? (
+                      {/* Gallery Items Grid (Both Uploaded & Pending) */}
+                      {form.galleryImages.length > 0 || pendingGalleryFiles.length > 0 ? (
                         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                          {/* Uploaded Gallery Items */}
                           {form.galleryImages.map((imgItem, idx) => (
                             <div
                               key={imgItem.id || idx}
-                              className="group relative overflow-hidden rounded-lg border border-border bg-cream p-1 shadow-sm"
+                              className="group relative overflow-hidden rounded-lg border border-emerald-300 bg-emerald-50/40 p-1 shadow-sm"
                             >
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
@@ -1321,16 +1351,44 @@ export function PortalPostsAdminClient() {
                                 className="aspect-[4/3] w-full rounded-md object-cover"
                               />
                               <div className="mt-1 flex items-center justify-between gap-1 px-1 py-1">
+                                <span className="text-[9px] font-bold text-emerald-800">🟢 Terunggah</span>
+                                <div className="flex gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => setAsCoverFromGallery(imgItem.url)}
+                                    className="text-[10px] font-bold text-primary hover:underline"
+                                  >
+                                    Cover
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => deleteGalleryImage(imgItem.id)}
+                                    className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-600 hover:bg-red-200"
+                                  >
+                                    Hapus
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+
+                          {/* Pending Draft Gallery Items */}
+                          {pendingGalleryFiles.map((fileItem, idx) => (
+                            <div
+                              key={`pending-${idx}`}
+                              className="group relative overflow-hidden rounded-lg border border-amber-300 bg-amber-50/50 p-1 shadow-sm"
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={URL.createObjectURL(fileItem)}
+                                alt={`Preview Pending ${idx + 1}`}
+                                className="aspect-[4/3] w-full rounded-md object-cover"
+                              />
+                              <div className="mt-1 flex items-center justify-between gap-1 px-1 py-1">
+                                <span className="truncate text-[9px] font-bold text-amber-900">🟡 Siap Upload</span>
                                 <button
                                   type="button"
-                                  onClick={() => setAsCoverFromGallery(imgItem.url)}
-                                  className="text-[10px] font-bold text-primary hover:underline"
-                                >
-                                  Jadikan Cover
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => deleteGalleryImage(imgItem.id)}
+                                  onClick={() => removePendingGalleryFile(idx)}
                                   className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-600 hover:bg-red-200"
                                 >
                                   Hapus
@@ -1344,7 +1402,19 @@ export function PortalPostsAdminClient() {
 
                     {/* Attachment Document Section */}
                     <div className="rounded-xl border border-border bg-white p-3">
-                      <p className="text-xs font-bold uppercase tracking-[0.1em] text-primary">3. Lampiran Dokumen (PDF/Doc)</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold uppercase tracking-[0.1em] text-primary">3. Lampiran Dokumen (PDF/Doc)</p>
+                        {form.attachmentUrl ? (
+                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
+                            🟢 ✓ Lampiran Terunggah
+                          </span>
+                        ) : pendingAttachmentFile ? (
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">
+                            🟡 Siap Diupload saat Simpan Draft
+                          </span>
+                        ) : null}
+                      </div>
+
                       <div className="mt-3 grid gap-3">
                         <FieldLabel label="Upload lampiran">
                           <input
@@ -1357,11 +1427,6 @@ export function PortalPostsAdminClient() {
                             disabled={isBusy || !mediaColumnsReady || !canWriteContent}
                             className="block w-full cursor-pointer rounded-[10px] border border-dashed border-primary/25 bg-cream px-3 py-3 text-sm font-semibold text-muted file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-bold file:text-accent hover:border-primary/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
                           />
-                          {!form.id && pendingAttachmentFile ? (
-                            <p className="mt-2 text-xs font-semibold text-primary">
-                              Siap diupload: {pendingAttachmentFile.name}
-                            </p>
-                          ) : null}
                         </FieldLabel>
                         <FieldLabel label="Label lampiran">
                           <input
