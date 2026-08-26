@@ -46,15 +46,31 @@ export function HeroImageRotator({
   className = "",
 }: HeroImageRotatorProps) {
   const [remoteSettings, setRemoteSettings] = useState<HeroSettings | null>(null);
+  const validRemoteSlides = useMemo(() => {
+    if (!remoteSettings?.enabled || !remoteSettings.slides) return [];
+    return remoteSettings.slides.filter(
+      (slide) =>
+        slide.src.trim() &&
+        !slide.src.startsWith("blob:") &&
+        slide.alt.trim(),
+    );
+  }, [remoteSettings]);
+
   const configuredSlides =
-    remoteSettings?.enabled && remoteSettings.slides.length > 0
-      ? remoteSettings.slides
-      : slides;
+    validRemoteSlides.length > 0 ? validRemoteSlides : slides;
+
   const activeInterval = remoteSettings?.enabled
     ? remoteSettings.interval_ms
     : intervalMs;
+
   const safeSlides = useMemo(
-    () => configuredSlides.filter((slide) => slide.src.trim() && slide.alt.trim()),
+    () =>
+      configuredSlides.filter(
+        (slide) =>
+          slide.src.trim() &&
+          !slide.src.startsWith("blob:") &&
+          slide.alt.trim(),
+      ),
     [configuredSlides],
   );
   const [activeIndex, setActiveIndex] = useState(0);

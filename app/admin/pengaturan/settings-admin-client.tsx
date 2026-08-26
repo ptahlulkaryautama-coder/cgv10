@@ -392,7 +392,7 @@ export function AdminSettingsClient() {
       const storagePath = `hero-slides/${filename}`;
 
       const { error: uploadError } = await supabase.storage
-        .from("portal-media")
+        .from("portal-post-media")
         .upload(storagePath, file, {
           cacheControl: "3600",
           upsert: true,
@@ -400,13 +400,13 @@ export function AdminSettingsClient() {
         });
 
       if (uploadError) {
-        setHeroMessage(`Gagal mengunggah foto: ${uploadError.message}`);
+        setHeroMessage(`⚠️ Gagal mengunggah foto (${uploadError.message}). Coba lagi.`);
         setUploadingSlideIndex(null);
         return;
       }
 
       const { data: publicUrlData } = supabase.storage
-        .from("portal-media")
+        .from("portal-post-media")
         .getPublicUrl(storagePath);
 
       if (publicUrlData?.publicUrl) {
@@ -415,7 +415,7 @@ export function AdminSettingsClient() {
           updateHeroSlide(index, "alt", file.name.replace(/\.[^/.]+$/, ""));
         }
         setHeroMessage(
-          `🟢 Gambar ${index + 1} berhasil diunggah! Klik "Simpan slideshow" untuk menerapkan.`,
+          `🟢 Gambar ${index + 1} berhasil diunggah ke Supabase! Klik "Simpan slideshow" untuk menerapkan.`,
         );
       }
     } catch (err: unknown) {
@@ -448,6 +448,13 @@ export function AdminSettingsClient() {
         alt: slide.alt.trim(),
       })),
     };
+
+    if (cleanedSettings.slides.some((slide) => slide.src.startsWith("blob:"))) {
+      setHeroMessage(
+        "⚠️ Foto masih dalam proses mengunggah atau gagal. Mohon tunggu hingga terunggah sebelum menyimpan.",
+      );
+      return;
+    }
 
     if (cleanedSettings.slides.some((slide) => !slide.src || !slide.alt)) {
       setHeroMessage("Setiap gambar harus memiliki alamat foto dan deskripsi.");
