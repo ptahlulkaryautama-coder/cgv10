@@ -173,9 +173,6 @@ export function LiveKabarList() {
     });
   }, [posts, activeCategory, searchQuery]);
 
-  const heroPost = filteredPosts[0] ?? null;
-  const gridPosts = filteredPosts.slice(1);
-
   if (state === "error" || state === "empty") {
     return null;
   }
@@ -193,55 +190,55 @@ export function LiveKabarList() {
                 Memuat...
               </span>
             </div>
-            <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid items-start gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {[0, 1, 2].map((item) => (
                 <div
                   key={item}
-                  className="min-h-48 rounded-2xl border border-border bg-background p-5"
+                  className="min-h-64 rounded-2xl border border-border bg-background p-5"
                 >
-                  <div className="h-5 w-28 rounded-full bg-primary-soft" />
-                  <div className="mt-6 h-6 w-4/5 rounded-full bg-cream" />
-                  <div className="mt-4 h-4 w-full rounded-full bg-cream" />
-                  <div className="mt-2 h-4 w-3/4 rounded-full bg-cream" />
+                  <div className="h-44 w-full rounded-xl bg-cream" />
+                  <div className="mt-4 h-5 w-28 rounded-full bg-primary-soft" />
+                  <div className="mt-3 h-6 w-4/5 rounded-full bg-cream" />
+                  <div className="mt-2 h-4 w-full rounded-full bg-cream" />
                 </div>
               ))}
             </div>
           </div>
         ) : (
           <div>
-            {/* Header Controls: Search & Category Filter Tabs */}
-            <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            {/* Header Bar with Search & Category Filter Pills */}
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">
-                  Portal Informasi Lingkungan
+                  Kabar Terbaru Lingkungan
                 </p>
                 <h2 className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                  Kabar Terbaru RT 010 / RW 021
+                  Informasi RT 010 / RW 021
                 </h2>
               </div>
 
-              {/* Filter Pills & Search Box */}
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="relative flex-1 min-w-[200px] sm:w-64">
+              {/* Filter Pills & Search Input */}
+              <div className="flex flex-wrap items-center gap-2.5">
+                <div className="relative min-w-[180px] sm:w-56">
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="🔍 Cari kabar / pengumuman..."
-                    className="w-full rounded-xl border border-border bg-surface px-3.5 py-2 text-sm font-medium text-foreground placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    placeholder="🔍 Cari kabar..."
+                    className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-foreground placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                   />
                   {searchQuery ? (
                     <button
                       type="button"
                       onClick={() => setSearchQuery("")}
-                      className="absolute right-2.5 top-2.5 text-xs font-bold text-muted hover:text-foreground"
+                      className="absolute right-2.5 top-2 text-xs font-bold text-muted hover:text-foreground"
                     >
                       ✕
                     </button>
                   ) : null}
                 </div>
 
-                <div className="flex items-center gap-1.5 overflow-x-auto rounded-xl border border-border bg-surface p-1 text-xs font-semibold text-muted">
+                <div className="flex items-center gap-1 overflow-x-auto rounded-xl border border-border bg-surface p-1 text-xs font-semibold text-muted">
                   {[
                     ["all", "Semua"],
                     ["pengumuman", "📢 Pengumuman"],
@@ -252,7 +249,7 @@ export function LiveKabarList() {
                       key={catKey}
                       type="button"
                       onClick={() => setActiveCategory(catKey)}
-                      className={`rounded-lg px-3 py-1.5 transition-all ${
+                      className={`rounded-lg px-2.5 py-1.5 transition-all ${
                         activeCategory === catKey
                           ? "bg-primary font-bold text-white shadow-sm"
                           : "hover:bg-cream hover:text-foreground"
@@ -265,227 +262,137 @@ export function LiveKabarList() {
               </div>
             </div>
 
-            {/* Featured Hero Post (First Item) */}
-            {heroPost ? (
-              <div className="mb-10 overflow-hidden rounded-3xl border border-border bg-surface shadow-[0_15px_45px_rgba(0,61,52,0.06)] transition-all hover:shadow-[0_20px_50px_rgba(0,61,52,0.1)]">
-                <div className="grid gap-0 lg:grid-cols-12">
-                  {/* Hero Media Container */}
-                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-cream lg:col-span-7 lg:aspect-auto lg:min-h-[380px]">
-                    {heroPost.cover_image_url ? (
-                      isVideoUrl(heroPost.cover_image_url) ? (
-                        <video
-                          src={heroPost.cover_image_url}
-                          controls
-                          preload="metadata"
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setExpandedImage({
-                              src: heroPost.cover_image_url ?? "",
-                              alt: heroPost.cover_image_alt || heroPost.title,
-                            })
-                          }
-                          className="group relative block h-full w-full cursor-zoom-in overflow-hidden focus-visible:outline-none"
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={heroPost.cover_image_url}
-                            alt={heroPost.cover_image_alt || heroPost.title}
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            {/* Standardized Equal 3-Column Card Grid */}
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredPosts.map((post) => {
+                const hasGallery = post.gallery_images && post.gallery_images.length > 0;
+                const galleryCount = post.gallery_images?.length ?? 0;
+                const isVid = isVideoUrl(post.cover_image_url);
+
+                return (
+                  <article
+                    key={post.id}
+                    className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_15px_35px_rgba(0,61,52,0.1)]"
+                  >
+                    {/* Standard Fixed-Height 16:9 Image Preview (Max Height ~200px) */}
+                    {post.cover_image_url ? (
+                      <div className="relative h-48 sm:h-52 w-full overflow-hidden bg-cream shrink-0">
+                        {isVid ? (
+                          <video
+                            src={post.cover_image_url}
+                            controls
+                            preload="metadata"
+                            className="h-full w-full object-cover"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60 transition-opacity group-hover:opacity-40" />
-                        </button>
-                      )
-                    ) : (
-                      <div className="grid h-full place-items-center bg-gradient-to-br from-primary-soft to-cream p-8 text-center">
-                        <span className="text-4xl">📰</span>
-                      </div>
-                    )}
-
-                    {/* Floating Badges */}
-                    <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-                      <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-white shadow-md">
-                        🌟 KABAR UTAMA
-                      </span>
-                      <span
-                        className={`rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] shadow-sm ${
-                          categoryTone[heroPost.category]
-                        }`}
-                      >
-                        {categoryLabel[heroPost.category]}
-                      </span>
-                    </div>
-
-                    {/* Media Count Badge */}
-                    {heroPost.gallery_images && heroPost.gallery_images.length > 0 ? (
-                      <span className="absolute bottom-4 right-4 rounded-full bg-black/75 px-3 py-1 text-xs font-bold text-white backdrop-blur-md">
-                        📸 {heroPost.gallery_images.length} Foto Galeri
-                      </span>
-                    ) : null}
-                  </div>
-
-                  {/* Hero Content Container */}
-                  <div className="flex flex-col justify-between p-6 sm:p-8 lg:col-span-5 lg:p-10">
-                    <div>
-                      <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.12em] text-muted">
-                        <span>{formatDate(heroPost.published_at)}</span>
-                        <span>•</span>
-                        <span>{getReadTime(heroPost.body)}</span>
-                      </div>
-
-                      <h3 className="mt-3 text-2xl font-bold leading-snug tracking-tight text-foreground sm:text-3xl">
-                        {heroPost.title}
-                      </h3>
-
-                      <p className="mt-4 line-clamp-4 text-sm font-normal leading-7 text-muted">
-                        {heroPost.excerpt}
-                      </p>
-                    </div>
-
-                    <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-border/60 pt-5">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedPost(heroPost)}
-                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-white shadow-md transition-all hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                      >
-                        <span>Baca Kabar Utama</span>
-                        <span>→</span>
-                      </button>
-
-                      {heroPost.attachment_url ? (
-                        <a
-                          href={heroPost.attachment_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex min-h-11 items-center justify-center rounded-xl border border-primary/30 bg-primary-soft px-4 text-sm font-bold text-primary transition-colors hover:bg-primary/10"
-                        >
-                          📎 {heroPost.attachment_label || "Dokumen PDF"}
-                        </a>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : null}
-
-            {/* Standard Uniform 16:9 Grid for Remaining Posts */}
-            {gridPosts.length > 0 ? (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {gridPosts.map((post) => {
-                  const hasGallery = post.gallery_images && post.gallery_images.length > 0;
-                  const galleryCount = post.gallery_images?.length ?? 0;
-                  const isVid = isVideoUrl(post.cover_image_url);
-
-                  return (
-                    <article
-                      key={post.id}
-                      className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_15px_35px_rgba(0,61,52,0.1)]"
-                    >
-                      {/* Uniform 16:9 Aspect Ratio Media Container */}
-                      {post.cover_image_url ? (
-                        <div className="relative aspect-[16/9] w-full overflow-hidden bg-cream">
-                          {isVid ? (
-                            <video
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedPost(post)}
+                            className="block h-full w-full cursor-pointer focus-visible:outline-none"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
                               src={post.cover_image_url}
-                              controls
-                              preload="metadata"
-                              className="h-full w-full object-cover"
+                              alt={post.cover_image_alt || post.title}
+                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                             />
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setExpandedImage({
-                                  src: post.cover_image_url ?? "",
-                                  alt: post.cover_image_alt || post.title,
-                                })
-                              }
-                              className="block h-full w-full cursor-zoom-in focus-visible:outline-none"
-                            >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={post.cover_image_url}
-                                alt={post.cover_image_alt || post.title}
-                                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                              />
-                            </button>
-                          )}
+                          </button>
+                        )}
 
-                          {/* Floating Gallery Badge */}
-                          {hasGallery ? (
-                            <span className="absolute right-3 top-3 rounded-full bg-black/75 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-md">
-                              📸 {galleryCount} Foto
-                            </span>
-                          ) : null}
-                        </div>
-                      ) : null}
-
-                      {/* Content Card */}
-                      <div className="flex flex-1 flex-col p-5">
-                        <div className="flex flex-wrap items-center gap-2">
+                        {/* Floating Badges */}
+                        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
                           <span
-                            className={`rounded-full border px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.12em] ${
+                            className={`rounded-full border px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.1em] shadow-sm ${
                               categoryTone[post.category]
                             }`}
                           >
                             {categoryLabel[post.category]}
                           </span>
-                          <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
+                        </div>
+
+                        {/* Gallery / Attachment Count Badges */}
+                        {hasGallery ? (
+                          <span className="absolute right-3 bottom-3 rounded-full bg-black/75 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-md">
+                            📸 {galleryCount} Foto
+                          </span>
+                        ) : post.attachment_url ? (
+                          <span className="absolute right-3 bottom-3 rounded-full bg-primary/90 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-md">
+                            📎 Dokumen PDF
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : null}
+
+                    {/* Content Section (Always Visible: Category + Title + Excerpt + CTA) */}
+                    <div className="flex flex-1 flex-col p-5">
+                      {!post.cover_image_url ? (
+                        <div className="mb-3 flex items-center justify-between">
+                          <span
+                            className={`rounded-full border px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.1em] ${
+                              categoryTone[post.category]
+                            }`}
+                          >
+                            {categoryLabel[post.category]}
+                          </span>
+                          <span className="text-[11px] font-semibold text-muted">
                             {formatDate(post.published_at)}
                           </span>
                         </div>
+                      ) : (
+                        <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted">
+                          {formatDate(post.published_at)}
+                        </div>
+                      )}
 
-                        <h3 className="mt-3 text-lg font-bold leading-snug tracking-tight text-foreground transition-colors group-hover:text-primary">
-                          {post.title}
-                        </h3>
+                      <h3 className="text-base font-bold leading-snug tracking-tight text-foreground transition-colors group-hover:text-primary line-clamp-2">
+                        {post.title}
+                      </h3>
 
-                        <p className="mt-2 line-clamp-3 text-xs font-normal leading-6 text-muted">
-                          {post.excerpt}
-                        </p>
+                      {/* Excerpt Summary (Always Displayed) */}
+                      <p className="mt-2 text-xs font-normal leading-6 text-muted line-clamp-3">
+                        {post.excerpt}
+                      </p>
 
-                        <div className="mt-auto flex items-center justify-between gap-3 pt-5 text-xs font-semibold">
-                          <span className="text-muted">{getReadTime(post.body)}</span>
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setSelectedPost(post)}
-                              className="inline-flex min-h-9 cursor-pointer items-center justify-center rounded-xl border border-primary/25 bg-white px-3.5 text-xs font-bold text-primary transition-colors hover:bg-primary-hover hover:text-white"
+                      <div className="mt-auto flex items-center justify-between gap-2 pt-5 border-t border-border/50 text-xs font-semibold">
+                        <span className="text-muted">{getReadTime(post.body)}</span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedPost(post)}
+                            className="inline-flex min-h-9 items-center justify-center gap-1 rounded-xl bg-primary px-3.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          >
+                            <span>Baca Selengkapnya</span>
+                            <span>→</span>
+                          </button>
+                          {post.attachment_url ? (
+                            <a
+                              href={post.attachment_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              title={post.attachment_label || "Lampiran"}
+                              className="inline-flex min-h-9 items-center justify-center rounded-xl border border-primary/30 bg-primary-soft px-2.5 text-xs font-bold text-primary transition-colors hover:bg-primary/10"
                             >
-                              Baca Isi
-                            </button>
-                            {post.attachment_url ? (
-                              <a
-                                href={post.attachment_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                title={post.attachment_label || "Lampiran"}
-                                className="inline-flex min-h-9 max-w-[8rem] cursor-pointer items-center justify-center rounded-xl border border-primary/25 bg-primary-soft px-3 text-xs font-bold text-primary transition-colors hover:bg-primary/10"
-                              >
-                                <span className="truncate">📎 PDF</span>
-                              </a>
-                            ) : null}
-                          </div>
+                              📎
+                            </a>
+                          ) : null}
                         </div>
                       </div>
-                    </article>
-                  );
-                })}
-              </div>
-            ) : null}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
 
-      {/* Expanded Image Modal */}
+      {/* Expanded Full Image Modal */}
       {expandedImage ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
-          aria-label="Preview media"
+          aria-label="Preview foto full"
           onClick={() => setExpandedImage(null)}
         >
           <div
@@ -509,14 +416,14 @@ export function LiveKabarList() {
               <img
                 src={expandedImage.src}
                 alt={expandedImage.alt}
-                className="mx-auto h-auto max-w-full rounded-xl"
+                className="mx-auto h-auto max-w-full rounded-xl object-contain"
               />
             </div>
           </div>
         </div>
       ) : null}
 
-      {/* Full Article Reader Modal (With Gallery & Video Support) */}
+      {/* Full Article Reader Modal Drawer */}
       {selectedPost ? (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
@@ -557,7 +464,7 @@ export function LiveKabarList() {
             </div>
 
             <div className="max-h-[calc(92vh-112px)] overflow-auto px-6 py-6">
-              {/* Media Player or Cover Image */}
+              {/* Media Player or Full Uncropped Image / Document View */}
               {selectedPost.cover_image_url ? (
                 <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-cream">
                   {isVideoUrl(selectedPost.cover_image_url) ? (
@@ -578,12 +485,23 @@ export function LiveKabarList() {
                       />
                     )
                   ) : (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={selectedPost.cover_image_url}
-                      alt={selectedPost.cover_image_alt || selectedPost.title}
-                      className="max-h-96 w-full object-cover"
-                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpandedImage({
+                          src: selectedPost.cover_image_url ?? "",
+                          alt: selectedPost.cover_image_alt || selectedPost.title,
+                        })
+                      }
+                      className="block w-full cursor-zoom-in"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={selectedPost.cover_image_url}
+                        alt={selectedPost.cover_image_alt || selectedPost.title}
+                        className="mx-auto h-auto max-h-[500px] w-full object-contain"
+                      />
+                    </button>
                   )}
                 </div>
               ) : null}
@@ -605,7 +523,7 @@ export function LiveKabarList() {
                     Dokumentasi Galeri Media ({selectedPost.gallery_images.length})
                   </h4>
                   <p className="mt-1 text-xs font-semibold text-muted">
-                    Klik media untuk memperbesar / memutar video.
+                    Klik foto/video untuk melihat tampilan penuh.
                   </p>
                   <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                     {selectedPost.gallery_images.map((mediaItem, idx) => {
