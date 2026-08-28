@@ -375,7 +375,7 @@ export function MasukWargaClient() {
                   href="/admin/?source=login-install-admin"
                   className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-white px-4 text-sm font-semibold text-primary transition-colors hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
                 >
-                  Pasang dashboard di HP
+                  Install dashboard di HP
                 </Link>
               ) : null}
               <button

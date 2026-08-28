@@ -104,7 +104,7 @@ export function SiteHeader() {
         </details>
 
         {/* Keep identity badges separate from the compact CGV10 header mark. */}
-        <div className="hidden items-center gap-2 rounded-full border border-border bg-surface px-3 py-2 text-xs font-semibold text-muted shadow-sm xl:flex">
+        <div className="hidden items-center gap-2 rounded-full border border-border bg-surface px-3 py-2 text-xs font-semibold text-muted shadow-sm 2xl:flex">
           <span className="grid h-7 min-w-16 place-items-center whitespace-nowrap rounded-full border border-dashed border-border bg-primary-soft px-3 text-primary">
             Cipta Greenville
           </span>
@@ -147,7 +147,7 @@ export function SiteHeader() {
 
         <nav
           aria-label="Navigasi utama"
-          className="hidden items-center gap-4 text-sm font-medium text-muted lg:flex xl:gap-5"
+          className="hidden items-center gap-2.5 text-xs font-medium text-muted lg:flex xl:gap-4 xl:text-sm"
         >
           {navItems.map(([label, href]) => (
             <ActiveNavLink key={label} href={href}>
@@ -156,19 +156,44 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <Link
-            href="/admin/"
-            className="hidden min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-accent/45 bg-accent-soft px-3.5 text-sm font-bold text-foreground shadow-sm transition-colors hover:border-accent hover:bg-accent-soft/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:inline-flex"
+            href="/masuk/"
+            className="hidden min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-primary/25 bg-primary-soft px-3 text-xs font-bold text-primary shadow-sm transition-colors hover:border-primary/45 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:inline-flex xl:px-3.5 xl:text-sm"
           >
-            <span>🔑</span>
-            <span>Portal Admin</span>
+            <svg
+              className="h-4 w-4 shrink-0 text-primary"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <span>Masuk / Daftar</span>
           </Link>
           <Link
-            href="/layanan/"
-            className="hidden min-h-11 shrink-0 items-center justify-center rounded-xl bg-primary px-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:inline-flex sm:px-4"
+            href="/admin/"
+            className="hidden min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-accent/45 bg-accent-soft px-3 text-xs font-bold text-foreground shadow-sm transition-colors hover:border-accent hover:bg-accent-soft/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:inline-flex xl:px-3.5 xl:text-sm"
           >
-            Layanan Warga
+            <svg
+              className="h-4 w-4 shrink-0 text-foreground/80"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            <span>Portal Admin</span>
           </Link>
         </div>
       </div>
@@ -176,13 +201,46 @@ export function SiteHeader() {
         aria-label="Navigasi utama mobile"
         className="mx-auto flex w-full max-w-7xl gap-2 overflow-x-auto px-4 pb-3 text-sm font-semibold text-muted [-ms-overflow-style:none] [scrollbar-width:none] sm:px-6 lg:hidden [&::-webkit-scrollbar]:hidden"
       >
+        <ActiveNavLink href="/masuk/" mobile>
+          <span className="inline-flex items-center gap-1.5">
+            <svg
+              className="h-4 w-4 shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <span>Masuk / Daftar</span>
+          </span>
+        </ActiveNavLink>
         {navItems.map(([label, href]) => (
           <ActiveNavLink key={label} href={href} mobile>
             {label}
           </ActiveNavLink>
         ))}
         <ActiveNavLink href="/admin/" mobile>
-          🔑 Admin
+          <span className="inline-flex items-center gap-1.5">
+            <svg
+              className="h-4 w-4 shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            <span>Admin</span>
+          </span>
         </ActiveNavLink>
       </nav>
     </header>

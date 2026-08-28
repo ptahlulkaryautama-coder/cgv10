@@ -62,7 +62,7 @@ export function AdminPwaInstallCard() {
             <Icon name="building" />
           </span>
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold">Pasang Admin CGV10 di HP</p>
+            <p className="truncate text-sm font-bold">Install Admin CGV10 di HP</p>
             <p className="mt-0.5 truncate text-[11px] text-white/68">Akses lebih cepat untuk pengurus.</p>
           </div>
         </div>
@@ -71,7 +71,7 @@ export function AdminPwaInstallCard() {
           onClick={installAdminApp}
           className="inline-flex min-h-10 shrink-0 cursor-pointer items-center justify-center rounded-[10px] bg-accent px-3 text-sm font-bold text-foreground transition-colors duration-200 hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
-          Pasang
+          Install
         </button>
       </div>
     </section>

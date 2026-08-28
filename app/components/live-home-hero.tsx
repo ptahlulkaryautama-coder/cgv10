@@ -171,18 +171,46 @@ export function LiveHomeHero() {
             terbaru, menjaga transparansi RT, serta bersama-sama memajukan
             lapak tetangga.
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-8 flex flex-col gap-3.5 sm:flex-row sm:items-center">
             <Link
-              href="/layanan/"
-              className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl bg-accent px-5 text-base font-semibold text-foreground shadow-[0_18px_42px_rgba(212,175,55,0.28)] transition-colors duration-200 hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft focus-visible:ring-offset-2 focus-visible:ring-offset-primary sm:px-6"
+              href="/masuk/"
+              className="inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl bg-accent px-5 text-base font-bold text-foreground shadow-[0_18px_42px_rgba(212,175,55,0.32)] transition-all duration-200 hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft focus-visible:ring-offset-2 focus-visible:ring-offset-primary sm:px-6"
             >
-              Ajukan Layanan
+              <svg
+                className="h-5 w-5 shrink-0 text-foreground"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              <span>Masuk / Daftar Warga</span>
             </Link>
             <Link
-              href="/kabar-warga/"
-              className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl border border-white/20 bg-white/10 px-5 text-base font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-white/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary sm:px-6"
+              href="/layanan/"
+              className="inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/14 px-5 text-base font-semibold text-white shadow-sm backdrop-blur-sm transition-colors duration-200 hover:bg-white/22 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary sm:px-6"
             >
-              Cek Kabar Terbaru
+              <svg
+                className="h-5 w-5 shrink-0 text-white/80"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+              <span>Ajukan Layanan</span>
             </Link>
           </div>
           <div className="mt-9 max-w-xl border-y border-white/12 py-4">
@@ -215,8 +243,12 @@ export function LiveHomeHero() {
               
               {/* Badges */}
               <div className="absolute left-5 right-5 top-5 flex items-center justify-between gap-3">
-                <span className="rounded-full border border-white/22 bg-white/14 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white backdrop-blur shadow-sm">
-                  🏡 CIPTA GREENVILLE RT 010 / RW 021
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/22 bg-white/14 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white backdrop-blur shadow-sm">
+                  <svg className="h-3.5 w-3.5 text-accent-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                  </svg>
+                  <span>CIPTA GREENVILLE RT 010 / RW 021</span>
                 </span>
                 <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-foreground">
                   CGV10

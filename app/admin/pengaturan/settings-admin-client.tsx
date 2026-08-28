@@ -193,6 +193,11 @@ export function AdminSettingsClient() {
   const [heroSettings, setHeroSettings] = useState<HeroSettings>(defaultHeroSettings);
   const [heroMessage, setHeroMessage] = useState("Memuat pengaturan slideshow...");
   const [isSavingHero, setIsSavingHero] = useState(false);
+  // ── Display Name (Super Admin only) ──────────────────────────────────
+  const [displayNameValue, setDisplayNameValue] = useState("");
+  const [displayNameOriginal, setDisplayNameOriginal] = useState("");
+  const [isSavingDisplayName, setIsSavingDisplayName] = useState(false);
+  const [displayNameMessage, setDisplayNameMessage] = useState("");
 
   const loadData = useCallback(async () => {
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -262,6 +267,18 @@ export function AdminSettingsClient() {
     } else {
       setHeroSettings(parseHeroSettings(heroResult.data));
       setHeroMessage("Slideshow beranda siap diatur.");
+    }
+    // Load display_name for the logged-in super admin
+    if (isLoadedSuperAdmin) {
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", activeUser.id)
+        .maybeSingle();
+      const loadedName = (profileData as { display_name?: string } | null)?.display_name ?? "";
+      setDisplayNameValue(loadedName);
+      setDisplayNameOriginal(loadedName);
+      setDisplayNameMessage("Nama tampilan berhasil dimuat.");
     }
     setMessage(
       isLoadedSuperAdmin
@@ -348,6 +365,7 @@ export function AdminSettingsClient() {
     changes: Partial<Pick<AdminInviteRow, "role" | "status">>,
   ) {
     if (!isSuperAdmin) return;
+
     setUpdatingInviteId(invite.id);
     setAdminInviteMessage("Memperbarui undangan admin...");
     const { error } = await supabase
@@ -366,6 +384,41 @@ export function AdminSettingsClient() {
   }
 
   const [uploadingSlideIndex, setUploadingSlideIndex] = useState<number | null>(null);
+
+  // ── Save display name (Super Admin only) ────────────────────────────────
+  async function saveDisplayName(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!user || !isSuperAdmin) return;
+
+    const trimmedName = displayNameValue.trim();
+    if (!trimmedName) {
+      setDisplayNameMessage("Nama tampilan tidak boleh kosong.");
+      return;
+    }
+    if (trimmedName === displayNameOriginal) {
+      setDisplayNameMessage("Nama tampilan tidak berubah.");
+      return;
+    }
+
+    setIsSavingDisplayName(true);
+    setDisplayNameMessage("Menyimpan nama tampilan...");
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ display_name: trimmedName })
+      .eq("id", user.id);
+
+    setIsSavingDisplayName(false);
+
+    if (error) {
+      setDisplayNameMessage(`Gagal menyimpan: ${error.message}`);
+      return;
+    }
+
+    setDisplayNameOriginal(trimmedName);
+    setDisplayNameMessage("🟢 Nama tampilan berhasil diperbarui! Halaman portal akan menampilkan nama baru.");
+  }
+
 
   function updateHeroSlide(index: number, field: keyof HeroSlide, value: string) {
     setHeroSettings((current) => ({
@@ -816,6 +869,64 @@ export function AdminSettingsClient() {
                   ) : null}
                 </tbody>
               </table>
+            </div>
+          </ProductionPanel>
+
+          <ProductionPanel className="mt-5">
+            <ProductionPanelHeader
+              title="Nama tampilan akun"
+              subtitle="Nama ini ditampilkan di header portal warga, dashboard, dan sapaan selamat datang. Hanya Super Admin yang dapat mengubahnya."
+              action={
+                <ProductionActionButton
+                  type="submit"
+                  form="form-display-name"
+                  disabled={isSavingDisplayName || displayNameValue.trim() === displayNameOriginal}
+                  primary
+                >
+                  {isSavingDisplayName ? "Menyimpan..." : "Simpan nama"}
+                </ProductionActionButton>
+              }
+            />
+            <div className="border-t border-border p-4 sm:p-5">
+              <form
+                id="form-display-name"
+                onSubmit={(event) => void saveDisplayName(event)}
+                className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end"
+              >
+                <label className="grid gap-1.5 text-sm font-bold text-foreground">
+                  Nama tampilan
+                  <input
+                    type="text"
+                    required
+                    maxLength={80}
+                    value={displayNameValue}
+                    onChange={(event) => {
+                      setDisplayNameValue(event.target.value);
+                      setDisplayNameMessage("");
+                    }}
+                    disabled={isSavingDisplayName}
+                    placeholder="Contoh: Budi Santoso atau PT. Ahlul Karya Utama"
+                    className="min-h-11 rounded-xl border border-border bg-white px-3 font-medium outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
+                  />
+                </label>
+                {/* Tampilkan preview perubahan jika berbeda */}
+                {displayNameValue.trim() && displayNameValue.trim() !== displayNameOriginal ? (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold leading-5 text-amber-800 lg:mb-0.5">
+                    <p className="font-bold text-amber-900">Preview perubahan</p>
+                    <p className="mt-1">
+                      <span className="line-through text-muted">{displayNameOriginal || "(belum diisi)"}</span>
+                      {" → "}
+                      <span className="text-primary font-black">{displayNameValue.trim()}</span>
+                    </p>
+                  </div>
+                ) : null}
+              </form>
+              <p className="mt-3 text-xs font-semibold leading-5 text-muted" aria-live="polite">
+                {displayNameMessage || `Nama saat ini: ${displayNameOriginal || "(belum diisi)"}`}
+              </p>
+              <p className="mt-1 text-xs font-medium text-muted/70">
+                Akun: {user?.email ?? "—"} · Hanya bisa diubah oleh Super Admin.
+              </p>
             </div>
           </ProductionPanel>
 

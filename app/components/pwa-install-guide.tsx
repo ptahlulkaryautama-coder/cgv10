@@ -74,7 +74,7 @@ export function PwaInstallGuide({ compact = false }: { compact?: boolean }) {
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Aplikasi CGV10</p>
               <h2 className="mt-1 text-lg font-semibold tracking-tight text-foreground sm:text-xl">
-                {installed ? "Sudah terpasang di perangkat ini." : "Pasang ikon CGV10 di layar HP."}
+                {installed ? "Sudah terpasang di perangkat ini." : "Install ikon CGV10 di layar HP."}
               </h2>
               {!installed ? <p className="mt-1.5 max-w-xl text-sm leading-6 text-muted">{instruction}</p> : null}
             </div>
@@ -86,7 +86,7 @@ export function PwaInstallGuide({ compact = false }: { compact?: boolean }) {
               onClick={installApp}
               className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             >
-              Pasang aplikasi
+              Install aplikasi
             </button>
           ) : null}
         </div>

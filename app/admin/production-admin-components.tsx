@@ -333,6 +333,7 @@ export function ProductionActionButton({
   onClick,
   disabled,
   type = "button",
+  form,
 }: {
   children: React.ReactNode;
   href?: string;
@@ -340,6 +341,7 @@ export function ProductionActionButton({
   onClick?: () => void;
   disabled?: boolean;
   type?: "button" | "submit";
+  form?: string;
 }) {
   const className = cx(
     "inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-[10px] px-4 text-[13px] font-bold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60",
@@ -357,7 +359,7 @@ export function ProductionActionButton({
   }
 
   return (
-    <button type={type} onClick={onClick} disabled={disabled} className={className}>
+    <button type={type} form={form} onClick={onClick} disabled={disabled} className={className}>
       {children}
     </button>
   );
