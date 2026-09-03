@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Icon, PageShell, PwaInstallGuide } from "./components/portal";
+import { Icon, PageShell } from "./components/portal";
 import { LiveHomeHero } from "./components/live-home-hero";
 import {
   quickInfo,
@@ -47,8 +47,6 @@ export default function Home() {
   return (
     <PageShell>
       <LiveHomeHero />
-
-      <PwaInstallGuide />
 
       <section className="border-y border-border bg-surface">
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12 xl:px-10">

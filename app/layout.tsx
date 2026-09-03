@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { PrivacyConsent } from "./components/privacy-consent";
 import { PwaRegister } from "./components/pwa-register";
+import { FloatingPwaInstall } from "./components/floating-pwa-install";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -81,6 +82,7 @@ export default function RootLayout({
         <PwaRegister />
         {children}
         <PrivacyConsent />
+        <FloatingPwaInstall />
       </body>
     </html>
   );

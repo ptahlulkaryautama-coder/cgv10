@@ -415,6 +415,23 @@ export function AdminSettingsClient() {
       return;
     }
 
+    // Sync auth user_metadata, registration requests, and households
+    void supabase.auth.updateUser({
+      data: { display_name: trimmedName },
+    });
+
+    if (user.email) {
+      void supabase
+        .from("resident_registration_requests")
+        .update({ display_name: trimmedName })
+        .or(`requested_user_id.eq.${user.id},email.ilike.${user.email}`);
+    }
+
+    void supabase
+      .from("households")
+      .update({ primary_contact_name: trimmedName })
+      .eq("head_user_id", user.id);
+
     setDisplayNameOriginal(trimmedName);
     setDisplayNameMessage("🟢 Nama tampilan berhasil diperbarui! Halaman portal akan menampilkan nama baru.");
   }

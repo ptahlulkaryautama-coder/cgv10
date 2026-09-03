@@ -116,15 +116,44 @@ export function PortalMobileDashboard() {
         return;
       }
 
-      const [{ data: profile }, { data: roleRows }] = await Promise.all([
+      const email = (activeUser.email ?? "").toLowerCase();
+      const [{ data: profile }, { data: roleRows }, { data: regRequest }] = await Promise.all([
         client.from("profiles").select("display_name").eq("id", activeUser.id).maybeSingle(),
         client.from("user_roles").select("role").eq("user_id", activeUser.id),
+        client
+          .from("resident_registration_requests")
+          .select("display_name")
+          .or(`requested_user_id.eq.${activeUser.id},email.ilike.${email}`)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
       ]);
       if (!mounted) return;
 
       const roles = ((roleRows ?? []) as RoleRow[]).map((row) => row.role);
+
+      const emailPrefix = activeUser.email?.split("@")[0] || "Warga CGV10";
+      const profileName = profile?.display_name?.trim() || "";
+      const regName = regRequest?.display_name?.trim() || "";
+      const metaName = (
+        (activeUser.user_metadata?.display_name as string | undefined) ||
+        (activeUser.user_metadata?.full_name as string | undefined) ||
+        ""
+      ).trim();
+
+      let finalDisplayName = emailPrefix;
+      if (profileName && profileName.toLowerCase() !== emailPrefix.toLowerCase()) {
+        finalDisplayName = profileName;
+      } else if (regName && regName.toLowerCase() !== emailPrefix.toLowerCase()) {
+        finalDisplayName = regName;
+      } else if (metaName && metaName.toLowerCase() !== emailPrefix.toLowerCase()) {
+        finalDisplayName = metaName;
+      } else if (profileName) {
+        finalDisplayName = profileName;
+      }
+
       setUser({
-        displayName: profile?.display_name || activeUser.email?.split("@")[0] || "Warga CGV10",
+        displayName: finalDisplayName,
         isAdmin: roles.some((role) => adminRoles.has(role)),
       });
       setIsChecking(false);

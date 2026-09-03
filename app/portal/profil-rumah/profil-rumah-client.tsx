@@ -18,6 +18,44 @@ type UserProfile = {
   status: string;
 };
 
+function fileToDataUrl(file: File, maxDimension = 500, quality = 0.85): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(e.target?.result as string);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = () => resolve(e.target?.result as string);
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = (err) => reject(err);
+    reader.readAsDataURL(file);
+  });
+}
+
 export function ProfilRumahClient() {
   const supabaseState = useMemo(() => {
     try {
@@ -32,6 +70,12 @@ export function ProfilRumahClient() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [isEditNameModalOpen, setIsEditNameModalOpen] = useState(false);
+  const [editNameInput, setEditNameInput] = useState("");
+  const [isSavingName, setIsSavingName] = useState(false);
+  const [editNameError, setEditNameError] = useState<string | null>(null);
+  const [editNameSuccess, setEditNameSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = supabaseState.client;
@@ -55,18 +99,30 @@ export function ProfilRumahClient() {
 
       const userEmail = activeUser.email || "";
 
-      const [{ data: prof }, { data: roleRows }, { data: regRequest }] = await Promise.all([
-        supabase
+      let prof: { display_name?: string; avatar_url?: string; phone?: string; status?: string } | null = null;
+      const { data: profData, error: profErr } = await supabase
+        .from("profiles")
+        .select("display_name, avatar_url, phone, status")
+        .eq("id", activeUser.id)
+        .maybeSingle();
+
+      if (profErr && profErr.message.includes("avatar_url")) {
+        const { data: fallbackProf } = await supabase
           .from("profiles")
-          .select("display_name, avatar_url, phone, status")
+          .select("display_name, phone, status")
           .eq("id", activeUser.id)
-          .maybeSingle(),
+          .maybeSingle();
+        prof = fallbackProf;
+      } else {
+        prof = profData;
+      }
+
+      const [{ data: roleRows }, { data: regRequest }] = await Promise.all([
         supabase.from("user_roles").select("role").eq("user_id", activeUser.id),
         supabase
           .from("resident_registration_requests")
-          .select("cluster, block_or_unit")
-          .eq("requested_user_id", activeUser.id)
-          .eq("status", "approved")
+          .select("display_name, cluster, block_or_unit")
+          .or(`requested_user_id.eq.${activeUser.id},email.ilike.${userEmail}`)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle(),
@@ -77,11 +133,40 @@ export function ProfilRumahClient() {
       const roles = ((roleRows ?? []) as { role: string }[]).map((r) => r.role);
       const isSA = roles.includes("super_admin");
 
+      const emailPrefix = userEmail.split("@")[0] || "Warga CGV10";
+      const profileName = prof?.display_name?.trim() || "";
+      const regName = regRequest?.display_name?.trim() || "";
+      const metaName = (
+        (activeUser.user_metadata?.display_name as string | undefined) ||
+        (activeUser.user_metadata?.full_name as string | undefined) ||
+        ""
+      ).trim();
+
+      let finalDisplayName = emailPrefix;
+      if (profileName && profileName.toLowerCase() !== emailPrefix.toLowerCase()) {
+        finalDisplayName = profileName;
+      } else if (regName && regName.toLowerCase() !== emailPrefix.toLowerCase()) {
+        finalDisplayName = regName;
+      } else if (metaName && metaName.toLowerCase() !== emailPrefix.toLowerCase()) {
+        finalDisplayName = metaName;
+      } else if (profileName) {
+        finalDisplayName = profileName;
+      }
+
+      if ((!profileName || profileName.toLowerCase() === emailPrefix.toLowerCase()) && finalDisplayName !== emailPrefix) {
+        void supabase.from("profiles").update({ display_name: finalDisplayName }).eq("id", activeUser.id);
+      }
+
+      const resolvedAvatarUrl =
+        prof?.avatar_url ||
+        (activeUser.user_metadata?.avatar_url as string | undefined) ||
+        undefined;
+
       setProfile({
         id: activeUser.id,
-        displayName: prof?.display_name || userEmail.split("@")[0] || "Warga CGV10",
+        displayName: finalDisplayName,
         email: userEmail,
-        avatarUrl: prof?.avatar_url || undefined,
+        avatarUrl: resolvedAvatarUrl,
         phone: prof?.phone || "-",
         cluster: regRequest?.cluster || "Cipta Greenville",
         blockOrUnit: regRequest?.block_or_unit || "RT 010 / RW 021",
@@ -123,38 +208,102 @@ export function ProfilRumahClient() {
 
     try {
       const supabase = supabaseState.client;
+      let newAvatarUrl = "";
       const fileExt = file.name.split(".").pop() || "jpg";
       const fileName = profile.id + "/avatar-" + Date.now() + "." + fileExt;
 
+      // Coba unggah ke Supabase Storage bucket 'resident-avatars'
       const { error: uploadErr } = await supabase.storage
         .from("resident-avatars")
         .upload(fileName, file, { upsert: true });
 
-      if (uploadErr) {
-        throw new Error(uploadErr.message);
+      if (!uploadErr) {
+        const { data: publicUrlData } = supabase.storage
+          .from("resident-avatars")
+          .getPublicUrl(fileName);
+        newAvatarUrl = publicUrlData.publicUrl;
+      } else {
+        // Fallback otomatis jika bucket storage belum terkonfigurasi di Supabase (e.g. Bucket not found)
+        newAvatarUrl = await fileToDataUrl(file, 500, 0.85);
       }
 
-      const { data: publicUrlData } = supabase.storage
-        .from("resident-avatars")
-        .getPublicUrl(fileName);
+      // 1. Selalu simpan ke auth user_metadata (tanpa tergantung kolom schema PostgreSQL)
+      await supabase.auth.updateUser({
+        data: { avatar_url: newAvatarUrl },
+      });
 
-      const newAvatarUrl = publicUrlData.publicUrl;
-
+      // 2. Coba perbarui public.profiles (jika kolom avatar_url tersedia di DB, abaikan jika tidak)
       const { error: updateErr } = await supabase
         .from("profiles")
         .update({ avatar_url: newAvatarUrl })
         .eq("id", profile.id);
 
-      if (updateErr) {
+      if (updateErr && !updateErr.message.includes("avatar_url")) {
         throw new Error(updateErr.message);
       }
 
-      setProfile((prev) => prev ? { ...prev, avatarUrl: newAvatarUrl } : null);
+      setProfile((prev) => (prev ? { ...prev, avatarUrl: newAvatarUrl } : null));
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Gagal mengunggah foto profil.";
       setUploadError(msg);
     } finally {
       setIsUploading(false);
+    }
+  }
+
+  async function handleSaveDisplayName(e: React.FormEvent) {
+    e.preventDefault();
+    if (!profile || !supabaseState.client) return;
+
+    const trimmedName = editNameInput.trim();
+    if (!trimmedName) {
+      setEditNameError("Nama tampilan tidak boleh kosong.");
+      return;
+    }
+
+    setIsSavingName(true);
+    setEditNameError(null);
+    setEditNameSuccess(null);
+
+    try {
+      const supabase = supabaseState.client;
+
+      // 1. Update public.profiles
+      const { error: profileErr } = await supabase
+        .from("profiles")
+        .update({ display_name: trimmedName })
+        .eq("id", profile.id);
+
+      if (profileErr) throw new Error(profileErr.message);
+
+      // 2. Update auth.user_metadata
+      await supabase.auth.updateUser({
+        data: { display_name: trimmedName },
+      });
+
+      // 3. Sync resident_registration_requests
+      await supabase
+        .from("resident_registration_requests")
+        .update({ display_name: trimmedName })
+        .or(`requested_user_id.eq.${profile.id},email.ilike.${profile.email}`);
+
+      // 4. Sync households primary_contact_name
+      await supabase
+        .from("households")
+        .update({ primary_contact_name: trimmedName })
+        .eq("head_user_id", profile.id);
+
+      setProfile((prev) => (prev ? { ...prev, displayName: trimmedName } : null));
+      setEditNameSuccess("Nama tampilan berhasil diperbarui!");
+      window.setTimeout(() => {
+        setIsEditNameModalOpen(false);
+        setEditNameSuccess(null);
+      }, 1200);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Gagal memperbarui nama tampilan.";
+      setEditNameError(msg);
+    } finally {
+      setIsSavingName(false);
     }
   }
 
@@ -164,7 +313,7 @@ export function ProfilRumahClient() {
   const addressVal = profile ? (profile.cluster + " - " + profile.blockOrUnit) : "Cipta Greenville - RT 010 / RW 021";
 
   return (
-    <main className="min-h-screen bg-[#f3efe6] text-foreground pb-16">
+    <main className="min-h-screen bg-[#f3efe6] text-foreground pb-20">
       <input
         type="file"
         ref={fileInputRef}
@@ -173,7 +322,7 @@ export function ProfilRumahClient() {
         onChange={handleAvatarSelect}
       />
 
-      <header className="relative overflow-hidden bg-gradient-to-br from-[#002b23] via-[#00382e] to-[#00241b] text-white pb-12 pt-6 shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+      <header className="relative overflow-hidden bg-gradient-to-br from-[#002b23] via-[#00382e] to-[#00241b] text-white pb-24 pt-8 shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
         <div className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-[#D4AF37]/10 blur-3xl" />
         <div className="pointer-events-none absolute -left-20 -bottom-20 h-96 w-96 rounded-full bg-emerald-500/10 blur-3xl" />
 
@@ -284,25 +433,29 @@ export function ProfilRumahClient() {
                   <span>{isUploading ? "Mengunggah..." : "Ganti Foto Profil"}</span>
                 </button>
 
-                {profile?.isSuperAdmin ? (
-                  <Link
-                    href="/admin/pengaturan/"
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 text-xs font-black text-white shadow-sm transition-all hover:bg-white/20"
-                  >
-                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                    </svg>
-                    <span>Edit Nama Tampilan</span>
-                  </Link>
-                ) : null}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditNameInput(profile?.displayName || "");
+                    setEditNameError(null);
+                    setEditNameSuccess(null);
+                    setIsEditNameModalOpen(true);
+                  }}
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 text-xs font-black text-white shadow-sm transition-all hover:bg-white/20 cursor-pointer"
+                >
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                  <span>Edit Nama Tampilan</span>
+                </button>
               </div>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 -mt-6 space-y-6">
+      <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 -mt-10 sm:-mt-12 space-y-6">
         <section className="grid gap-6 md:grid-cols-2">
           <div className="rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between gap-3 border-b border-border pb-4">
@@ -364,6 +517,74 @@ export function ProfilRumahClient() {
 
         <PersonalDuesRecap />
       </div>
+
+      {/* Modal Edit Nama Tampilan */}
+      {isEditNameModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-md rounded-2xl border border-[#D4AF37]/40 bg-[#00241b] p-6 shadow-2xl text-white space-y-4">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <h3 className="text-lg font-bold text-[#E8C865]">Edit Nama Tampilan</h3>
+              <button
+                type="button"
+                onClick={() => setIsEditNameModalOpen(false)}
+                className="text-slate-400 hover:text-white text-xl font-bold"
+              >
+                &times;
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveDisplayName} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Nama Tampilan Baru
+                </label>
+                <input
+                  type="text"
+                  value={editNameInput}
+                  onChange={(e) => setEditNameInput(e.target.value)}
+                  placeholder="Masukkan nama tampilan..."
+                  className="w-full rounded-xl border border-white/20 bg-black/40 px-3.5 py-2.5 text-sm font-semibold text-white placeholder-slate-500 focus:border-[#D4AF37] focus:outline-none focus:ring-1 focus:ring-[#D4AF37]"
+                  disabled={isSavingName}
+                  autoFocus
+                />
+                <p className="mt-1 text-[11px] text-slate-400">
+                  Nama ini akan ditampilkan di header portal warga, dashboard, dan salam pembuka.
+                </p>
+              </div>
+
+              {editNameError && (
+                <div className="rounded-xl border border-red-500/40 bg-red-950/60 p-3 text-xs font-semibold text-red-200">
+                  {editNameError}
+                </div>
+              )}
+
+              {editNameSuccess && (
+                <div className="rounded-xl border border-emerald-500/40 bg-emerald-950/60 p-3 text-xs font-semibold text-emerald-200">
+                  🟢 {editNameSuccess}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditNameModalOpen(false)}
+                  disabled={isSavingName}
+                  className="rounded-xl border border-white/15 px-4 py-2 text-xs font-bold text-slate-300 hover:bg-white/10"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingName}
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#B8942F] px-5 py-2 text-xs font-black text-[#15140b] shadow-md hover:brightness-110 disabled:opacity-50"
+                >
+                  {isSavingName ? "Menyimpan..." : "Simpan Nama"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

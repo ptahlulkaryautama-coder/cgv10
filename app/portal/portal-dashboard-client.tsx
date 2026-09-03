@@ -2,10 +2,50 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { kabarArticles, palugadaDraftItems } from "@/lib/portal-data";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { PortalSplashScreen } from "./portal-splash-screen";
+
+type PortalNotification = {
+  id: string;
+  title: string;
+  message: string;
+  time: string;
+  type: "billing" | "announcement" | "system";
+  unread: boolean;
+  link?: string;
+};
+
+const initialNotifications: PortalNotification[] = [
+  {
+    id: "notif-1",
+    title: "Tagihan Iuran Agustus 2026",
+    message: "Iuran IPL RT 010 sebesar Rp 10.000 bulan ini dapat dicek dan dikonfirmasi.",
+    time: "Baru saja",
+    type: "billing",
+    unread: true,
+    link: "/keuangan/",
+  },
+  {
+    id: "notif-2",
+    title: "Pengumuman Kepengurusan RT 010",
+    message: "Susunan pengurus RT 010 Cipta Greenville periode baru telah terbit.",
+    time: "2 jam yang lalu",
+    type: "announcement",
+    unread: true,
+    link: "/kabar-warga/",
+  },
+  {
+    id: "notif-3",
+    title: "Akun Warga Terverifikasi",
+    message: "Akses Portal Warga Cipta Greenville telah aktif & terhubung ke sistem RT 010.",
+    time: "Kemarin",
+    type: "system",
+    unread: false,
+    link: "/portal/profil-rumah/",
+  },
+];
 
 type PortalUser = {
   id: string;
@@ -106,10 +146,11 @@ function IconAdminLock({ className = "h-4 w-4" }: { className?: string }) {
 
 function IconPhoneDownload({ className = "h-4 w-4" }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <rect x="5" y="2" width="14" height="20" rx="3" />
-      <line x1="12" y1="18" x2="12.01" y2="18" />
-      <path d="M12 8v5m-2.5-2.5L12 13l2.5-2.5" />
+      <path d="M12 18h.01" />
+      <path d="M12 7v6" />
+      <path d="M9 10l3 3 3-3" />
     </svg>
   );
 }
@@ -195,6 +236,41 @@ export function PortalDashboardClient() {
   const [activeCategory, setActiveCategory] = useState("semua");
   const [deferredPrompt, setDeferredPrompt] = useState<unknown>(null);
 
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<PortalNotification[]>(initialNotifications);
+  const notificationRef = useRef<HTMLDivElement>(null);
+
+  const unreadCount = useMemo(
+    () => notifications.filter((n) => n.unread).length,
+    [notifications]
+  );
+
+  function markAllNotificationsAsRead() {
+    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+  }
+
+  function toggleNotificationRead(id: string) {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, unread: !n.unread } : n))
+    );
+  }
+
+  // Close notifications popover on click outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(e.target as Node)
+      ) {
+        setShowNotifications(false);
+      }
+    }
+    if (showNotifications) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showNotifications]);
+
   // Listen for PWA install prompt
   useEffect(() => {
     function handleBeforeInstallPrompt(e: Event) {
@@ -227,19 +303,31 @@ export function PortalDashboardClient() {
       }
 
       const email = (activeUser.email ?? "").toLowerCase();
-      const [{ data: profile }, { data: roleRows }, { data: regRequest }] = await Promise.all([
-        client
+      let profile: { display_name?: string; avatar_url?: string } | null = null;
+      const { data: profileData, error: profileErr } = await client
+        .from("profiles")
+        .select("display_name, avatar_url")
+        .eq("id", activeUser.id)
+        .maybeSingle();
+
+      if (profileErr && profileErr.message.includes("avatar_url")) {
+        const { data: fallbackProfile } = await client
           .from("profiles")
-          .select("display_name, avatar_url")
+          .select("display_name")
           .eq("id", activeUser.id)
-          .maybeSingle(),
+          .maybeSingle();
+        profile = fallbackProfile;
+      } else {
+        profile = profileData;
+      }
+
+      const [{ data: roleRows }, { data: regRequest }] = await Promise.all([
         client.from("user_roles").select("role").eq("user_id", activeUser.id),
-        // Ambil data cluster & blok dari pendaftaran warga yang sudah approved
+        // Ambil data display_name, cluster & blok dari pendaftaran warga yang sudah approved / terdaftar
         client
           .from("resident_registration_requests")
-          .select("cluster, block_or_unit")
-          .eq("requested_user_id", activeUser.id)
-          .eq("status", "approved")
+          .select("display_name, cluster, block_or_unit")
+          .or(`requested_user_id.eq.${activeUser.id},email.ilike.${email}`)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle(),
@@ -252,11 +340,45 @@ export function PortalDashboardClient() {
       const cluster = regRequest?.cluster || "Cipta Greenville";
       const block = regRequest?.block_or_unit || "RT 010 / RW 021";
 
+      const emailPrefix = activeUser.email?.split("@")[0] || "Warga CGV10";
+      const profileName = profile?.display_name?.trim() || "";
+      const regName = regRequest?.display_name?.trim() || "";
+      const metaName = (
+        (activeUser.user_metadata?.display_name as string | undefined) ||
+        (activeUser.user_metadata?.full_name as string | undefined) ||
+        ""
+      ).trim();
+
+      // Priority logic:
+      // 1. If profileName exists and is NOT equal to emailPrefix, use profileName.
+      // 2. Otherwise if regName or metaName is available, use that.
+      // 3. Fallback to profileName if present, else emailPrefix.
+      let finalDisplayName = emailPrefix;
+      if (profileName && profileName.toLowerCase() !== emailPrefix.toLowerCase()) {
+        finalDisplayName = profileName;
+      } else if (regName && regName.toLowerCase() !== emailPrefix.toLowerCase()) {
+        finalDisplayName = regName;
+      } else if (metaName && metaName.toLowerCase() !== emailPrefix.toLowerCase()) {
+        finalDisplayName = metaName;
+      } else if (profileName) {
+        finalDisplayName = profileName;
+      }
+
+      // Sync profiles.display_name if empty or defaulted to email prefix but a better human name exists
+      if ((!profileName || profileName.toLowerCase() === emailPrefix.toLowerCase()) && finalDisplayName !== emailPrefix) {
+        void client.from("profiles").update({ display_name: finalDisplayName }).eq("id", activeUser.id);
+      }
+
+      const resolvedAvatarUrl =
+        profile?.avatar_url ||
+        (activeUser.user_metadata?.avatar_url as string | undefined) ||
+        undefined;
+
       setUser({
         id: activeUser.id,
-        displayName: profile?.display_name || activeUser.email?.split("@")[0] || "Warga CGV10",
+        displayName: finalDisplayName,
         email: activeUser.email,
-        avatarUrl: profile?.avatar_url || undefined,
+        avatarUrl: resolvedAvatarUrl,
         isAdmin: hasRole || isKnown,
         blockAddress: `${cluster} • ${block}`,
         // iplStatus dan tagihan: belum terhubung ke tabel iuran_payments
@@ -303,10 +425,8 @@ export function PortalDashboardClient() {
 
   // Handle PWA Install click
   function handleInstallClick() {
-    if (deferredPrompt && typeof (deferredPrompt as { prompt?: () => void }).prompt === "function") {
-      (deferredPrompt as { prompt: () => void }).prompt();
-    } else {
-      alert("Untuk install di HP:\n- Android (Chrome): Klik Titik Tiga (...) > Tambahkan ke Layar Utama\n- iPhone (Safari): Klik Tombol Share (Bagikan) > Tambahkan ke Layar Utama");
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("cgv10:open-pwa-install"));
     }
   }
 
@@ -419,18 +539,116 @@ export function PortalDashboardClient() {
               <span>Install HP</span>
             </button>
 
-            {/* Notification Bell */}
-            <button
-              type="button"
-              aria-label="Notifikasi Warga"
-              className="relative grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-white/12 bg-white/[0.05] text-slate-300 transition-all hover:border-[#D4AF37]/40 hover:bg-white/10 hover:text-white"
-            >
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-              </svg>
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.8)]" />
-            </button>
+            {/* Notification Bell with Interactive Popover */}
+            <div className="relative" ref={notificationRef}>
+              <button
+                type="button"
+                aria-label="Notifikasi Warga"
+                onClick={() => setShowNotifications((prev) => !prev)}
+                className={`relative grid h-9 w-9 shrink-0 place-items-center rounded-xl border transition-all cursor-pointer ${
+                  showNotifications
+                    ? "border-[#D4AF37] bg-[#D4AF37]/20 text-[#E8C865]"
+                    : "border-white/12 bg-white/[0.05] text-slate-300 hover:border-[#D4AF37]/40 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                {unreadCount > 0 && (
+                  <span className="absolute right-1 top-1 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-[#D4AF37] text-[8px] font-black text-black shadow-[0_0_8px_rgba(212,175,55,0.9)] animate-pulse" />
+                )}
+              </button>
+
+              {/* Popover Notifikasi Warga */}
+              {showNotifications && (
+                <div className="absolute right-0 top-11 z-50 w-80 sm:w-96 rounded-2xl border border-[#D4AF37]/40 bg-[#00241b] p-4 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 text-white">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-extrabold text-[#E8C865]">Notifikasi Warga</h3>
+                      {unreadCount > 0 ? (
+                        <span className="rounded-full bg-[#D4AF37] px-2 py-0.5 text-[10px] font-black text-black">
+                          {unreadCount} baru
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold text-slate-300">
+                          Semua dibaca
+                        </span>
+                      )}
+                    </div>
+
+                    {unreadCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={markAllNotificationsAsRead}
+                        className="text-[11px] font-bold text-[#E8C865] hover:underline"
+                      >
+                        Tandai dibaca
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="mt-3 space-y-2.5 max-h-80 overflow-y-auto pr-1">
+                    {notifications.map((item) => (
+                      <div
+                        key={item.id}
+                        className={`group relative rounded-xl border p-3 transition-all ${
+                          item.unread
+                            ? "border-[#D4AF37]/40 bg-white/[0.08]"
+                            : "border-white/10 bg-white/[0.03] opacity-80"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm">
+                              {item.type === "billing" ? "💳" : item.type === "announcement" ? "📢" : "ℹ️"}
+                            </span>
+                            <h4 className="text-xs font-bold text-white">{item.title}</h4>
+                          </div>
+                          <span className="text-[10px] font-medium text-slate-400 shrink-0">{item.time}</span>
+                        </div>
+
+                        <p className="mt-1.5 text-[11px] leading-relaxed text-slate-300">{item.message}</p>
+
+                        <div className="mt-2.5 flex items-center justify-between border-t border-white/8 pt-2">
+                          {item.link ? (
+                            <Link
+                              href={item.link}
+                              onClick={() => {
+                                toggleNotificationRead(item.id);
+                                setShowNotifications(false);
+                              }}
+                              className="text-[11px] font-bold text-[#E8C865] hover:underline flex items-center gap-1"
+                            >
+                              <span>Lihat Detail</span>
+                              <span>→</span>
+                            </Link>
+                          ) : <span />}
+
+                          <button
+                            type="button"
+                            onClick={() => toggleNotificationRead(item.id)}
+                            className="text-[10px] font-semibold text-slate-400 hover:text-white"
+                          >
+                            {item.unread ? "Tandai dibaca" : "Buka kembali"}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-3 border-t border-white/10 pt-2.5 text-center">
+                    <Link
+                      href="/kabar-warga/"
+                      onClick={() => setShowNotifications(false)}
+                      className="text-xs font-bold text-slate-300 hover:text-[#E8C865] transition-colors"
+                    >
+                      Buka Kabar & Pengumuman Warga &rarr;
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* User Profile Pill */}
             <Link

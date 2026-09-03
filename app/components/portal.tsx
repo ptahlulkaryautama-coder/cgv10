@@ -3,6 +3,7 @@ import Link from "next/link";
 import { navItems, type IconName } from "@/lib/portal-data";
 import { ActiveNavLink } from "./active-nav-link";
 export { PwaInstallGuide } from "./pwa-install-guide";
+export { FloatingPwaInstall } from "./floating-pwa-install";
 
 const iconPaths: Record<IconName, string> = {
   home: "M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-8.5Z",
