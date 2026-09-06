@@ -337,9 +337,14 @@ export function WargaAdminClient() {
               <div className="rounded-xl border border-border bg-surface p-3 text-sm">
                 <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted">Rumah yang diajukan</p>
                 <p className="mt-1 font-semibold text-foreground">{request.cluster} / {request.block_or_unit}</p>
-                <p className={`mt-1 text-xs font-semibold ${request.matched_household_id ? "text-primary" : "text-red-700"}`}>
-                  {request.matched_household_id ? "Rumah cocok otomatis" : "Rumah perlu dicek manual"}
+                <p className={`mt-1 text-xs font-semibold ${request.matched_household_id ? "text-green-700" : "text-amber-600"}`}>
+                  {request.matched_household_id ? "✓ Rumah cocok otomatis" : "⚠ Cek manual — blok & nomor perlu diverifikasi"}
                 </p>
+                {!request.matched_household_id ? (
+                  <p className="mt-1 text-xs leading-5 text-muted">
+                    Data rumah belum cocok otomatis. Pengurus perlu cek blok dan nomor rumah sebelum approve.
+                  </p>
+                ) : null}
                 {request.admin_note ? (
                   <p className="mt-1 text-xs leading-5 text-muted">{request.admin_note}</p>
                 ) : null}
@@ -349,7 +354,8 @@ export function WargaAdminClient() {
                 <button
                   type="button"
                   onClick={() => void approveRequest(request.id)}
-                  disabled={!canWrite || !request.matched_household_id || actionRequestId === request.id}
+                  disabled={!canWrite || actionRequestId === request.id}
+                  title={!request.matched_household_id ? "Rumah belum cocok otomatis — pastikan blok dan nomor benar sebelum menyetujui" : undefined}
                   className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-xl bg-primary px-4 text-sm font-bold text-white transition-colors duration-200 hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   {actionRequestId === request.id ? "Memproses..." : "Setujui"}
