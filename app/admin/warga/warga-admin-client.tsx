@@ -93,6 +93,7 @@ export function WargaAdminClient() {
   const [households, setHouseholds] = useState<HouseholdRow[]>([]);
   const [requests, setRequests] = useState<RegistrationRequestRow[]>([]);
   const [requestMessage, setRequestMessage] = useState("Memuat antrean verifikasi...");
+  const [requestError, setRequestError] = useState<string | null>(null);
   const [actionRequestId, setActionRequestId] = useState<string | null>(null);
   const [actionHouseholdId, setActionHouseholdId] = useState<string | null>(null);
   const [householdFilter, setHouseholdFilter] = useState<HouseholdFilter>("active");
@@ -196,20 +197,26 @@ export function WargaAdminClient() {
     }
 
     setActionRequestId(requestId);
+    setRequestError(null);
     setRequestMessage("Menyetujui warga dan mengaktifkan akses...");
 
-    const { error } = await supabase.rpc("approve_resident_registration_request", {
+    const { data: rpcData, error } = await supabase.rpc("approve_resident_registration_request", {
       p_request_id: requestId,
       p_admin_note: "Disetujui dari Admin Data Warga",
     });
 
+    console.log("[approve_request] rpcData:", rpcData, "error:", error);
+
     if (error) {
-      setRequestMessage(error.message);
+      console.error("[approve_request] FAILED:", error.code, error.message, error.details, error.hint);
+      setRequestError(`Gagal approve: ${error.message}`);
+      setRequestMessage("");
       setActionRequestId(null);
       return;
     }
 
     await loadData();
+    setRequestError(null);
     setRequestMessage("Warga disetujui. Role warga dan data rumah sudah diperbarui.");
     setActionRequestId(null);
   }
@@ -322,6 +329,11 @@ export function WargaAdminClient() {
           title="Notifikasi pendaftaran warga"
           subtitle={`${requestMessage} Warga baru tetap perlu dicek sebelum role warga aktif.`}
         />
+        {requestError ? (
+          <div className="mx-4 mb-2 mt-1 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+            ⚠ {requestError}
+          </div>
+        ) : null}
         <div className="divide-y divide-border border-t border-border">
           {pendingRequests.map((request) => (
             <article key={request.id} className="grid gap-3 bg-white px-4 py-4 lg:grid-cols-[1.1fr_0.8fr_auto] lg:items-center">
