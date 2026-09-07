@@ -694,6 +694,12 @@ export function AdminShellClient() {
     ).length;
   }
 
+  const palugadaPendingCount = useMemo(() => {
+    return allPalugadaListings.filter(
+      (listing) => listing.status === "submitted" || listing.status === "review",
+    ).length;
+  }, [allPalugadaListings]);
+
   return (
     <ProductionAdminShell
       active="dashboard"
@@ -754,6 +760,28 @@ export function AdminShellClient() {
         </section>
       ) : null}
 
+      {canReadPalugada && palugadaPendingCount > 0 ? (
+        <section
+          role="status"
+          aria-label="Notifikasi pengajuan lapak PALUGADA baru"
+          className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-sky-200 bg-sky-50 p-3 shadow-sm"
+        >
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-foreground">
+              {palugadaPendingCount} pendaftaran lapak PALUGADA baru menunggu verifikasi
+            </p>
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <Link
+              href="/admin/palugada/?status=submitted"
+              className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[10px] bg-primary px-3 text-xs font-bold text-white transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              Periksa Lapak
+            </Link>
+          </div>
+        </section>
+      ) : null}
+
       <AdminPwaInstallCard />
 
       <section aria-label="Ringkasan operasional admin" className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
@@ -774,10 +802,16 @@ export function AdminShellClient() {
         <ProductionMetricCard label="Iuran" value={canVerifyBilling ? "Siap" : canReadBilling ? "Lihat" : "Terkunci"} helper={canVerifyBilling ? "Verifikasi pembayaran" : canReadBilling ? "Ringkasan iuran" : "Akses diperlukan"} icon="wallet" tone={canWriteBilling ? "green" : canReadBilling ? "gold" : "red"} />
         <ProductionMetricCard
           label="PALUGADA"
-          value={canReadPalugada ? String(allPalugadaListings.length) : "Terkunci"}
-          helper={canReadPalugada ? "Lapak aktif" : "Akses diperlukan"}
+          value={canReadPalugada ? String(palugadaPendingCount > 0 ? palugadaPendingCount : allPalugadaListings.length) : "Terkunci"}
+          helper={
+            !canReadPalugada
+              ? "Akses diperlukan"
+              : palugadaPendingCount > 0
+                ? `${palugadaPendingCount} lapak perlu review`
+                : "Semua lapak aktif"
+          }
           icon="store"
-          tone="blue"
+          tone={!canReadPalugada ? "red" : palugadaPendingCount > 0 ? "gold" : "blue"}
         />
       </section>
 
