@@ -809,7 +809,10 @@ export function PortalPostsAdminClient() {
         contentType,
       });
 
-      if (!uploadError) {
+      if (uploadError) {
+        console.error("Gallery Upload Error for", file.name, uploadError);
+        setFormNotice(`⚠️ Gagal mengunggah ${file.name}: ${uploadError.message}`);
+      } else {
         const { data: publicUrlData } = supabase.storage.from(portalPostMediaBucket).getPublicUrl(path);
         newGalleryItems.push({
           id: crypto.randomUUID(),
@@ -831,12 +834,12 @@ export function PortalPostsAdminClient() {
     setUploadingTarget(null);
 
     if (updateError || !updatedPost) {
-      setFormNotice("Foto diunggah ke storage, tetapi galeri gagal diperbarui di database.");
+      setFormNotice(`Foto diunggah ke storage, tetapi galeri gagal diperbarui di database: ${updateError?.message || ""}`);
       return;
     }
 
     setForm(toForm(updatedPost));
-    setFormNotice(`🟢 ✓ Berhasil mengunggah ${files.length} foto ke galeri artikel.`);
+    setFormNotice(`🟢 ✓ Berhasil mengunggah ${newGalleryItems.length} foto ke galeri artikel.`);
     await loadPortalPosts();
   }
 
