@@ -688,7 +688,13 @@ export function PortalPostsAdminClient() {
     }
 
     if (!postId) {
-      setFormNotice("Simpan sebagai draft dulu, lalu upload media untuk post tersebut.");
+      if (target === "cover") {
+        setPendingCoverFile(file);
+        setFormNotice(`🟢 Foto cover (${file.name}) dipilih. Foto akan otomatis diunggah saat Anda mengeklik 'Simpan draft' atau 'Terbitkan'.`);
+        return;
+      }
+      setPendingAttachmentFile(file);
+      setFormNotice(`🟢 Lampiran (${file.name}) dipilih. Berkas akan otomatis diunggah saat Anda mengeklik 'Simpan draft' atau 'Terbitkan'.`);
       return;
     }
 
