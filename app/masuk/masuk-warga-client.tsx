@@ -89,6 +89,13 @@ export function MasukWargaClient() {
   const [nextPath] = useState(getSafeNextPath);
   const [userEmail, setUserEmail] = useState("");
   const [roles, setRoles] = useState<string[]>([]);
+  const [registrationInfo, setRegistrationInfo] = useState<{
+    status: "pending_review" | "approved" | "rejected";
+    cluster: string;
+    blockOrUnit: string;
+    adminNote?: string;
+    createdAt?: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!supabase) return;
@@ -115,16 +122,34 @@ export function MasukWargaClient() {
       }
 
       setUserEmail(user.email ?? "");
-      const { data: roleData } = await client
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id);
+      const [{ data: roleData }, { data: regData }] = await Promise.all([
+        client.from("user_roles").select("role").eq("user_id", user.id),
+        client
+          .from("resident_registration_requests")
+          .select("status, cluster, block_or_unit, admin_note, created_at")
+          .or(`requested_user_id.eq.${user.id},email.ilike.${user.email}`)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
 
       if (!mounted) return;
       setRoles(((roleData ?? []) as RoleRow[]).map((row) => row.role));
+      if (regData) {
+        setRegistrationInfo({
+          status: regData.status as "pending_review" | "approved" | "rejected",
+          cluster: regData.cluster || "Cipta Greenville",
+          blockOrUnit: regData.block_or_unit || "-",
+          adminNote: regData.admin_note || "",
+          createdAt: regData.created_at,
+        });
+      } else {
+        setRegistrationInfo(null);
+      }
+
       setState("signed-in");
       if (!registerMessage) {
-        setMessage("Akun aktif. Pilih tujuan yang ingin dibuka.");
+        setMessage("Akun aktif. Silakan lanjutkan ke Portal Warga.");
       }
     }
 
@@ -158,7 +183,14 @@ export function MasukWargaClient() {
 
     if (error) {
       setState("ready");
-      setMessage(error.message);
+      const rawMsg = error.message || "";
+      if (rawMsg.includes("Invalid login credentials") || rawMsg === "{}" || !rawMsg) {
+        setMessage("Email atau password salah / belum sesuai. Pastikan password benar atau minta reset password.");
+      } else if (rawMsg.includes("Email not confirmed")) {
+        setMessage("Email belum dikonfirmasi. Silakan hubungi pengurus RT untuk aktivasi akun.");
+      } else {
+        setMessage(`Login gagal: ${rawMsg}`);
+      }
       return;
     }
 
@@ -342,13 +374,72 @@ export function MasukWargaClient() {
         ) : null}
 
         {isSignedIn ? (
-          <div className="mt-6">
-            <div className="rounded-xl border border-accent-soft/40 bg-accent-soft/18 p-4 text-sm leading-6 text-white/86">
-              <p className="font-semibold text-white">{userEmail || "User aktif"}</p>
-              <p className="mt-1">
-                Status: {statusLabel}
-              </p>
-            </div>
+          <div className="mt-6 space-y-4">
+            {/* Status Pendaftaran Banner */}
+            {registrationInfo?.status === "pending_review" ? (
+              <div className="rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-500/20 to-amber-600/10 p-4 text-white shadow-lg backdrop-blur-md">
+                <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/40 bg-amber-400/20 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider text-amber-200">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-300 animate-pulse" />
+                    Menunggu Verifikasi RT
+                  </span>
+                  <span className="text-[11px] text-amber-200/80 font-medium">Dalam Antrean</span>
+                </div>
+                <div className="mt-3 space-y-1">
+                  <p className="text-xs font-semibold text-amber-200/90 uppercase tracking-wider">Unit yang diajukan</p>
+                  <p className="text-base font-extrabold text-white">
+                    {registrationInfo.cluster} — {registrationInfo.blockOrUnit}
+                  </p>
+                  <p className="text-xs leading-relaxed text-amber-100/85 pt-1">
+                    Pendaftaran Anda sedang ditinjau pengurus RT. Anda sudah bisa membuka Portal Warga untuk melihat info kawasan. Rekap iuran rumah & layanan pribadi akan aktif otomatis begitu disetujui.
+                  </p>
+                </div>
+              </div>
+            ) : registrationInfo?.status === "approved" ? (
+              <div className="rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 p-4 text-white shadow-lg backdrop-blur-md">
+                <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/40 bg-emerald-400/20 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider text-emerald-200">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    Warga Terverifikasi
+                  </span>
+                  <span className="text-[11px] text-emerald-200/80 font-medium">Disetujui</span>
+                </div>
+                <div className="mt-3 space-y-1">
+                  <p className="text-xs font-semibold text-emerald-200/90 uppercase tracking-wider">Rumah Resmi</p>
+                  <p className="text-base font-extrabold text-white">
+                    {registrationInfo.cluster} — {registrationInfo.blockOrUnit}
+                  </p>
+                  <p className="text-xs leading-relaxed text-emerald-100/85 pt-1">
+                    Akun Anda telah terhubung resmi dengan master data rumah CGV10. Semua fitur privat dan rekap iuran sudah aktif penuh.
+                  </p>
+                </div>
+              </div>
+            ) : registrationInfo?.status === "rejected" ? (
+              <div className="rounded-2xl border border-rose-400/40 bg-gradient-to-br from-rose-500/20 to-rose-600/10 p-4 text-white shadow-lg backdrop-blur-md">
+                <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-300/40 bg-rose-400/20 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider text-rose-200">
+                    Belum Disetujui
+                  </span>
+                </div>
+                <div className="mt-3 space-y-1">
+                  <p className="text-base font-extrabold text-white">
+                    {registrationInfo.cluster} — {registrationInfo.blockOrUnit}
+                  </p>
+                  <p className="text-xs leading-relaxed text-rose-100/85 pt-1">
+                    {registrationInfo.adminNote
+                      ? `Catatan pengurus: ${registrationInfo.adminNote}`
+                      : "Pendaftaran belum dapat disetujui. Silakan hubungi pengurus RT untuk verifikasi data rumah."}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-accent-soft/40 bg-accent-soft/18 p-4 text-sm leading-6 text-white/86">
+                <p className="font-semibold text-white">{userEmail || "User aktif"}</p>
+                <p className="mt-1">
+                  Status: {statusLabel}
+                </p>
+              </div>
+            )}
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <Link
                 href={nextPath}

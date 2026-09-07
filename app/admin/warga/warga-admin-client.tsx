@@ -30,6 +30,7 @@ type HouseholdRow = {
 type UserRoleRow = { role: string };
 type PermissionRow = { permission: string };
 type HouseholdFilter = "active" | "all" | "removed";
+type RequestFilter = "pending" | "approved" | "rejected" | "all";
 type RegistrationRequestRow = {
   id: string;
   email: string;
@@ -92,11 +93,11 @@ export function WargaAdminClient() {
   const [canWrite, setCanWrite] = useState(false);
   const [households, setHouseholds] = useState<HouseholdRow[]>([]);
   const [requests, setRequests] = useState<RegistrationRequestRow[]>([]);
-  const [requestMessage, setRequestMessage] = useState("Memuat antrean verifikasi...");
   const [requestError, setRequestError] = useState<string | null>(null);
   const [actionRequestId, setActionRequestId] = useState<string | null>(null);
   const [actionHouseholdId, setActionHouseholdId] = useState<string | null>(null);
   const [householdFilter, setHouseholdFilter] = useState<HouseholdFilter>("active");
+  const [requestFilter, setRequestFilter] = useState<RequestFilter>("pending");
 
   const loadData = useCallback(
     async () => {
@@ -141,7 +142,6 @@ export function WargaAdminClient() {
       if (!hasRead) {
         setMessage("Akun ini belum punya akses membaca data warga.");
         setRequests([]);
-        setRequestMessage("Akun ini belum punya akses antrean warga.");
         return;
       }
 
@@ -154,12 +154,12 @@ export function WargaAdminClient() {
           .select("id, head_user_id, cluster, block_or_unit, unit_number, primary_contact_name, primary_phone, occupancy_status, verification_status, family_count, vehicle_count, updated_at")
           .order("cluster", { ascending: true })
           .order("block_or_unit", { ascending: true })
-          .limit(200),
+          .limit(300),
         supabase
           .from("resident_registration_requests")
           .select("id, email, display_name, phone, cluster, block_or_unit, matched_household_id, status, admin_note, created_at, reviewed_at")
           .order("created_at", { ascending: false })
-          .limit(50),
+          .limit(500),
       ]);
 
       if (householdError) {
@@ -169,11 +169,9 @@ export function WargaAdminClient() {
 
       if (requestError) {
         setRequests([]);
-        setRequestMessage(requestError.message);
       } else {
         const loadedRequests = (requestData ?? []) as RegistrationRequestRow[];
         setRequests(loadedRequests);
-        setRequestMessage(`${loadedRequests.filter((item) => item.status === "pending_review").length} pendaftaran menunggu verifikasi.`);
       }
 
       setHouseholds((householdData ?? []) as HouseholdRow[]);
@@ -192,13 +190,12 @@ export function WargaAdminClient() {
 
   async function approveRequest(requestId: string) {
     if (!canWrite) {
-      setRequestMessage("Akun ini belum punya izin verifikasi warga.");
+      setRequestError("Akun ini belum punya izin verifikasi warga.");
       return;
     }
 
     setActionRequestId(requestId);
     setRequestError(null);
-    setRequestMessage("Menyetujui warga dan mengaktifkan akses...");
 
     const { data: rpcData, error } = await supabase.rpc("approve_resident_registration_request", {
       p_request_id: requestId,
@@ -210,20 +207,18 @@ export function WargaAdminClient() {
     if (error) {
       console.error("[approve_request] FAILED:", error.code, error.message, error.details, error.hint);
       setRequestError(`Gagal approve: ${error.message}`);
-      setRequestMessage("");
       setActionRequestId(null);
       return;
     }
 
     await loadData();
     setRequestError(null);
-    setRequestMessage("Warga disetujui. Role warga dan data rumah sudah diperbarui.");
     setActionRequestId(null);
   }
 
   async function rejectRequest(requestId: string) {
     if (!canWrite) {
-      setRequestMessage("Akun ini belum punya izin verifikasi warga.");
+      setRequestError("Akun ini belum punya izin verifikasi warga.");
       return;
     }
 
@@ -231,7 +226,6 @@ export function WargaAdminClient() {
     if (reason === null) return;
 
     setActionRequestId(requestId);
-    setRequestMessage("Menolak pendaftaran warga...");
 
     const { error } = await supabase.rpc("reject_resident_registration_request", {
       p_request_id: requestId,
@@ -239,33 +233,94 @@ export function WargaAdminClient() {
     });
 
     if (error) {
-      setRequestMessage(error.message);
+      setRequestError(error.message);
       setActionRequestId(null);
       return;
     }
 
     await loadData();
-    setRequestMessage("Pendaftaran warga ditolak.");
     setActionRequestId(null);
   }
 
-  async function removeResident(household: HouseholdRow) {
-    if (!canWrite) {
-      setMessage("Akun ini belum punya izin mengubah data warga.");
+  function exportRequestsToCSV() {
+    if (requests.length === 0) {
+      alert("Tidak ada data pendaftaran warga untuk diexport.");
       return;
     }
 
-    const reason = window.prompt(
-      `Alasan remove warga dari ${household.cluster} / ${household.block_or_unit}?`,
-    );
-    if (reason === null) return;
+    const headers = [
+      "No",
+      "Nama Warga",
+      "Email",
+      "Nomor WhatsApp",
+      "Cluster",
+      "Blok / No Rumah",
+      "Status Verifikasi",
+      "Status Akun Login",
+      "Password Sementara",
+      "Tanggal Daftar",
+      "Tanggal Review",
+      "Catatan Pengurus",
+    ];
 
-    setActionHouseholdId(household.id);
-    setMessage("Menghapus akses warga dari rumah...");
+    const rows = requests.map((req, index) => {
+      const statusLabel =
+        req.status === "approved"
+          ? "Disetujui"
+          : req.status === "rejected"
+            ? "Ditolak"
+            : "Menunggu Verifikasi";
+      const accountStatus = req.status === "approved" ? "Aktif (Disetujui)" : "Terdaftar";
+      const tempPassword = "cgv10warga";
+      const createdDate = req.created_at ? new Date(req.created_at).toLocaleString("id-ID") : "-";
+      const reviewedDate = req.reviewed_at ? new Date(req.reviewed_at).toLocaleString("id-ID") : "-";
+
+      return [
+        index + 1,
+        `"${(req.display_name || "-").replace(/"/g, '""')}"`,
+        `"${(req.email || "-").replace(/"/g, '""')}"`,
+        `"${(req.phone || "-").replace(/"/g, '""')}"`,
+        `"${(req.cluster || "-").replace(/"/g, '""')}"`,
+        `"${(req.block_or_unit || "-").replace(/"/g, '""')}"`,
+        `"${statusLabel}"`,
+        `"${accountStatus}"`,
+        `"${tempPassword}"`,
+        `"${createdDate}"`,
+        `"${reviewedDate}"`,
+        `"${(req.admin_note || "-").replace(/"/g, '""')}"`,
+      ].join(",");
+    });
+
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const dateStr = new Date().toISOString().split("T")[0];
+    link.setAttribute("href", url);
+    link.setAttribute("download", `data-pendaftaran-warga-cgv10-${dateStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  async function removeResident(item: HouseholdRow) {
+    if (!canWrite) {
+      setMessage("Akun ini belum punya izin menghapus/mengubah warga.");
+      return;
+    }
+
+    const confirmRemove = window.confirm(
+      `Hapus data warga untuk ${item.cluster} / ${item.block_or_unit}? Kontak akan dibersihkan dan status rumah diubah menjadi Pindah.`,
+    );
+    if (!confirmRemove) return;
+
+    setActionHouseholdId(item.id);
+    setMessage("Menghapus data warga...");
 
     const { error } = await supabase.rpc("remove_resident_from_household", {
-      p_household_id: household.id,
-      p_reason: reason,
+      p_household_id: item.id,
+      p_reason: "Dihapus dari Admin Data Warga",
     });
 
     if (error) {
@@ -281,9 +336,16 @@ export function WargaAdminClient() {
 
   const activeCount = households.filter((item) => item.occupancy_status === "active").length;
   const removedCount = households.filter((item) => item.occupancy_status === "moved").length;
-  const verifiedCount = households.filter((item) => item.verification_status === "verified").length;
-  const totalResidents = households.reduce((sum, item) => sum + item.family_count, 0);
   const pendingRequests = requests.filter((item) => item.status === "pending_review");
+  const approvedRequests = requests.filter((item) => item.status === "approved");
+  const rejectedRequests = requests.filter((item) => item.status === "rejected");
+  const visibleRequests = requests.filter((item) => {
+    if (requestFilter === "pending") return item.status === "pending_review";
+    if (requestFilter === "approved") return item.status === "approved";
+    if (requestFilter === "rejected") return item.status === "rejected";
+    return true;
+  });
+
   const visibleHouseholds = households.filter((item) => {
     if (householdFilter === "active") return item.occupancy_status === "active";
     if (householdFilter === "removed") return item.occupancy_status === "moved";
@@ -314,11 +376,11 @@ export function WargaAdminClient() {
       <div className="grid gap-4 sm:grid-cols-4">
         <ProductionMetricCard label="Rumah" value={String(households.length)} helper={message} icon="home" />
         <ProductionMetricCard label="Aktif" value={String(activeCount)} helper="Status hunian aktif" icon="users" />
-        <ProductionMetricCard label="Warga" value={String(totalResidents)} helper={`${verifiedCount} rumah terverifikasi`} icon="shield" />
+        <ProductionMetricCard label="Disetujui" value={String(approvedRequests.length)} helper={`${approvedRequests.length} pendaftaran disetujui`} icon="shield" tone="green" />
         <ProductionMetricCard
           label="Menunggu"
           value={String(pendingRequests.length)}
-          helper="Pendaftaran warga baru"
+          helper="Pendaftaran antrean baru"
           icon="message"
           tone={pendingRequests.length > 0 ? "gold" : "green"}
         />
@@ -326,66 +388,152 @@ export function WargaAdminClient() {
 
       <ProductionPanel className="mt-5">
         <ProductionPanelHeader
-          title="Notifikasi pendaftaran warga"
-          subtitle={`${requestMessage} Warga baru tetap perlu dicek sebelum role warga aktif.`}
+          title="Data & Pendaftaran Warga"
+          subtitle={`Total ${requests.length} pendaftaran terekam di sistem (${pendingRequests.length} antrean menunggu verifikasi).`}
+          action={
+            <button
+              type="button"
+              onClick={exportRequestsToCSV}
+              className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[#002b23]/20 bg-[#002b23] px-4 text-xs font-bold text-[#E8C865] shadow-sm transition-all hover:bg-[#00382e] hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]"
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              <span>Export ke Excel / CSV ({requests.length})</span>
+            </button>
+          }
         />
+
+        {/* Filter Tabs Pendaftaran Warga */}
+        <div className="flex gap-2 overflow-x-auto border-t border-border bg-[#f8f6f0] px-5 py-3 [scrollbar-width:thin]">
+          {[
+            { value: "pending", label: "Menunggu Verifikasi", count: pendingRequests.length, tone: "gold" },
+            { value: "approved", label: "Disetujui", count: approvedRequests.length, tone: "green" },
+            { value: "rejected", label: "Ditolak", count: rejectedRequests.length, tone: "red" },
+            { value: "all", label: "Semua Riwayat", count: requests.length, tone: "slate" },
+          ].map((tab) => (
+            <button
+              key={tab.value}
+              type="button"
+              onClick={() => setRequestFilter(tab.value as RequestFilter)}
+              aria-pressed={requestFilter === tab.value}
+              className={`inline-flex min-h-9 shrink-0 cursor-pointer items-center gap-2 rounded-full border px-3 text-xs font-bold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                requestFilter === tab.value
+                  ? "border-primary bg-primary text-accent"
+                  : "border-border bg-white text-muted hover:border-primary/30 hover:text-primary"
+              }`}
+            >
+              {tab.label}
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                requestFilter === tab.value
+                  ? "bg-white/12 text-white"
+                  : tab.tone === "gold" && tab.count > 0
+                    ? "bg-amber-100 text-amber-800"
+                    : tab.tone === "green" && tab.count > 0
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-primary-soft text-primary"
+              }`}>
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
+
         {requestError ? (
           <div className="mx-4 mb-2 mt-1 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
             ⚠ {requestError}
           </div>
         ) : null}
+
         <div className="divide-y divide-border border-t border-border">
-          {pendingRequests.map((request) => (
+          {visibleRequests.map((request) => (
             <article key={request.id} className="grid gap-3 bg-white px-4 py-4 lg:grid-cols-[1.1fr_0.8fr_auto] lg:items-center">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-semibold text-foreground">{request.display_name}</p>
-                  <span className="rounded-full border border-accent/35 bg-accent-soft px-2.5 py-1 text-[11px] font-bold text-foreground">
-                    Menunggu verifikasi
-                  </span>
+                  {request.status === "pending_review" ? (
+                    <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 flex items-center gap-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                      Menunggu verifikasi
+                    </span>
+                  ) : request.status === "approved" ? (
+                    <span className="rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 flex items-center gap-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      Disetujui
+                    </span>
+                  ) : (
+                    <span className="rounded-full border border-rose-300 bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-800">
+                      Ditolak
+                    </span>
+                  )}
                 </div>
                 <p className="mt-1 text-xs font-semibold text-muted">{request.email} - {maskPhone(request.phone)}</p>
               </div>
+
               <div className="rounded-xl border border-border bg-surface p-3 text-sm">
                 <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted">Rumah yang diajukan</p>
                 <p className="mt-1 font-semibold text-foreground">{request.cluster} / {request.block_or_unit}</p>
-                <p className={`mt-1 text-xs font-semibold ${request.matched_household_id ? "text-green-700" : "text-amber-600"}`}>
-                  {request.matched_household_id ? "✓ Rumah cocok otomatis" : "⚠ Cek manual — blok & nomor perlu diverifikasi"}
-                </p>
-                {!request.matched_household_id ? (
-                  <p className="mt-1 text-xs leading-5 text-muted">
-                    Data rumah belum cocok otomatis. Pengurus perlu cek blok dan nomor rumah sebelum approve.
+                
+                {request.status === "pending_review" ? (
+                  <p className={`mt-1 text-xs font-semibold ${request.matched_household_id ? "text-green-700" : "text-amber-600"}`}>
+                    {request.matched_household_id ? "✓ Rumah cocok otomatis" : "⚠ Cek manual — blok & nomor perlu diverifikasi"}
+                  </p>
+                ) : request.status === "approved" ? (
+                  <p className="mt-1 text-xs font-semibold text-emerald-700">
+                    ✓ Akses warga sudah aktif
                   </p>
                 ) : null}
+
                 {request.admin_note ? (
-                  <p className="mt-1 text-xs leading-5 text-muted">{request.admin_note}</p>
+                  <p className="mt-1 text-xs leading-5 text-muted bg-white/60 rounded px-2 py-0.5 border border-border/40">
+                    Catatan: {request.admin_note}
+                  </p>
                 ) : null}
-                <p className="mt-1 text-xs text-muted">Masuk {formatDate(request.created_at)}</p>
+                <div className="mt-1 flex items-center justify-between text-[11px] text-muted">
+                  <span>Daftar: {formatDate(request.created_at)}</span>
+                  {request.reviewed_at && <span>Review: {formatDate(request.reviewed_at)}</span>}
+                </div>
               </div>
+
               <div className="flex flex-wrap gap-2 lg:justify-end">
-                <button
-                  type="button"
-                  onClick={() => void approveRequest(request.id)}
-                  disabled={!canWrite || actionRequestId === request.id}
-                  title={!request.matched_household_id ? "Rumah belum cocok otomatis — pastikan blok dan nomor benar sebelum menyetujui" : undefined}
-                  className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-xl bg-primary px-4 text-sm font-bold text-white transition-colors duration-200 hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                >
-                  {actionRequestId === request.id ? "Memproses..." : "Setujui"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void rejectRequest(request.id)}
-                  disabled={!canWrite || actionRequestId === request.id}
-                  className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 text-sm font-bold text-red-700 transition-colors duration-200 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-                >
-                  Tolak
-                </button>
+                {request.status === "pending_review" ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => void approveRequest(request.id)}
+                      disabled={!canWrite || actionRequestId === request.id}
+                      title={!request.matched_household_id ? "Rumah belum cocok otomatis — pastikan blok dan nomor benar sebelum menyetujui" : undefined}
+                      className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-xl bg-primary px-4 text-sm font-bold text-white transition-colors duration-200 hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                      {actionRequestId === request.id ? "Memproses..." : "Setujui"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void rejectRequest(request.id)}
+                      disabled={!canWrite || actionRequestId === request.id}
+                      className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 text-sm font-bold text-red-700 transition-colors duration-200 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                    >
+                      Tolak
+                    </button>
+                  </>
+                ) : request.status === "approved" ? (
+                  <span className="inline-flex h-9 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-xs font-bold text-emerald-700">
+                    ✓ Terverifikasi
+                  </span>
+                ) : (
+                  <span className="inline-flex h-9 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-3 text-xs font-bold text-rose-700">
+                    ✕ Ditolak
+                  </span>
+                )}
               </div>
             </article>
           ))}
-          {pendingRequests.length === 0 ? (
+
+          {visibleRequests.length === 0 ? (
             <p className="px-4 py-6 text-center text-sm font-semibold text-muted">
-              Tidak ada pendaftaran warga yang menunggu verifikasi.
+              Tidak ada pendaftaran dalam kategori ini.
             </p>
           ) : null}
         </div>

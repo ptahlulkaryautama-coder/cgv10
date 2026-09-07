@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -16,28 +16,51 @@ function isStandaloneMode() {
   );
 }
 
+function subscribeStandalone(callback: () => void) {
+  if (typeof window === "undefined") return () => {};
+  const media = window.matchMedia("(display-mode: standalone)");
+  media.addEventListener("change", callback);
+  return () => media.removeEventListener("change", callback);
+}
+
+function subscribeStorage(callback: () => void) {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("storage", callback);
+  return () => window.removeEventListener("storage", callback);
+}
+
+function getDismissedSnapshot() {
+  if (typeof window === "undefined") return true;
+  return sessionStorage.getItem("cgv10_pwa_floating_dismissed") === "true";
+}
+
+function getPlatformSnapshot(): "ios" | "android" | "other" {
+  if (typeof window === "undefined") return "other";
+  const ua = window.navigator.userAgent.toLowerCase();
+  if (/iphone|ipad|ipod/.test(ua)) return "ios";
+  if (/android/.test(ua)) return "android";
+  return "other";
+}
+
+function subscribeDummy() {
+  return () => {};
+}
+
 export function FloatingPwaInstall() {
+  const isStandalone = useSyncExternalStore(subscribeStandalone, isStandaloneMode, () => false);
+  const isStorageDismissed = useSyncExternalStore(subscribeStorage, getDismissedSnapshot, () => true);
+  const platform = useSyncExternalStore(subscribeDummy, getPlatformSnapshot, () => "other" as const);
+
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [installed, setInstalled] = useState(true); // default true to avoid layout shift
-  const [dismissed, setDismissed] = useState(true);
-  const [platform, setPlatform] = useState<"ios" | "android" | "other">("other");
+  const [installedManually, setInstalledManually] = useState(false);
+  const [dismissedManually, setDismissedManually] = useState<boolean | null>(null);
   const [showIosGuide, setShowIosGuide] = useState(false);
 
+  const dismissed = dismissedManually !== null ? dismissedManually : isStorageDismissed;
+  const installed = isStandalone || installedManually;
+
   useEffect(() => {
-    // Check standalone mode
-    const isStandalone = isStandaloneMode();
-    setInstalled(isStandalone);
-
     if (isStandalone) return;
-
-    // Check dismissal in session/local storage
-    const hasDismissed = sessionStorage.getItem("cgv10_pwa_floating_dismissed") === "true";
-    setDismissed(hasDismissed);
-
-    const ua = window.navigator.userAgent.toLowerCase();
-    const isIos = /iphone|ipad|ipod/.test(ua);
-    const isAndroid = /android/.test(ua);
-    setPlatform(isIos ? "ios" : isAndroid ? "android" : "other");
 
     function handleBeforeInstall(event: Event) {
       event.preventDefault();
@@ -45,14 +68,14 @@ export function FloatingPwaInstall() {
     }
 
     function handleInstalled() {
-      setInstalled(true);
+      setInstalledManually(true);
       setInstallPrompt(null);
     }
 
     // Custom event to force trigger prompt from other buttons
     function handleOpenPrompt() {
-      setDismissed(false);
-      setShowIosGuide(isIos);
+      setDismissedManually(false);
+      setShowIosGuide(platform === "ios");
       if (installPrompt) {
         installPrompt.prompt();
       }
@@ -67,10 +90,10 @@ export function FloatingPwaInstall() {
       window.removeEventListener("appinstalled", handleInstalled);
       window.removeEventListener("cgv10:open-pwa-install", handleOpenPrompt);
     };
-  }, [installPrompt]);
+  }, [installPrompt, isStandalone, platform]);
 
   function handleDismiss() {
-    setDismissed(true);
+    setDismissedManually(true);
     sessionStorage.setItem("cgv10_pwa_floating_dismissed", "true");
   }
 
@@ -85,7 +108,7 @@ export function FloatingPwaInstall() {
       const choice = await installPrompt.userChoice;
       if (choice.outcome === "accepted") {
         setInstallPrompt(null);
-        setDismissed(true);
+        setDismissedManually(true);
       }
     } else {
       // Fallback instruction for browsers where prompt isn't directly triggerable
@@ -248,8 +271,7 @@ export function FloatingPwaInstall() {
                 type="button"
                 onClick={() => {
                   setShowIosGuide(false);
-                  setDismissed(true);
-                  sessionStorage.setItem("cgv10_pwa_floating_dismissed", "true");
+                  handleDismiss();
                 }}
                 className="w-full sm:w-auto rounded-xl bg-[#D4AF37] px-5 py-2.5 text-xs font-black text-[#15140b] shadow-md hover:brightness-110"
               >

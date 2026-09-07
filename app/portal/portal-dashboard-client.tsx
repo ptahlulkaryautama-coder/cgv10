@@ -7,45 +7,77 @@ import { kabarArticles, palugadaDraftItems } from "@/lib/portal-data";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { PortalSplashScreen } from "./portal-splash-screen";
 
+type DbNotification = {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  entity_type: string | null;
+  entity_id: string | null;
+  is_read: boolean;
+  created_at: string;
+};
+
 type PortalNotification = {
   id: string;
   title: string;
   message: string;
   time: string;
-  type: "billing" | "announcement" | "system";
+  type: string;
   unread: boolean;
   link?: string;
 };
 
-const initialNotifications: PortalNotification[] = [
-  {
-    id: "notif-1",
-    title: "Tagihan Iuran Agustus 2026",
-    message: "Iuran IPL RT 010 sebesar Rp 10.000 bulan ini dapat dicek dan dikonfirmasi.",
-    time: "Baru saja",
-    type: "billing",
-    unread: true,
-    link: "/keuangan/",
-  },
-  {
-    id: "notif-2",
-    title: "Pengumuman Kepengurusan RT 010",
-    message: "Susunan pengurus RT 010 Cipta Greenville periode baru telah terbit.",
-    time: "2 jam yang lalu",
-    type: "announcement",
-    unread: true,
-    link: "/kabar-warga/",
-  },
-  {
-    id: "notif-3",
-    title: "Akun Warga Terverifikasi",
-    message: "Akses Portal Warga Cipta Greenville telah aktif & terhubung ke sistem RT 010.",
-    time: "Kemarin",
-    type: "system",
-    unread: false,
-    link: "/portal/profil-rumah/",
-  },
-];
+function notifTypeIcon(type: string): string {
+  switch (type) {
+    case "registration_approved": return "✅";
+    case "registration_rejected": return "❌";
+    case "service_request_updated": return "📋";
+    case "palugada_approved": return "🏪";
+    case "palugada_rejected": return "🚫";
+    default: return "🔔";
+  }
+}
+
+function notifEntityLink(type: string, entityId: string | null): string | undefined {
+  if (!entityId) return undefined;
+  switch (type) {
+    case "registration_approved":
+    case "registration_rejected":
+      return "/portal/profil-rumah/";
+    case "service_request_updated":
+      return "/layanan/";
+    case "palugada_approved":
+    case "palugada_rejected":
+      return "/palugada/";
+    default:
+      return undefined;
+  }
+}
+
+function formatNotifTime(isoString: string): string {
+  const diff = Date.now() - new Date(isoString).getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1) return "Baru saja";
+  if (mins < 60) return `${mins} menit lalu`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} jam yang lalu`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} hari lalu`;
+  return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short" }).format(new Date(isoString));
+}
+
+function dbNotifToPortal(n: DbNotification): PortalNotification {
+  return {
+    id: n.id,
+    title: n.title,
+    message: n.body,
+    time: formatNotifTime(n.created_at),
+    type: n.type,
+    unread: !n.is_read,
+    link: notifEntityLink(n.type, n.entity_id),
+  };
+}
 
 type PortalUser = {
   id: string;
@@ -56,6 +88,10 @@ type PortalUser = {
   blockAddress?: string;
   iplStatus?: "LUNAS" | "BELUM DIBAYAR" | "PENDING";
   tagihanLabel?: string;
+  registrationStatus?: "pending_review" | "approved" | "rejected";
+  registrationCluster?: string;
+  registrationBlock?: string;
+  registrationAdminNote?: string;
 };
 
 type RoleRow = { role: string };
@@ -234,10 +270,9 @@ export function PortalDashboardClient() {
   const [isChecking, setIsChecking] = useState(() => Boolean(supabaseState.client));
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("semua");
-  const [deferredPrompt, setDeferredPrompt] = useState<unknown>(null);
 
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState<PortalNotification[]>(initialNotifications);
+  const [notifications, setNotifications] = useState<PortalNotification[]>([]);
   const notificationRef = useRef<HTMLDivElement>(null);
 
   const unreadCount = useMemo(
@@ -245,14 +280,20 @@ export function PortalDashboardClient() {
     [notifications]
   );
 
-  function markAllNotificationsAsRead() {
+  async function markAllNotificationsAsRead() {
     setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+    const supabase = supabaseState.client;
+    if (!supabase) return;
+    await supabase.rpc("mark_all_notifications_read");
   }
 
-  function toggleNotificationRead(id: string) {
+  async function toggleNotificationRead(id: string) {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, unread: !n.unread } : n))
     );
+    const supabase = supabaseState.client;
+    if (!supabase) return;
+    await supabase.rpc("mark_notification_read", { p_notification_id: id });
   }
 
   // Close notifications popover on click outside
@@ -270,16 +311,6 @@ export function PortalDashboardClient() {
     }
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showNotifications]);
-
-  // Listen for PWA install prompt
-  useEffect(() => {
-    function handleBeforeInstallPrompt(e: Event) {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    }
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-  }, []);
 
   useEffect(() => {
     const supabase = supabaseState.client;
@@ -323,10 +354,10 @@ export function PortalDashboardClient() {
 
       const [{ data: roleRows }, { data: regRequest }] = await Promise.all([
         client.from("user_roles").select("role").eq("user_id", activeUser.id),
-        // Ambil data display_name, cluster & blok dari pendaftaran warga yang sudah approved / terdaftar
+        // Ambil data display_name, status, cluster & blok dari pendaftaran warga
         client
           .from("resident_registration_requests")
-          .select("display_name, cluster, block_or_unit")
+          .select("status, admin_note, display_name, cluster, block_or_unit")
           .or(`requested_user_id.eq.${activeUser.id},email.ilike.${email}`)
           .order("created_at", { ascending: false })
           .limit(1)
@@ -381,10 +412,13 @@ export function PortalDashboardClient() {
         avatarUrl: resolvedAvatarUrl,
         isAdmin: hasRole || isKnown,
         blockAddress: `${cluster} • ${block}`,
-        // iplStatus dan tagihan: belum terhubung ke tabel iuran_payments
-        // Ditampilkan sebagai info tarif umum, bukan status personal
+        // iplStatus dan tagihan: info tarif umum
         iplStatus: undefined,
         tagihanLabel: `Iuran ${getCurrentMonthLabel()}: Rp ${formatRupiah(TARIF_IURAN)}`,
+        registrationStatus: regRequest?.status as "pending_review" | "approved" | "rejected" | undefined,
+        registrationCluster: regRequest?.cluster || undefined,
+        registrationBlock: regRequest?.block_or_unit || undefined,
+        registrationAdminNote: regRequest?.admin_note || undefined,
       });
       setIsChecking(false);
     }
@@ -394,23 +428,57 @@ export function PortalDashboardClient() {
       window.setTimeout(loadUser, 0)
     );
 
-    // Realtime: re-fetch profile saat display_name diubah (misal dari tab admin settings)
+    // Realtime: re-fetch profile saat display_name diubah
     let profileChannel: ReturnType<typeof client.channel> | null = null;
+    let notifChannel: ReturnType<typeof client.channel> | null = null;
+
     client.auth.getSession().then(({ data: sessionData }) => {
       const uid = sessionData.session?.user?.id;
       if (!uid || !mounted) return;
+
+      // Profile change listener
       profileChannel = client
         .channel(`profile-changes-${uid}`)
         .on(
           "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "profiles",
-            filter: `id=eq.${uid}`,
+          { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${uid}` },
+          () => { if (mounted) void loadUser(); },
+        )
+        .subscribe();
+
+      // Load initial notifications
+      client
+        .from("notifications")
+        .select("id, type, title, body, entity_type, entity_id, is_read, created_at")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: false })
+        .limit(20)
+        .then(({ data }) => {
+          if (mounted && data) {
+            setNotifications((data as DbNotification[]).map(dbNotifToPortal));
+          }
+        });
+
+      // Realtime: listen for new notifications
+      notifChannel = client
+        .channel(`notif-${uid}`)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${uid}` },
+          (payload) => {
+            if (!mounted) return;
+            const newNotif = dbNotifToPortal(payload.new as DbNotification);
+            setNotifications((prev) => [newNotif, ...prev].slice(0, 20));
           },
-          () => {
-            if (mounted) void loadUser();
+        )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "notifications", filter: `user_id=eq.${uid}` },
+          (payload) => {
+            if (!mounted) return;
+            setNotifications((prev) =>
+              prev.map((n) => n.id === payload.new.id ? dbNotifToPortal(payload.new as DbNotification) : n)
+            );
           },
         )
         .subscribe();
@@ -420,6 +488,7 @@ export function PortalDashboardClient() {
       mounted = false;
       subscription.unsubscribe();
       if (profileChannel) void client.removeChannel(profileChannel);
+      if (notifChannel) void client.removeChannel(notifChannel);
     };
   }, [supabaseState.client]);
 
@@ -601,7 +670,7 @@ export function PortalDashboardClient() {
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-2">
                             <span className="text-sm">
-                              {item.type === "billing" ? "💳" : item.type === "announcement" ? "📢" : "ℹ️"}
+                              {notifTypeIcon(item.type)}
                             </span>
                             <h4 className="text-xs font-bold text-white">{item.title}</h4>
                           </div>
@@ -678,6 +747,77 @@ export function PortalDashboardClient() {
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
 
+        {/* ── APPROVAL STATUS BANNER: MENUNGGU VERIFIKASI PENGURUS ── */}
+        {user?.registrationStatus === "pending_review" && (
+          <div className="relative overflow-hidden rounded-2xl border border-amber-400/40 bg-gradient-to-r from-amber-500/20 via-[#002b23] to-[#00241b] p-4 sm:p-5 text-white shadow-xl backdrop-blur-md">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-start gap-3.5">
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-400/20 text-amber-300 ring-1 ring-amber-400/40">
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/40 bg-amber-400/20 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-200">
+                      <span className="h-1.5 w-1.5 rounded-full bg-amber-300 animate-pulse" />
+                      STATUS: MENUNGGU VERIFIKASI RT
+                    </span>
+                    <span className="text-xs font-semibold text-amber-200">
+                      Unit: {user.registrationCluster || "Cipta Greenville"} — {user.registrationBlock || "-"}
+                    </span>
+                  </div>
+                  <p className="mt-1.5 text-xs text-slate-200 leading-relaxed max-w-3xl">
+                    Pendaftaran unit rumah Anda sedang ditinjau oleh pengurus RT. Anda sudah bisa menjelajahi portal, dan fitur privat (rekap iuran & layanan) akan aktif otomatis segera setelah disetujui.
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/portal/profil-rumah/"
+                className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-amber-300/40 bg-amber-400/20 px-3.5 text-xs font-bold text-amber-200 hover:bg-amber-400/30 transition-all self-start sm:self-center"
+              >
+                <span>Lihat Profil Rumah</span>
+                <span>&rarr;</span>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* ── APPROVAL STATUS BANNER: DITOLAK / PERLU REVISI ── */}
+        {user?.registrationStatus === "rejected" && (
+          <div className="relative overflow-hidden rounded-2xl border border-rose-400/40 bg-gradient-to-r from-rose-500/20 via-[#002b23] to-[#00241b] p-4 sm:p-5 text-white shadow-xl backdrop-blur-md">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-start gap-3.5">
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-rose-400/20 text-rose-300 ring-1 ring-rose-400/40">
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="15" y1="9" x2="9" y2="15" />
+                    <line x1="9" y1="9" x2="15" y2="15" />
+                  </svg>
+                </div>
+                <div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-300/40 bg-rose-400/20 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-rose-200">
+                    PENDAFTARAN BELUM DISETUJUI
+                  </span>
+                  <p className="mt-1.5 text-xs text-slate-200 leading-relaxed max-w-3xl">
+                    {user.registrationAdminNote
+                      ? `Catatan pengurus: ${user.registrationAdminNote}`
+                      : "Pendaftaran belum disetujui. Silakan hubungi pengurus RT untuk konfirmasi alamat."}
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/pengurus/"
+                className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-rose-300/40 bg-rose-400/20 px-3.5 text-xs font-bold text-rose-200 hover:bg-rose-400/30 transition-all self-start sm:self-center"
+              >
+                <span>Kontak Pengurus</span>
+                <span>&rarr;</span>
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* ── 1. RESIDENT CONTROL CENTER HERO CARD ── */}
         <section className="relative overflow-hidden rounded-3xl border border-[#D4AF37]/30 bg-gradient-to-br from-[#002b23] via-[#00382e] to-[#00241b] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] sm:p-8">
           
@@ -688,10 +828,21 @@ export function PortalDashboardClient() {
           <div className="relative z-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div>
               <div className="flex flex-wrap items-center gap-2.5">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.2)]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  WARGA AKTIF RT 010
-                </span>
+                {user?.registrationStatus === "pending_review" ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-500/15 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-amber-200 shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    MENUNGGU VERIFIKASI RT
+                  </span>
+                ) : user ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.2)]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    WARGA AKTIF RT 010
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-300">
+                    WARGA CGV10
+                  </span>
+                )}
                 {user?.iplStatus === "LUNAS" && (
                   <span className="inline-flex items-center gap-1 rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/15 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#E8C865]">
                     <IconCheck className="text-[#E8C865]" />

@@ -16,6 +16,8 @@ type UserProfile = {
   blockOrUnit: string;
   isSuperAdmin: boolean;
   status: string;
+  registrationStatus?: "pending_review" | "approved" | "rejected";
+  adminNote?: string;
 };
 
 function fileToDataUrl(file: File, maxDimension = 500, quality = 0.85): Promise<string> {
@@ -77,6 +79,13 @@ export function ProfilRumahClient() {
   const [editNameError, setEditNameError] = useState<string | null>(null);
   const [editNameSuccess, setEditNameSuccess] = useState<string | null>(null);
 
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+
   useEffect(() => {
     const supabase = supabaseState.client;
     if (!supabase) {
@@ -121,7 +130,7 @@ export function ProfilRumahClient() {
         supabase.from("user_roles").select("role").eq("user_id", activeUser.id),
         supabase
           .from("resident_registration_requests")
-          .select("display_name, cluster, block_or_unit")
+          .select("status, admin_note, display_name, cluster, block_or_unit")
           .or(`requested_user_id.eq.${activeUser.id},email.ilike.${userEmail}`)
           .order("created_at", { ascending: false })
           .limit(1)
@@ -172,6 +181,8 @@ export function ProfilRumahClient() {
         blockOrUnit: regRequest?.block_or_unit || "RT 010 / RW 021",
         isSuperAdmin: isSA,
         status: prof?.status || "active",
+        registrationStatus: regRequest?.status as "pending_review" | "approved" | "rejected" | undefined,
+        adminNote: regRequest?.admin_note || undefined,
       });
 
       setIsLoading(false);
@@ -307,10 +318,182 @@ export function ProfilRumahClient() {
     }
   }
 
-  const initial = profile ? profile.displayName.charAt(0).toUpperCase() : "W";
-  const displayVal = profile ? profile.displayName : "Warga CGV10";
-  const emailVal = profile ? profile.email : "-";
-  const addressVal = profile ? (profile.cluster + " - " + profile.blockOrUnit) : "Cipta Greenville - RT 010 / RW 021";
+  async function handleSavePassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (!supabaseState.client) return;
+    if (newPassword.length < 6) {
+      setPasswordError("Password baru minimal 6 karakter.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Konfirmasi password tidak sama.");
+      return;
+    }
+
+    setIsSavingPassword(true);
+    setPasswordError(null);
+    setPasswordSuccess(null);
+
+    try {
+      const { error } = await supabaseState.client.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) throw new Error(error.message);
+
+      setPasswordSuccess("Password berhasil diubah! Simpan password baru ini untuk login berikutnya.");
+      setNewPassword("");
+      setConfirmPassword("");
+      window.setTimeout(() => {
+        setIsPasswordModalOpen(false);
+        setPasswordSuccess(null);
+      }, 1500);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Gagal mengubah password.";
+      setPasswordError(msg);
+    } finally {
+      setIsSavingPassword(false);
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <main className="min-h-screen bg-[#f3efe6] flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#002b23] border-t-[#D4AF37]" />
+          <p className="text-sm font-bold text-[#002b23]">Memuat Profil Rumah & Warga...</p>
+        </div>
+      </main>
+    );
+  }
+
+  // 1. TAMPILAN JIKA BELUM LOGIN (GUEST / ANONIM)
+  if (!profile) {
+    return (
+      <main className="min-h-screen bg-[#f3efe6] text-foreground pb-20">
+        <header className="relative overflow-hidden bg-gradient-to-br from-[#002b23] via-[#00382e] to-[#00241b] text-white pb-24 pt-8 shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+          <div className="relative mx-auto max-w-4xl px-4 sm:px-6">
+            <Link
+              href="/portal/"
+              className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/18 bg-white/10 px-4 text-xs font-bold text-white shadow-sm backdrop-blur transition-all hover:bg-white/20"
+            >
+              <span>&larr;</span>
+              <span>Kembali ke Portal Warga</span>
+            </Link>
+          </div>
+        </header>
+
+        <div className="relative z-10 mx-auto max-w-lg px-4 sm:px-6 -mt-12">
+          <div className="rounded-3xl border border-black/8 bg-white p-6 sm:p-8 shadow-2xl text-center">
+            <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-amber-500/15 text-amber-700 ring-8 ring-amber-500/10">
+              <svg className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </div>
+            <h1 className="mt-5 text-2xl font-black text-foreground">
+              Akses Profil Rumah Memerlukan Login
+            </h1>
+            <p className="mt-2.5 text-xs sm:text-sm text-muted leading-relaxed">
+              Data unit rumah, alamat keluarga, dan rekap pembayaran iuran bersifat privat. Silakan masuk terlebih dahulu dengan akun warga Anda.
+            </p>
+            <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                href="/masuk/?next=/portal/profil-rumah/"
+                className="inline-flex min-h-12 items-center justify-center rounded-xl bg-accent px-6 text-sm font-bold text-foreground shadow-md hover:bg-accent-soft transition-all"
+              >
+                Masuk / Daftar Warga
+              </Link>
+              <Link
+                href="/portal/"
+                className="inline-flex min-h-12 items-center justify-center rounded-xl border border-border bg-surface px-6 text-sm font-bold text-foreground hover:bg-black/5 transition-all"
+              >
+                Buka Portal Warga
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // 2. TAMPILAN JIKA SUDAH DAFTAR & LOGIN, TAPI MASIH DALAM ANTRIAN VERIFIKASI (PENDING)
+  if (profile.registrationStatus === "pending_review" && !profile.isSuperAdmin) {
+    return (
+      <main className="min-h-screen bg-[#f3efe6] text-foreground pb-20">
+        <header className="relative overflow-hidden bg-gradient-to-br from-[#002b23] via-[#00382e] to-[#00241b] text-white pb-24 pt-8 shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+          <div className="relative mx-auto max-w-4xl px-4 sm:px-6 flex items-center justify-between gap-4">
+            <Link
+              href="/portal/"
+              className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/18 bg-white/10 px-4 text-xs font-bold text-white shadow-sm backdrop-blur transition-all hover:bg-white/20"
+            >
+              <span>&larr;</span>
+              <span>Kembali ke Portal Warga</span>
+            </Link>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-500/15 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+              MENUNGGU VERIFIKASI PENGURUS
+            </span>
+          </div>
+        </header>
+
+        <div className="relative z-10 mx-auto max-w-xl px-4 sm:px-6 -mt-12">
+          <div className="rounded-3xl border border-amber-300/60 bg-white p-6 sm:p-8 shadow-2xl text-center">
+            <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-amber-500/15 text-amber-600 ring-8 ring-amber-500/10">
+              <svg className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            </div>
+            <h1 className="mt-5 text-2xl font-black text-foreground">
+              Pendaftaran Rumah Sedang Ditinjau
+            </h1>
+            <p className="mt-1 text-sm font-semibold text-primary">
+              {profile.displayName} · {profile.email}
+            </p>
+
+            <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-left space-y-2">
+              <div className="flex items-center justify-between text-xs border-b border-amber-200/60 pb-2">
+                <span className="text-amber-800 font-medium">Unit yang Diajukan:</span>
+                <span className="font-extrabold text-amber-950">{profile.cluster} — {profile.blockOrUnit}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs border-b border-amber-200/60 pb-2">
+                <span className="text-amber-800 font-medium">Status Antrean:</span>
+                <span className="font-bold text-amber-700 flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  Menunggu Approval Pengurus RT
+                </span>
+              </div>
+              <p className="text-xs leading-relaxed text-amber-900 pt-1">
+                Pengurus RT sedang mencocokkan blok & nomor rumah Anda dengan data master RT 010. Setelah disetujui, rekap iuran dan data keluarga Anda akan aktif secara otomatis.
+              </p>
+            </div>
+
+            <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                href="/portal/"
+                className="inline-flex min-h-12 items-center justify-center rounded-xl bg-[#002b23] px-6 text-sm font-bold text-white shadow-md hover:bg-[#00382e] transition-all"
+              >
+                Buka Portal Warga
+              </Link>
+              <Link
+                href="/pengurus/"
+                className="inline-flex min-h-12 items-center justify-center rounded-xl border border-border bg-surface px-6 text-sm font-bold text-foreground hover:bg-black/5 transition-all"
+              >
+                Kontak Pengurus RT
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // 3. TAMPILAN FULL UNTUK WARGA YANG SUDAH APPROVED / TERVERIFIKASI
+  const initial = profile.displayName.charAt(0).toUpperCase() || "W";
+  const displayVal = profile.displayName;
+  const emailVal = profile.email;
+  const addressVal = `${profile.cluster} - ${profile.blockOrUnit}`;
 
   return (
     <main className="min-h-screen bg-[#f3efe6] text-foreground pb-20">
@@ -449,6 +632,24 @@ export function ProfilRumahClient() {
                   </svg>
                   <span>Edit Nama Tampilan</span>
                 </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewPassword("");
+                    setConfirmPassword("");
+                    setPasswordError(null);
+                    setPasswordSuccess(null);
+                    setIsPasswordModalOpen(true);
+                  }}
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 text-xs font-black text-white shadow-sm transition-all hover:bg-white/20 cursor-pointer"
+                >
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                  <span>Ganti Password</span>
+                </button>
               </div>
             </div>
           </div>
@@ -456,6 +657,21 @@ export function ProfilRumahClient() {
       </header>
 
       <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 -mt-10 sm:-mt-12 space-y-6">
+        {/* Verification Status Alert Banner */}
+        {profile?.registrationStatus === "pending_review" && (
+          <div className="rounded-2xl border border-amber-400/40 bg-gradient-to-r from-amber-50 to-amber-100/70 p-4 text-amber-950 shadow-sm flex items-start gap-3.5">
+            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-amber-400/30 text-amber-800 font-bold">
+              ℹ
+            </div>
+            <div className="text-xs leading-relaxed">
+              <p className="font-bold text-sm text-amber-900">Pendaftaran Rumah Dalam Peninjauan Pengurus RT</p>
+              <p className="mt-0.5 text-amber-800/90">
+                Pengajuan unit rumah <strong>{profile.cluster} — {profile.blockOrUnit}</strong> sedang dalam antrean verifikasi oleh pengurus RT. Setelah diverifikasi, data rumah dan rekap pembayaran iuran pribadi Anda akan tampil aktif secara lengkap.
+              </p>
+            </div>
+          </div>
+        )}
+
         <section className="grid gap-6 md:grid-cols-2">
           <div className="rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between gap-3 border-b border-border pb-4">
@@ -579,6 +795,89 @@ export function ProfilRumahClient() {
                   className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#B8942F] px-5 py-2 text-xs font-black text-[#15140b] shadow-md hover:brightness-110 disabled:opacity-50"
                 >
                   {isSavingName ? "Menyimpan..." : "Simpan Nama"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Ganti Password */}
+      {isPasswordModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-md rounded-2xl border border-[#D4AF37]/40 bg-[#00241b] p-6 shadow-2xl text-white space-y-4">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <h3 className="text-lg font-bold text-[#E8C865]">Ganti Password Akun</h3>
+              <button
+                type="button"
+                onClick={() => setIsPasswordModalOpen(false)}
+                className="text-slate-400 hover:text-white text-xl font-bold"
+              >
+                &times;
+              </button>
+            </div>
+
+            <form onSubmit={handleSavePassword} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Password Baru
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Minimal 6 karakter"
+                  required
+                  minLength={6}
+                  className="w-full rounded-xl border border-white/20 bg-black/40 px-3.5 py-2.5 text-sm font-semibold text-white placeholder-slate-500 focus:border-[#D4AF37] focus:outline-none focus:ring-1 focus:ring-[#D4AF37]"
+                  disabled={isSavingPassword}
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Konfirmasi Password Baru
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Ketik ulang password baru"
+                  required
+                  minLength={6}
+                  className="w-full rounded-xl border border-white/20 bg-black/40 px-3.5 py-2.5 text-sm font-semibold text-white placeholder-slate-500 focus:border-[#D4AF37] focus:outline-none focus:ring-1 focus:ring-[#D4AF37]"
+                  disabled={isSavingPassword}
+                />
+              </div>
+
+              {passwordError && (
+                <div className="rounded-xl border border-red-500/40 bg-red-950/60 p-3 text-xs font-semibold text-red-200">
+                  ⚠ {passwordError}
+                </div>
+              )}
+
+              {passwordSuccess && (
+                <div className="rounded-xl border border-emerald-500/40 bg-emerald-950/60 p-3 text-xs font-semibold text-emerald-200">
+                  🟢 {passwordSuccess}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsPasswordModalOpen(false)}
+                  disabled={isSavingPassword}
+                  className="rounded-xl border border-white/15 px-4 py-2 text-xs font-bold text-slate-300 hover:bg-white/10"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingPassword}
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#B8942F] px-5 py-2 text-xs font-black text-[#15140b] shadow-md hover:brightness-110 disabled:opacity-50"
+                >
+                  {isSavingPassword ? "Menyimpan..." : "Update Password"}
                 </button>
               </div>
             </form>

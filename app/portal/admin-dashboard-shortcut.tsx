@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
-import { Icon } from "../components/portal";
 
 type RoleRow = { role: string };
 
