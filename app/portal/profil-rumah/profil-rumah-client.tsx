@@ -292,17 +292,25 @@ export function ProfilRumahClient() {
         data: { display_name: trimmedName },
       });
 
-      // 3. Sync resident_registration_requests
-      await supabase
-        .from("resident_registration_requests")
-        .update({ display_name: trimmedName })
-        .or(`requested_user_id.eq.${profile.id},email.ilike.${profile.email}`);
+      // 3. Sync resident_registration_requests (optional fallback)
+      try {
+        await supabase
+          .from("resident_registration_requests")
+          .update({ display_name: trimmedName })
+          .eq("requested_user_id", profile.id);
+      } catch {
+        // non-blocking
+      }
 
-      // 4. Sync households primary_contact_name
-      await supabase
-        .from("households")
-        .update({ primary_contact_name: trimmedName })
-        .eq("head_user_id", profile.id);
+      // 4. Sync households primary_contact_name (optional fallback)
+      try {
+        await supabase
+          .from("households")
+          .update({ primary_contact_name: trimmedName })
+          .eq("head_user_id", profile.id);
+      } catch {
+        // non-blocking
+      }
 
       setProfile((prev) => (prev ? { ...prev, displayName: trimmedName } : null));
       setEditNameSuccess("Nama tampilan berhasil diperbarui!");
