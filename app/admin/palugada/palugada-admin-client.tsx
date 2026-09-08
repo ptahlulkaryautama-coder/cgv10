@@ -516,17 +516,17 @@ export function PalugadaAdminClient() {
       isSuperAdmin={isSuperAdmin}
     >
       <ProductionPageIntro
-        eyebrow="Katalog usaha warga"
-        title={<>Pendaftaran <span className="italic">PALUGADA</span></>}
-        text="Periksa informasi lapak sebelum disetujui dan ditampilkan di katalog. Hubungi pemilik melalui WhatsApp jika memerlukan kelengkapan foto atau klarifikasi menu."
+        eyebrow="Moderasi pasca-tayang · PALUGADA Mandiri Warga"
+        title={<>Moderasi <span className="italic">PALUGADA</span></>}
+        text="Lapak warga kini langsung tayang setelah didaftarkan. Pantau lapak aktif, sembunyikan yang tidak sesuai aturan, dan bantu warga memperbarui informasi lapak mereka jika diperlukan."
         side={<ProductionStatusPill>{canRead ? "Akses aktif" : "Memeriksa akses"}</ProductionStatusPill>}
       />
 
       <section aria-label="Ringkasan PALUGADA" className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-        <ProductionMetricCard label="Baru" value={String(listings.filter((item) => item.status === "submitted").length)} helper="Pendaftaran baru" icon="store" tone={listings.some(l => l.status === "submitted") ? "gold" : undefined} />
-        <ProductionMetricCard label="Diperiksa" value={String(listings.filter((item) => item.status === "review").length)} helper="Sedang diperiksa pengurus" icon="shield" tone="blue" />
-        <ProductionMetricCard label="Disetujui" value={String(listings.filter((item) => item.status === "approved").length)} helper="Siap tampil di katalog" icon="store" tone="green" />
-        <ProductionMetricCard label="Akses" value={canWrite ? "Kelola" : "Lihat saja"} helper={roleSummary} icon="users" tone="dark" />
+        <ProductionMetricCard label="Aktif" value={String(listings.filter((item) => item.status === "approved").length)} helper="Tayang di katalog" icon="store" tone="green" />
+        <ProductionMetricCard label="Disembunyikan" value={String(listings.filter((item) => item.status === "hidden").length)} helper="Disembunyikan pengurus" icon="shield" tone={listings.some(l => l.status === "hidden") ? "gold" : undefined} />
+        <ProductionMetricCard label="Diproses" value={String(listings.filter((item) => ["submitted","review","draft"].includes(item.status)).length)} helper="Masih diproses" icon="store" />
+        <ProductionMetricCard label="Akses" value={canWrite ? "Moderator" : "Lihat saja"} helper={roleSummary} icon="users" tone="dark" />
       </section>
 
       <ProductionPanel className="mb-5">

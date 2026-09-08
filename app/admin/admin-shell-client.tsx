@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
-import { kabarArticles, marketplaceItems } from "@/lib/portal-data";
+import { kabarArticles } from "@/lib/portal-data";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { AdminPwaInstallCard } from "./admin-pwa-install-card";
 import {
@@ -165,7 +165,6 @@ const palugadaDashboardFilters: Array<{ value: PalugadaDashboardFilter; label: s
   { value: "approved", label: "Disetujui" },
   { value: "hidden", label: "Disembunyikan" },
   { value: "rejected", label: "Ditolak" },
-  { value: "local", label: "Belum di Supabase" },
 ];
 
 const portalPostStatusLabels: Record<UnifiedPortalPostStatus, string> = {
@@ -197,32 +196,6 @@ const portalPostDashboardFilters: Array<{ value: PortalPostDashboardFilter; labe
   { value: "draft", label: "Draft" },
   { value: "review", label: "Review" },
 ];
-
-const marketplaceCategoryMap: Record<string, DashboardPalugadaCategory> = {
-  barang: "barang",
-  kuliner: "kuliner",
-  jasa: "jasa",
-  properti: "properti",
-};
-
-function normalizePalugadaName(value: string) {
-  return value
-    .toLocaleLowerCase("id-ID")
-    .replace(/[’‘`]/g, "'")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-const localPalugadaListings: UnifiedDashboardPalugadaListing[] = marketplaceItems.map((item) => ({
-  id: `local:${item.detailSlug ?? normalizePalugadaName(item.name).replace(/[^a-z0-9]+/g, "-")}`,
-  name: item.name,
-  category: marketplaceCategoryMap[item.category.toLocaleLowerCase("id-ID")] ?? "lainnya",
-  cluster: item.cluster,
-  status: "local",
-  created_at: null,
-  source: "local",
-  href: item.detailHref ?? "/palugada/#hasil-palugada",
-}));
 
 const localKabarArchivePosts: UnifiedDashboardPortalPost[] = kabarArticles.map((item) => ({
   id: `local:${item.slug ?? item.title.toLocaleLowerCase("id-ID").replace(/[^a-z0-9]+/g, "-")}`,
@@ -626,19 +599,11 @@ export function AdminShellClient() {
   const roleLabel = primaryRole ? formatRole(primaryRole) : roleNames;
   const isSuperAdmin = primaryRole === "super_admin";
   const allPalugadaListings = useMemo<UnifiedDashboardPalugadaListing[]>(() => {
-    const supabaseNames = new Set(
-      palugadaListings.map((listing) => normalizePalugadaName(listing.name)),
-    );
-    const supabaseListings = palugadaListings.map((listing) => ({
+    return palugadaListings.map((listing) => ({
       ...listing,
       source: "supabase" as const,
       href: `/admin/palugada/?listing=${encodeURIComponent(listing.id)}`,
     }));
-    const localOnlyListings = localPalugadaListings.filter(
-      (listing) => !supabaseNames.has(normalizePalugadaName(listing.name)),
-    );
-
-    return [...supabaseListings, ...localOnlyListings];
   }, [palugadaListings]);
   const allPortalPosts = useMemo<UnifiedDashboardPortalPost[]>(() => {
     const supabaseTitles = new Set(

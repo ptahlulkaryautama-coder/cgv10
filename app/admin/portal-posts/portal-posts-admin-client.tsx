@@ -157,6 +157,7 @@ const portalPostSelectBase =
 const portalPostSelectWithMedia = `${portalPostSelectBase}, cover_image_url, cover_image_alt, attachment_url, attachment_label, gallery_images`;
 const portalPostMediaBucket = "portal-post-media";
 const portalPostAttachmentBucket = "portal-post-attachments";
+const DRAFT_STORAGE_KEY = "cgv10-admin-post-draft";
 
 const fieldClass =
   "min-h-11 w-full rounded-[10px] border border-black/10 bg-white px-3 text-sm font-semibold text-foreground outline-none transition-colors duration-200 placeholder:text-muted/70 focus:border-primary focus:ring-2 focus:ring-primary/15";
@@ -309,6 +310,43 @@ export function PortalPostsAdminClient() {
   const [pendingCoverFile, setPendingCoverFile] = useState<File | null>(null);
   const [pendingAttachmentFile, setPendingAttachmentFile] = useState<File | null>(null);
   const [pendingGalleryFiles, setPendingGalleryFiles] = useState<File[]>([]);
+  const [draftRecoveryAvailable, setDraftRecoveryAvailable] = useState(false);
+
+  // Auto-save draft to localStorage (debounced 2s) for new articles
+  useEffect(() => {
+    if (form.id !== null) return; // Only auto-save unsaved/new drafts
+    if (!form.title && !form.body && !form.excerpt) return; // Skip empty form
+
+    const timer = window.setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({
+          title: form.title,
+          slug: form.slug,
+          category: form.category,
+          excerpt: form.excerpt,
+          body: form.body,
+          coverImageUrl: form.coverImageUrl,
+          coverImageAlt: form.coverImageAlt,
+          savedAt: new Date().toISOString(),
+        }));
+      } catch { /* quota exceeded, ignore */ }
+    }, 2000);
+    return () => window.clearTimeout(timer);
+  }, [form.id, form.title, form.slug, form.category, form.excerpt, form.body, form.coverImageUrl, form.coverImageAlt]);
+
+  // Check for recoverable draft on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved) as { title?: string; body?: string; savedAt?: string };
+        if (parsed.title || parsed.body) {
+          setDraftRecoveryAvailable(true);
+        }
+      }
+    } catch { /* ignore */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadPortalPosts = useCallback(async () => {
     if (!supabase) {
@@ -630,6 +668,9 @@ export function PortalPostsAdminClient() {
 
     const savedPost = result.data as PortalPostRow;
     setForm(toForm(savedPost));
+    // Clear autosaved draft since content is now saved to server
+    try { localStorage.removeItem(DRAFT_STORAGE_KEY); } catch { /* ignore */ }
+    setDraftRecoveryAvailable(false);
 
     const coverToUpload = pendingCoverFile;
     const attachmentToUpload = pendingAttachmentFile;
@@ -1159,8 +1200,53 @@ export function PortalPostsAdminClient() {
                     {form.id ? "Edit kabar" : "Draft baru"}
                   </h2>
                 </div>
-                <ProductionStatusPill>{form.status}</ProductionStatusPill>
+                <div className="flex items-center gap-2">
+                  <ProductionStatusPill>{form.status}</ProductionStatusPill>
+                </div>
               </div>
+              {draftRecoveryAvailable && form.id === null && (
+                <div className="mt-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-xs">
+                  <p className="font-bold text-amber-800">Draft tersimpan otomatis ditemukan</p>
+                  <p className="mt-0.5 text-amber-700">Ketikan artikel sebelumnya tersimpan sebelum sesi berakhir.</p>
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        try {
+                          const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+                          if (saved) {
+                            const parsed = JSON.parse(saved) as Partial<EditorForm>;
+                            setForm((prev) => ({
+                              ...prev,
+                              title: parsed.title || prev.title,
+                              slug: parsed.slug || prev.slug,
+                              category: (parsed.category as typeof prev.category) || prev.category,
+                              excerpt: parsed.excerpt || prev.excerpt,
+                              body: parsed.body || prev.body,
+                              coverImageUrl: parsed.coverImageUrl || prev.coverImageUrl,
+                              coverImageAlt: parsed.coverImageAlt || prev.coverImageAlt,
+                            }));
+                          }
+                        } catch { /* ignore */ }
+                        setDraftRecoveryAvailable(false);
+                      }}
+                      className="rounded-lg border border-amber-400 bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800 hover:bg-amber-200"
+                    >
+                      Pulihkan Tulisan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        try { localStorage.removeItem(DRAFT_STORAGE_KEY); } catch { /* ignore */ }
+                        setDraftRecoveryAvailable(false);
+                      }}
+                      className="rounded-lg border border-amber-200 bg-white px-2.5 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-50"
+                    >
+                      Abaikan
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className="mt-5 grid gap-4">
                 <FieldLabel label="Judul">

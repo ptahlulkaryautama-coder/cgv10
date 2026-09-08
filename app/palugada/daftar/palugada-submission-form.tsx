@@ -180,7 +180,7 @@ export function PalugadaSubmissionForm() {
     }
 
     setSaveState("saving");
-    setSaveMessage("Mengirim data lapak ke pengurus...");
+    setSaveMessage("Mendaftarkan lapak ke katalog PALUGADA...");
 
     try {
       const supabase = getSupabaseBrowserClient();
@@ -260,8 +260,8 @@ export function PalugadaSubmissionForm() {
       setSubmissionReference(reference);
       setSaveMessage(
         attachments.length > 0
-          ? `Lapak masuk bersama ${attachments.length} foto. Simpan nomor ${reference} untuk cek progres.`
-          : `Lapak masuk. Simpan nomor ${reference} untuk cek progres.`,
+          ? `🎉 Lapak berhasil tayang di katalog PALUGADA CGV bersama ${attachments.length} foto! Nomor: ${reference}`
+          : `🎉 Lapak Anda langsung tayang di katalog PALUGADA CGV! Nomor: ${reference}`,
       );
     } catch (error) {
       const message = error instanceof Error ? error.message : "Pendaftaran lapak belum berhasil dikirim. Coba ulangi sebentar lagi.";
@@ -456,7 +456,7 @@ export function PalugadaSubmissionForm() {
                 : "cursor-not-allowed bg-primary-soft text-primary/60"
             }`}
           >
-            {saveState === "saving" ? "Mengirim data lapak..." : saveState === "saved" ? "Lapak terkirim" : "Kirim pendaftaran"}
+            {saveState === "saving" ? "Mendaftarkan lapak ke katalog..." : saveState === "saved" ? "✓ Lapak Tayang di Katalog" : "Daftarkan Lapak Sekarang"}
           </button>
           {saveMessage ? (
             <div
@@ -476,40 +476,54 @@ export function PalugadaSubmissionForm() {
             deskripsi terisi.
           </p>
           {saveState === "saved" ? (
-            <div className="mt-4 rounded-xl border border-primary/20 bg-surface p-4">
-              <p className="text-sm font-semibold text-primary">
-                Simpan nomor pendaftaran: {submissionReference}
+            <div className="mt-4 space-y-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+              <div className="flex items-start gap-2">
+                <span className="text-lg leading-none">🏪</span>
+                <div>
+                  <p className="text-sm font-bold text-emerald-800">
+                    Lapak Anda langsung tayang!
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-emerald-700">
+                    Lapak sudah tampil di katalog PALUGADA CGV. Anda bisa kelola lapak kapan saja dari Portal Warga.
+                  </p>
+                </div>
+              </div>
+              <p className="text-[10px] font-semibold text-emerald-600 border-t border-emerald-200 pt-2">
+                Nomor referensi: {submissionReference}
               </p>
-              <p className="mt-2 text-xs leading-5 text-foreground/70">
-                Pengurus sudah menerima data dan foto lapak. WhatsApp hanya dipakai kalau Anda ingin menambahkan konfirmasi.
-              </p>
-              <a
-                href={whatsappHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-xl border border-primary/25 bg-surface px-4 text-sm font-semibold text-primary transition-colors duration-200 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                Konfirmasi lewat WhatsApp
-              </a>
+              <div className="flex flex-col gap-2 pt-1">
+                <Link
+                  href="/palugada/"
+                  className="inline-flex min-h-10 w-full cursor-pointer items-center justify-center rounded-xl bg-emerald-700 px-4 text-sm font-bold text-white transition-colors hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700"
+                >
+                  Lihat Lapak di Katalog →
+                </Link>
+                <Link
+                  href="/portal/lapak/"
+                  className="inline-flex min-h-10 w-full cursor-pointer items-center justify-center rounded-xl border border-emerald-300 bg-white px-4 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
+                >
+                  Kelola Lapak Saya
+                </Link>
+              </div>
             </div>
           ) : null}
         </div>
 
         <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-            Setelah lapak masuk
+            Lapak Mandiri Warga
           </p>
           <div className="mt-4 space-y-3 text-sm leading-6 text-muted">
-            <p>Pengurus mungkin meminta foto tambahan atau klarifikasi kontak.</p>
-            <p>
-              Lapak akan tampil setelah informasinya cukup jelas untuk warga.
-            </p>
+            <p>✅ Lapak langsung tayang setelah formulir dikirim.</p>
+            <p>✏️ Anda bisa edit harga, deskripsi, dan status buka/tutup kapan saja.</p>
+            <p>📷 Ganti foto cover langsung dari Portal Warga.</p>
+            <p>🛡️ Pengurus RT tetap memantau dan dapat menonaktifkan lapak jika diperlukan.</p>
           </div>
           <Link
             href="/palugada/"
             className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-border bg-background px-4 text-sm font-semibold text-primary transition-colors hover:border-primary/35 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
           >
-            Kembali ke katalog
+            Lihat Katalog PALUGADA
           </Link>
         </div>
       </aside>

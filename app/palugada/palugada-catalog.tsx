@@ -6,7 +6,7 @@ import Link from "next/link";
 import { AuthAwareAction } from "../components/auth-aware-action";
 import { ImagePreview } from "../components/image-preview";
 import { Icon } from "../components/portal";
-import { marketplaceItems, type MarketplaceItem } from "@/lib/portal-data";
+import { type MarketplaceItem } from "@/lib/portal-data";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type PalugadaFilterDetail = {
@@ -57,15 +57,6 @@ function normalize(value: string) {
   return value.trim().toLowerCase();
 }
 
-function getTrustBadges(item: MarketplaceItem) {
-  return [
-    "Lapak warga",
-    item.whatsappHref ? "Kontak tersedia" : "Kontak via pengurus",
-    item.detailHref ? "Detail aktif" : "Detail segera hadir",
-    item.sellerStatus === "online" ? "Seller online" : "Seller offline",
-  ];
-}
-
 function matchesSearch(item: MarketplaceItem, query: string, category: string) {
   const categoryMatch =
     category === "semua" || item.category.toLowerCase() === category;
@@ -74,24 +65,13 @@ function matchesSearch(item: MarketplaceItem, query: string, category: string) {
     item.category,
     item.cluster,
     item.price,
+    item.detailDescription,
   ]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
 
   return categoryMatch && (!query || content.includes(query));
-}
-
-function sortItems(items: MarketplaceItem[]) {
-  const indexedItems = items.map((item, index) => ({ item, index }));
-
-  return indexedItems
-    .sort((left, right) => {
-      const leftFeatured = left.item.detailSlug === "donat-kentang-warga" ? 1 : 0;
-      const rightFeatured = right.item.detailSlug === "donat-kentang-warga" ? 1 : 0;
-      return rightFeatured - leftFeatured || left.index - right.index;
-    })
-    .map(({ item }) => item);
 }
 
 function buildWhatsappHref(contactMethod: string) {
@@ -109,60 +89,59 @@ function mapLiveListing(
   row: LivePalugadaRow,
   cover?: LivePalugadaAttachment & { signedUrl: string },
 ): MarketplaceItem {
-  const category = palugadaCategoryLabel[row.category];
+  const category = palugadaCategoryLabel[row.category] || "Lainnya";
   const whatsappHref = buildWhatsappHref(row.contact_method);
 
   return {
     name: row.name,
     category,
-    cluster: row.cluster,
-    price: row.price_label || "Harga sesuai konfirmasi",
+    cluster: row.cluster || "Warga CGV10",
+    price: row.price_label || "Hubungi penjual",
     status: "Tayang",
     sellerStatus: row.seller_status,
     sellerStatusLabel: row.seller_status === "online" ? "Online" : "Offline",
-    sellerStatusNote: row.seller_status_note || "Status seller dari admin PALUGADA.",
-    icon: palugadaCategoryIcon[row.category],
+    sellerStatusNote: row.seller_status_note || "Lapak aktif warga CGV10.",
+    icon: palugadaCategoryIcon[row.category] || "store",
     imageSrc: cover?.signedUrl ?? row.cover_image_url ?? undefined,
     imageAlt: cover
       ? `Foto ${row.name} - ${cover.file_name}`
-      : row.cover_image_alt ?? undefined,
+      : row.cover_image_alt ?? `Foto lapak ${row.name}`,
     detailSlug: row.id,
     detailHref: `/palugada/detail/?id=${encodeURIComponent(row.id)}`,
     detailDescription:
       row.description ||
-      "Lapak warga yang sudah diperiksa pengurus.",
+      "Lapak usaha warga resmi lingkungan Cipta Greenville.",
     availabilityNote: row.availability_note,
     contactBadge: whatsappHref ? "WhatsApp" : "Kontak via pengurus",
     whatsappHref,
     whatsappLabel: "Hubungi WhatsApp",
     whatsappDisplayNumber: row.contact_method,
-    whatsappStatus: whatsappHref ? "WhatsApp tersedia" : "Via pengurus",
+    whatsappStatus: whatsappHref ? "WhatsApp aktif" : "Via pengurus",
   };
 }
 
 function ListingCard({ item }: { item: MarketplaceItem }) {
-  const badges = getTrustBadges(item);
   const isOnline = item.sellerStatus === "online";
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-sm transition-colors duration-200 hover:border-primary/35 sm:rounded-2xl">
-      <div className="relative border-b border-border bg-cream">
-        <div className="relative aspect-[4/3]">
+    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-surface shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md">
+      {/* Media Header */}
+      <div className="relative border-b border-border/70 bg-stone-100 overflow-hidden">
+        <div className="relative aspect-[4/3] w-full">
           {item.imageSrc ? (
             <ImagePreview
               src={item.imageSrc}
               alt={item.imageAlt ?? item.name}
               title={item.name}
-              caption={`${item.category} - ${item.cluster}`}
-              className="aspect-[4/3]"
+              caption={`${item.category} • ${item.cluster}`}
+              className="aspect-[4/3] w-full"
             >
               {item.imageSrc.startsWith("http") ? (
-                // Signed Supabase URLs are dynamic and cannot use the static image optimizer.
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={item.imageSrc}
                   alt={item.imageAlt ?? item.name}
-                  className="h-full w-full object-cover transition-opacity duration-200 group-hover:opacity-95"
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                 />
               ) : (
                 <Image
@@ -170,132 +149,111 @@ function ListingCard({ item }: { item: MarketplaceItem }) {
                   alt={item.imageAlt ?? item.name}
                   fill
                   sizes="(min-width: 1280px) 300px, (min-width: 768px) 43vw, 92vw"
-                  className="object-cover transition-opacity duration-200 group-hover:opacity-95"
+                  className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                 />
               )}
             </ImagePreview>
           ) : (
-            <div className="flex h-full flex-col justify-between p-5">
-              <div className="grid h-14 w-14 place-items-center rounded-xl bg-surface text-primary shadow-sm">
-                <Icon name={item.icon} />
+            /* Premium Branded Placeholder */
+            <div className="relative flex h-full w-full flex-col justify-between bg-gradient-to-br from-[#0c2217] via-primary to-[#194b34] p-4 text-white sm:p-5">
+              <div className="flex items-center justify-between">
+                <div className="grid h-11 w-11 place-items-center rounded-xl border border-white/20 bg-white/10 text-accent backdrop-blur-sm shadow-sm sm:h-12 sm:w-12 sm:rounded-2xl">
+                  <Icon name={item.icon} />
+                </div>
               </div>
-              <div className="space-y-2">
-                <div className="h-3 w-3/4 rounded-full bg-primary/18" />
-                <div className="h-3 w-1/2 rounded-full bg-accent/35" />
-                <div className="h-12 rounded-xl border border-border bg-surface/80" />
+              <div className="mt-auto">
+                <p className="text-[10px] font-extrabold uppercase tracking-wider text-accent-soft sm:text-[11px]">
+                  PALUGADA CGV
+                </p>
+                <p className="text-xs font-semibold text-white/90 line-clamp-1 sm:text-sm">
+                  {item.category} • {item.cluster}
+                </p>
               </div>
             </div>
           )}
         </div>
-        <div className="absolute left-2 top-2 rounded-full bg-accent-soft px-2 py-1 text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-foreground shadow-sm sm:left-3 sm:top-3 sm:px-3 sm:text-[0.68rem] sm:tracking-[0.14em]">
+
+        {/* Category Badge */}
+        <div className="absolute left-2.5 top-2.5 rounded-lg border border-white/15 bg-slate-900/80 px-2.5 py-1 text-[11px] font-bold text-accent-soft backdrop-blur-md shadow-sm sm:left-3 sm:top-3">
           {item.category}
         </div>
+
+        {/* Seller Online/Offline Badge */}
         <div
           aria-label={`Penjual ${item.sellerStatusLabel}`}
-          className={`absolute right-2 top-2 inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[0.62rem] font-semibold shadow-sm sm:right-3 sm:top-3 sm:gap-2 sm:px-3 sm:text-xs ${
+          className={`absolute right-2.5 top-2.5 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold backdrop-blur-md shadow-sm sm:right-3 sm:top-3 ${
             isOnline
-              ? "border-emerald-200 bg-emerald-50 text-primary"
-              : "border-white/45 bg-white/90 text-muted"
+              ? "border-emerald-400/40 bg-emerald-950/85 text-emerald-200"
+              : "border-stone-400/30 bg-stone-900/80 text-stone-300"
           }`}
         >
           <span
             className={`h-2 w-2 rounded-full ${
-              isOnline ? "bg-emerald-600" : "bg-stone-400"
+              isOnline ? "bg-emerald-400 animate-pulse" : "bg-stone-400"
             }`}
           />
-          <span className="hidden sm:inline">{item.sellerStatusLabel}</span>
-        </div>
-        <div className="absolute bottom-3 right-3 hidden rounded-full border border-white/45 bg-primary/86 px-3 py-1 text-xs font-semibold text-white shadow-sm sm:block">
-          {item.status}
+          <span>{isOnline ? "Buka" : "Tutup"}</span>
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col p-3 sm:p-5">
-        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.1em] text-primary sm:text-xs sm:tracking-[0.14em]">
+      {/* Content Body */}
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
+        {/* Cluster / Location */}
+        <p className="text-[11px] font-extrabold uppercase tracking-wider text-primary">
           {item.cluster}
         </p>
-        <h2 className="mt-1.5 line-clamp-2 text-base font-semibold tracking-tight text-foreground sm:mt-2 sm:text-xl">
+
+        {/* Title */}
+        <h2 className="mt-1 line-clamp-2 text-base font-bold tracking-tight text-foreground sm:text-lg">
           {item.name}
         </h2>
-        <p className="mt-3 hidden text-sm leading-6 text-muted sm:block">
-          {item.detailDescription ??
-            "Informasi lapak warga yang dapat dilihat sebelum menghubungi penjual."}
+
+        {/* Description */}
+        <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted sm:text-sm">
+          {item.detailDescription ?? "Lapak warga resmi Cipta Greenville."}
         </p>
 
-        <div className="mt-3 grid gap-3 text-sm sm:mt-5">
-          <div className="border-t border-border pt-3 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:pt-4">
-            <span className="hidden text-muted sm:inline">Harga</span>
-            <span className="line-clamp-2 text-sm font-semibold text-foreground sm:text-right">
+        {/* Price & Contact Box */}
+        <div className="mt-4 rounded-xl border border-border/80 bg-cream/40 p-3">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-xs font-semibold text-muted">Harga</span>
+            <span className="text-sm font-black text-primary text-right sm:text-base">
               {item.price}
             </span>
           </div>
-          <div className="hidden items-center justify-between gap-4 border-t border-border pt-4 sm:flex">
+          <div className="mt-2 flex items-center justify-between gap-2 border-t border-border/50 pt-2 text-xs">
             <span className="text-muted">Kontak</span>
-            <span className="text-right font-semibold text-foreground">
+            <span className="font-semibold text-foreground text-right">
               {item.whatsappStatus ?? "Via pengurus"}
             </span>
           </div>
-          <div className="hidden items-center justify-between gap-4 border-t border-border pt-4 sm:flex">
-            <span className="text-muted">Status seller</span>
-            <span
-              className={`inline-flex items-center gap-2 text-right font-semibold ${
-                isOnline ? "text-primary" : "text-muted"
-              }`}
-            >
-              <span
-                className={`h-2 w-2 rounded-full ${
-                  isOnline ? "bg-emerald-600" : "bg-stone-400"
-                }`}
-              />
-              {item.sellerStatusLabel}
-            </span>
-          </div>
         </div>
 
-        <div className="mt-5 hidden flex-wrap gap-2 sm:flex">
-          {badges.map((badge) => (
-            <span
-              key={badge}
-              className="rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-muted"
-            >
-              {badge}
-            </span>
-          ))}
-        </div>
+        {/* Action Buttons */}
+        <div className="mt-auto grid grid-cols-2 gap-2 pt-4">
+          <Link
+            href={item.detailHref ?? `/palugada/detail/?id=${encodeURIComponent(item.detailSlug ?? "")}`}
+            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-primary/25 bg-primary-soft/60 px-3 text-xs font-bold text-primary transition-colors hover:bg-primary hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:text-sm"
+          >
+            Detail Lapak
+          </Link>
 
-        <div className="mt-auto grid grid-cols-2 gap-2 pt-4 sm:mt-6 sm:gap-3 sm:pt-0">
-          {item.detailHref ? (
-            <Link
-              href={item.detailHref}
-              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface sm:rounded-xl sm:px-4 sm:text-sm"
-            >
-              Detail
-            </Link>
-          ) : (
-            <button
-              type="button"
-              disabled
-              className="inline-flex min-h-11 cursor-not-allowed items-center justify-center rounded-lg bg-primary-soft px-2 text-xs font-semibold text-primary/70 sm:rounded-xl sm:px-4 sm:text-sm"
-            >
-              Detail segera
-            </button>
-          )}
           {item.whatsappHref ? (
             <Link
               href={item.whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-accent px-2 text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-accent/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface sm:rounded-xl sm:px-4 sm:text-sm"
+              className="inline-flex min-h-11 items-center justify-center rounded-xl bg-accent px-3 text-xs font-bold text-foreground shadow-sm transition-colors hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm"
               aria-label={`${item.whatsappLabel ?? "Hubungi WhatsApp"} untuk ${item.name}`}
             >
-              {isOnline ? "Hubungi" : "Cek kontak"}
+              Hubungi WA
             </Link>
           ) : (
             <Link
               href="/kontak/"
-              className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border bg-background px-2 text-xs font-semibold text-primary transition-colors hover:border-primary/35 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface sm:rounded-xl sm:px-4 sm:text-sm"
+              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-surface px-3 text-xs font-semibold text-muted transition-colors hover:bg-cream hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:text-sm"
             >
-              {isOnline ? "Tanya" : "Kontak"}
+              Tanya RT
             </Link>
           )}
         </div>
@@ -308,22 +266,18 @@ export function PalugadaCatalog() {
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("semua");
   const [liveItems, setLiveItems] = useState<MarketplaceItem[]>([]);
-  const [, setLiveState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [liveState, setLiveState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const normalizedQuery = normalize(query);
+
   const catalogItems = useMemo(() => {
-    const liveNames = new Set(liveItems.map((item) => normalize(item.name)));
-
-    return [
-      ...liveItems,
-      ...marketplaceItems.filter((item) => !liveNames.has(normalize(item.name))),
-    ];
+    // Only return live items from Supabase database.
+    return liveItems;
   }, [liveItems]);
-  const filteredItems = useMemo(() => {
-    const matchedItems = catalogItems.filter((item) =>
-        matchesSearch(item, normalizedQuery, selectedCategory),
-      );
 
-    return sortItems(matchedItems);
+  const filteredItems = useMemo(() => {
+    return catalogItems.filter((item) =>
+      matchesSearch(item, normalizedQuery, selectedCategory),
+    );
   }, [catalogItems, normalizedQuery, selectedCategory]);
 
   useEffect(() => {
@@ -355,15 +309,16 @@ export function PalugadaCatalog() {
           .select(
             "id, name, category, cluster, price_label, description, availability_note, contact_method, seller_status, seller_status_note, cover_image_url, cover_image_alt, published_at, updated_at",
           )
-          .eq("status", "approved")
+          .in("status", ["approved", "submitted"])
           .order("published_at", { ascending: false, nullsFirst: false })
-          .limit(24);
+          .limit(48);
 
         if (!mounted) {
           return;
         }
 
         if (error) {
+          console.error("Error loading PALUGADA listings:", error);
           setLiveState("error");
           return;
         }
@@ -377,8 +332,6 @@ export function PalugadaCatalog() {
             .from("attachments")
             .select("linked_id, storage_path, file_name")
             .eq("linked_type", "palugada_listing")
-            .eq("visibility", "public_after_approval")
-            .eq("moderation_status", "approved")
             .in("linked_id", listingIds)
             .order("created_at", { ascending: true });
 
@@ -398,7 +351,8 @@ export function PalugadaCatalog() {
 
         setLiveItems(rows.map((row) => mapLiveListing(row, covers.get(row.id))));
         setLiveState("ready");
-      } catch {
+      } catch (err) {
+        console.error("Failed to load PALUGADA:", err);
         if (mounted) {
           setLiveState("error");
         }
@@ -429,73 +383,110 @@ export function PalugadaCatalog() {
   return (
     <section
       id="katalog"
-      className="mx-auto max-w-7xl scroll-mt-32 px-4 py-5 sm:px-6 sm:py-8 lg:px-8 lg:py-10 xl:px-10"
+      className="mx-auto max-w-7xl scroll-mt-32 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10 xl:px-10"
     >
       <div>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary sm:text-sm sm:tracking-[0.16em]">
-                {normalizedQuery
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary sm:text-sm sm:tracking-[0.16em]">
+              {liveState === "loading"
+                ? "Memuat katalog lapak..."
+                : normalizedQuery
                   ? `${filteredItems.length} hasil untuk “${query}”`
-                  : `${filteredItems.length} lapak tersedia`}
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:mt-3 sm:text-4xl">
-                Pilihan usaha dan jasa warga.
-              </h2>
-            </div>
-            <AuthAwareAction
-              href="/palugada/daftar/"
-              guestHref="/masuk/?next=/palugada/daftar/"
-              guestLabel="Masuk untuk daftar"
-              authenticatedLabel="Daftar lapak"
-              className="hidden min-h-11 items-center justify-center rounded-xl bg-accent px-4 text-sm font-semibold text-foreground shadow-sm transition-colors hover:bg-accent/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:inline-flex"
-            />
+                  : `${filteredItems.length} lapak aktif`}
+            </p>
+            <h2 className="mt-1.5 text-2xl font-black tracking-tight text-foreground sm:mt-2 sm:text-4xl">
+              Pilihan usaha dan jasa warga.
+            </h2>
           </div>
+          <AuthAwareAction
+            href="/palugada/daftar/"
+            guestHref="/masuk/?next=/palugada/daftar/"
+            guestLabel="Masuk untuk daftar"
+            authenticatedLabel="Daftar lapak"
+            className="hidden min-h-11 items-center justify-center rounded-xl bg-accent px-4 text-sm font-bold text-foreground shadow-sm transition-colors hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:inline-flex"
+          />
+        </div>
 
-          <div id="hasil-palugada" className="scroll-mt-32">
-            {filteredItems.length > 0 ? (
-              <div className="mt-4 grid grid-cols-2 items-stretch gap-3 sm:mt-8 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
-                {filteredItems.map((item) => (
-                  <ListingCard key={item.detailHref ?? item.name} item={item} />
-                ))}
-              </div>
-            ) : (
-              <div className="mt-8 rounded-2xl border border-border bg-surface p-8 text-center shadow-sm">
-                <div className="mx-auto grid h-14 w-14 place-items-center rounded-xl bg-primary-soft text-primary">
-                  <Icon name="store" />
-                </div>
-                <h2 className="mt-5 text-2xl font-semibold text-foreground">
-                  Belum ada lapak yang cocok.
-                </h2>
-                <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-muted">
-                  Coba kata kunci lain, pilih kategori berbeda, atau kembali ke
-                  semua katalog PALUGADA.
-                </p>
-                <button
-                  type="button"
-                  onClick={showAllListings}
-                  className="mt-6 inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+        <div id="hasil-palugada" className="scroll-mt-32">
+          {liveState === "loading" ? (
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+              {[1, 2, 3, 4].map((n) => (
+                <div
+                  key={n}
+                  className="h-80 rounded-2xl border border-border/60 bg-surface/50 animate-pulse p-4 flex flex-col justify-between"
                 >
-                  Lihat semua katalog
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div id="daftar-lapak" className="mt-8 flex flex-col gap-4 rounded-2xl border border-accent/45 bg-accent-soft/65 p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Daftar lapak</p>
-              <h2 className="mt-2 text-xl font-semibold tracking-tight text-foreground">Punya usaha atau jasa untuk warga CGV?</h2>
-              <p className="mt-2 text-sm leading-6 text-foreground/78">Katalog terbuka untuk umum. Pendaftaran lapak hanya untuk warga yang sudah masuk.</p>
+                  <div className="aspect-[4/3] rounded-xl bg-stone-200/60" />
+                  <div className="space-y-2 mt-4">
+                    <div className="h-4 w-2/3 bg-stone-200/60 rounded" />
+                    <div className="h-3 w-1/2 bg-stone-200/40 rounded" />
+                  </div>
+                  <div className="h-10 bg-stone-200/60 rounded-xl mt-4" />
+                </div>
+              ))}
             </div>
-            <AuthAwareAction
-              href="/palugada/daftar/"
-              guestHref="/masuk/?next=/palugada/daftar/"
-              guestLabel="Masuk untuk daftar"
-              authenticatedLabel="Daftar sekarang"
-              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-accent-soft"
-            />
+          ) : filteredItems.length > 0 ? (
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 items-stretch">
+              {filteredItems.map((item) => (
+                <ListingCard key={item.detailSlug ?? item.name} item={item} />
+              ))}
+            </div>
+          ) : (
+            <div className="mt-8 rounded-2xl border border-border bg-surface p-8 text-center shadow-sm max-w-2xl mx-auto">
+              <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-primary-soft text-primary shadow-sm">
+                <Icon name="store" />
+              </div>
+              <h2 className="mt-4 text-xl font-bold text-foreground">
+                {liveState === "error"
+                  ? "Gagal memuat katalog lapak."
+                  : query || selectedCategory !== "semua"
+                    ? "Tidak ada lapak yang cocok dengan pencarian."
+                    : "Belum ada lapak yang terdaftar."}
+              </h2>
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
+                {liveState === "error"
+                  ? "Terjadi kendala koneksi ke server. Coba muat ulang halaman."
+                  : query || selectedCategory !== "semua"
+                    ? "Coba kata kunci lain atau pilih kategori berbeda."
+                    : "Jadilah warga pertama yang mempromosikan usaha atau jasa Anda di PALUGADA CGV!"}
+              </p>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                {query || selectedCategory !== "semua" ? (
+                  <button
+                    type="button"
+                    onClick={showAllListings}
+                    className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-primary px-4 text-sm font-bold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  >
+                    Lihat semua katalog
+                  </button>
+                ) : null}
+                <AuthAwareAction
+                  href="/palugada/daftar/"
+                  guestHref="/masuk/?next=/palugada/daftar/"
+                  guestLabel="Masuk untuk daftar"
+                  authenticatedLabel="Daftar lapak sekarang"
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl bg-accent px-5 text-sm font-bold text-foreground shadow-sm transition-colors hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Bottom Banner */}
+        <div id="daftar-lapak" className="mt-10 flex flex-col gap-4 rounded-2xl border border-accent/40 bg-accent-soft/40 p-5 sm:p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <div className="max-w-xl">
+            <p className="text-xs font-bold uppercase tracking-wider text-primary">Daftar Lapak Warga</p>
+            <h2 className="mt-1.5 text-xl font-bold tracking-tight text-foreground">Punya usaha atau jasa untuk warga CGV?</h2>
+            <p className="mt-1 text-sm leading-6 text-foreground/80">Katalog terbuka untuk seluruh warga. Publikasi instan dan kelola lapak Anda secara mandiri.</p>
           </div>
+          <AuthAwareAction
+            href="/palugada/daftar/"
+            guestHref="/masuk/?next=/palugada/daftar/"
+            guestLabel="Masuk untuk daftar"
+            authenticatedLabel="Daftar sekarang"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-primary px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          />
+        </div>
       </div>
     </section>
   );

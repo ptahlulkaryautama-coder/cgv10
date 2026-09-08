@@ -257,6 +257,16 @@ function formatRupiah(amount: number): string {
   return new Intl.NumberFormat("id-ID").format(amount);
 }
 
+type MyLapak = {
+  id: string;
+  name: string;
+  category: string;
+  seller_status: "online" | "offline";
+  price_label: string;
+  status: string;
+  cover_image_url: string | null;
+};
+
 export function PortalDashboardClient() {
   const supabaseState = useMemo(() => {
     try {
@@ -270,6 +280,7 @@ export function PortalDashboardClient() {
   const [isChecking, setIsChecking] = useState(() => Boolean(supabaseState.client));
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("semua");
+  const [myListings, setMyListings] = useState<MyLapak[]>([]);
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<PortalNotification[]>([]);
@@ -421,6 +432,17 @@ export function PortalDashboardClient() {
         registrationAdminNote: regRequest?.admin_note || undefined,
       });
       setIsChecking(false);
+
+      // Load lapak milik warga
+      const { data: lapakData } = await client
+        .from("palugada_listings")
+        .select("id, name, category, seller_status, price_label, status, cover_image_url")
+        .eq("seller_user_id", activeUser.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (mounted && lapakData) {
+        setMyListings(lapakData as MyLapak[]);
+      }
     }
 
     void loadUser();
@@ -1131,6 +1153,70 @@ export function PortalDashboardClient() {
                   </Link>
                 </div>
               </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── 7. LAPAK PALUGADA SAYA (Mandiri Warga) ── */}
+        {user && myListings.length > 0 && (activeCategory === "semua" || activeCategory === "palugada") && (
+          <section className="space-y-4 pt-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#D4AF37]">LAPAK SAYA</p>
+                <h2 className="text-lg font-black tracking-tight text-white">PALUGADA Milik Saya</h2>
+              </div>
+              <Link href="/portal/lapak/" className="text-xs font-bold text-[#D4AF37] hover:underline underline-offset-4">
+                Kelola Semua →
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {myListings.map((lapak) => (
+                <Link
+                  key={lapak.id}
+                  href="/portal/lapak/"
+                  className="group flex flex-col justify-between rounded-2xl border border-white/10 bg-[#00241b] p-3 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-[#D4AF37]/50"
+                >
+                  {/* Thumbnail */}
+                  <div className="relative mb-2 aspect-video w-full overflow-hidden rounded-xl bg-[#001713]">
+                    {lapak.cover_image_url ? (
+                      <Image
+                        src={lapak.cover_image_url}
+                        alt={lapak.name}
+                        fill
+                        sizes="200px"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-2xl">🏪</div>
+                    )}
+                  </div>
+                  <div>
+                    <p className="truncate text-xs font-black text-white group-hover:text-[#E8C865] transition-colors">{lapak.name}</p>
+                    <p className="mt-0.5 text-[10px] text-[#D4AF37] font-semibold truncate">{lapak.price_label || "Harga belum diisi"}</p>
+                    <div className="mt-2 flex items-center justify-between">
+                      <span className={`flex items-center gap-1 text-[9px] font-bold ${
+                        lapak.seller_status === "online" ? "text-emerald-400" : "text-slate-500"
+                      }`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${
+                          lapak.seller_status === "online" ? "bg-emerald-400 animate-pulse" : "bg-slate-500"
+                        }`} />
+                        {lapak.seller_status === "online" ? "Buka" : "Tutup"}
+                      </span>
+                      <span className="text-[9px] font-bold text-[#D4AF37]">Kelola →</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+
+              {/* Add new lapak card */}
+              <Link
+                href="/palugada/daftar/"
+                className="group flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/20 bg-transparent p-4 text-center hover:border-[#D4AF37]/40 hover:bg-[#D4AF37]/5 transition-all"
+              >
+                <span className="text-2xl mb-1.5">➕</span>
+                <p className="text-[10px] font-bold text-slate-400 group-hover:text-[#E8C865] transition-colors">Lapak Baru</p>
+              </Link>
             </div>
           </section>
         )}
