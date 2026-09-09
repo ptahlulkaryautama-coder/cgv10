@@ -21,70 +21,24 @@ export function AdminLoginClient() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [state, setState] = useState<LoginState>(supabaseState.error ? "error" : "checking");
+  const [state, setState] = useState<LoginState>("ready");
   const [message, setMessage] = useState(
-    supabaseState.error || "Memeriksa sesi admin...",
+    supabaseState.error || "Masuk dengan email dan password akun pengurus CGV10.",
   );
 
   useEffect(() => {
-    if (!supabase) {
-      return;
-    }
-    const client = supabase;
-
+    if (!supabase) return;
     let mounted = true;
 
-    async function checkExistingSession() {
-      const purgeTokens = async () => {
-        try { await client.auth.signOut({ scope: "local" }); } catch {}
-        try {
-          if (typeof window !== "undefined") {
-            window.localStorage.removeItem("cgv10-session");
-            for (const key of Object.keys(window.localStorage)) {
-              if (key.startsWith("sb-") || key.includes("supabase") || key.includes("auth-token")) {
-                window.localStorage.removeItem(key);
-              }
-            }
-          }
-        } catch {}
-      };
-
-      try {
-        const { data: sessionData, error: sessionError } = await client.auth.getSession();
-        if (!mounted) return;
-
-        if (sessionError || !sessionData.session) {
-          if (sessionError) {
-            await purgeTokens();
-          }
-          setState("ready");
-          setMessage("Masuk dengan email dan password akun pengurus CGV10.");
-          return;
-        }
-
-        // Validate token with auth server
-        const { data: userData, error: userError } = await client.auth.getUser();
-        if (!mounted) return;
-
-        if (userError || !userData.user) {
-          await purgeTokens();
-          setState("ready");
-          setMessage("Sesi Anda telah berakhir. Silakan masuk kembali.");
-          return;
-        }
-
+    // Check if user already has an active session
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      if (data?.session?.user) {
         setState("signed-in");
         setMessage("Anda sudah login. Membuka admin...");
         router.replace("/admin/");
-      } catch {
-        if (!mounted) return;
-        await purgeTokens();
-        setState("ready");
-        setMessage("Masuk dengan email dan password akun pengurus CGV10.");
       }
-    }
-
-    void checkExistingSession();
+    });
 
     return () => {
       mounted = false;
@@ -103,7 +57,7 @@ export function AdminLoginClient() {
     setState("submitting");
     setMessage("Memvalidasi kredensial...");
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: email.trim().toLowerCase(),
       password,
     });
@@ -118,9 +72,11 @@ export function AdminLoginClient() {
       return;
     }
 
-    setState("signed-in");
-    setMessage("Login berhasil. Membuka admin...");
-    router.replace("/admin/");
+    if (data?.session) {
+      setState("signed-in");
+      setMessage("Login berhasil. Membuka admin...");
+      router.replace("/admin/");
+    }
   }
 
   const isBusy = state === "checking" || state === "submitting" || state === "signed-in";

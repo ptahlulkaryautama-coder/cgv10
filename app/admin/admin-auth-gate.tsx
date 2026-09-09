@@ -24,134 +24,95 @@ export function AdminAuthGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const isLoginPage = pathname === "/admin/login" || pathname === "/admin/login/";
-  const supabaseState = useMemo(() => {
+  const supabase = useMemo(() => {
     try {
-      return { client: getSupabaseBrowserClient(), error: "" };
+      return getSupabaseBrowserClient();
     } catch {
-      return { client: null, error: "Konfigurasi Supabase belum siap." };
+      return null;
     }
   }, []);
-  const [state, setState] = useState<GateState>(supabaseState.error ? "error" : "checking");
-  const [message, setMessage] = useState(supabaseState.error || "Memeriksa sesi admin...");
 
-  const clearStaleSession = useCallback(async () => {
-    try {
-      if (supabaseState.client) {
-        await supabaseState.client.auth.signOut({ scope: "local" });
-      }
-    } catch {}
-    try {
-      if (typeof window !== "undefined") {
-        window.localStorage.removeItem("cgv10-session");
-        for (const key of Object.keys(window.localStorage)) {
-          if (key.startsWith("sb-") || key.includes("supabase") || key.includes("auth-token")) {
-            window.localStorage.removeItem(key);
-          }
-        }
-      }
-    } catch {}
-  }, [supabaseState.client]);
+  const [state, setState] = useState<GateState>(isLoginPage ? "authorized" : "checking");
+  const [message, setMessage] = useState(
+    supabase ? "Memeriksa sesi admin..." : "Konfigurasi Supabase belum siap.",
+  );
 
   const handleReLogin = useCallback(async () => {
-    await clearStaleSession();
-    window.location.assign("/admin/login/");
-  }, [clearStaleSession]);
+    if (supabase) {
+      try {
+        await supabase.auth.signOut({ scope: "local" });
+      } catch {}
+    }
+    router.replace("/admin/login/");
+  }, [router, supabase]);
 
   useEffect(() => {
-    if (isLoginPage || !supabaseState.client) return;
+    if (isLoginPage || !supabase) return;
+    const client = supabase;
 
-    const client = supabaseState.client;
     let mounted = true;
 
-    async function evaluateUser(activeUser: import("@supabase/supabase-js").User | null) {
-      if (!mounted) return;
-
-      if (!activeUser) {
-        setState("denied");
-        setMessage("Sesi login admin diperlukan.");
-        router.replace("/admin/login/");
-        return;
-      }
-
+    async function checkAuth() {
       setState("checking");
-      setMessage("Memeriksa kewenangan dan role admin...");
+      setMessage("Memeriksa sesi dan hak akses admin...");
 
       try {
-        const [{ data: profile, error: profileError }, { data: roles, error: roleError }] =
+        const { data: sessionData, error: sessionErr } = await client.auth.getSession();
+        if (!mounted) return;
+
+        if (sessionErr || !sessionData?.session?.user) {
+          router.replace("/admin/login/");
+          return;
+        }
+
+        const user = sessionData.session.user;
+        const [{ data: profile, error: profileErr }, { data: roles, error: roleErr }] =
           await Promise.all([
-            client.from("profiles").select("status").eq("id", activeUser.id).maybeSingle(),
-            client.from("user_roles").select("role").eq("user_id", activeUser.id),
+            client.from("profiles").select("status").eq("id", user.id).maybeSingle(),
+            client.from("user_roles").select("role").eq("user_id", user.id),
           ]);
 
         if (!mounted) return;
 
-        if (profileError || roleError) {
-          const rawErr = `${profileError?.message || ""} ${roleError?.message || ""}`.toLowerCase();
-          if (
-            rawErr.includes("jwt") ||
-            rawErr.includes("token") ||
-            rawErr.includes("bad request") ||
-            rawErr.includes("unauthorized") ||
-            rawErr.includes("401") ||
-            rawErr.includes("400")
-          ) {
-            await clearStaleSession();
-            router.replace("/admin/login/");
-            return;
-          }
-
+        if (profileErr || roleErr) {
           setState("error");
-          setMessage(profileError?.message || roleError?.message || "Gagal memeriksa akses admin.");
+          setMessage(profileErr?.message || roleErr?.message || "Gagal memverifikasi hak akses admin.");
           return;
         }
 
         if (profile?.status !== "active") {
           setState("denied");
-          setMessage("Akun admin Anda belum aktif atau sedang dinonaktifkan. Silakan hubungi pengurus RT.");
+          setMessage("Akun pengurus Anda belum aktif atau dinonaktifkan. Silakan hubungi pengurus RT.");
           return;
         }
 
-        const hasAdminRole = (roles ?? []).some((row) => productionAdminRoles.includes(row.role));
-        if (!hasAdminRole) {
+        const userRoles = (roles ?? []).map((r) => r.role);
+        const hasAdmin = userRoles.some((r) => productionAdminRoles.includes(r));
+        if (!hasAdmin) {
           setState("denied");
-          setMessage("Akun ini terdaftar, namun belum memiliki hak akses/role pengurus admin CGV10.");
+          setMessage("Akun ini terdaftar, namun belum memiliki hak akses role pengurus admin.");
           return;
         }
 
         setState("authorized");
       } catch (err: unknown) {
         if (!mounted) return;
-        const errMsg = err instanceof Error ? err.message : "Gagal memeriksa otorisasi admin.";
+        const errMsg = err instanceof Error ? err.message : "Terjadi kesalahan saat memeriksa akses.";
         setState("error");
         setMessage(errMsg);
       }
     }
 
-    // Subscribe to auth events (including INITIAL_SESSION on page hydration)
+    void checkAuth();
+
     const {
       data: { subscription },
-    } = client.auth.onAuthStateChange(async (event, session) => {
+    } = client.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
-      if (event === "SIGNED_OUT") {
-        setState("denied");
+      if (event === "SIGNED_OUT" || !session) {
         router.replace("/admin/login/");
       } else if (session?.user) {
-        await evaluateUser(session.user);
-      } else if (event === "INITIAL_SESSION" && !session) {
-        await evaluateUser(null);
-      }
-    });
-
-    // Fallback getSession check
-    client.auth.getSession().then(async ({ data: { session }, error }) => {
-      if (!mounted) return;
-      if (error) {
-        await clearStaleSession();
-        router.replace("/admin/login/");
-        return;
-      }
-      if (session?.user) {
-        await evaluateUser(session.user);
+        void checkAuth();
       }
     });
 
@@ -159,7 +120,7 @@ export function AdminAuthGate({ children }: { children: React.ReactNode }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [clearStaleSession, isLoginPage, router, supabaseState.client]);
+  }, [isLoginPage, router, supabase]);
 
   if (isLoginPage) return children;
   if (state === "authorized") return children;
@@ -177,7 +138,7 @@ export function AdminAuthGate({ children }: { children: React.ReactNode }) {
           {state === "checking" ? "Memeriksa akses" : state === "denied" ? "Akses Terbatas" : "Admin Tidak Tersedia"}
         </h1>
         <p className="mt-2 text-sm font-semibold leading-6 text-muted" aria-live="polite">{message}</p>
-        
+
         {state === "checking" ? (
           <div className="mx-auto mt-5 h-1.5 w-32 overflow-hidden rounded-full bg-primary-soft">
             <div className="h-full w-1/2 animate-pulse rounded-full bg-primary" />
@@ -203,4 +164,5 @@ export function AdminAuthGate({ children }: { children: React.ReactNode }) {
     </main>
   );
 }
+
 
