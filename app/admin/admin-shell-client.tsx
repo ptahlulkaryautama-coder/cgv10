@@ -319,19 +319,24 @@ export function AdminShellClient() {
       setState("checking");
       setMessage("Memeriksa sesi Supabase...");
 
-      const { data: sessionData, error: sessionError } = await client.auth.getSession();
+      let session = null;
+      try {
+        const { data: sessionData, error: sessionError } = await client.auth.getSession();
+        if (!mounted) return;
 
-      if (!mounted) {
-        return;
+        if (sessionError) {
+          try { await client.auth.signOut({ scope: "local" }); } catch {}
+          try { window.localStorage.removeItem("cgv10-session"); } catch {}
+          session = null;
+        } else {
+          session = sessionData.session;
+        }
+      } catch {
+        if (!mounted) return;
+        session = null;
       }
 
-      if (sessionError) {
-        setState("error");
-        setMessage(sessionError.message);
-        return;
-      }
-
-      const activeUser = sessionData.session?.user ?? null;
+      const activeUser = session?.user ?? null;
       setUser(activeUser);
 
       if (!activeUser) {

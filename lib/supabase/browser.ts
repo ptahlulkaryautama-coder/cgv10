@@ -24,19 +24,28 @@ export function getSupabaseBrowserClient() {
     });
 
     // Proactively refresh session when tab regains focus or becomes visible.
-    // This prevents premature logout during brief idle periods reported by sekretaris.
+    // This prevents premature logout during brief idle periods reported by pengurus.
     if (typeof window !== "undefined") {
       const refreshIfNeeded = () => {
-        browserClient?.auth.getSession().then(({ data }) => {
-          if (data.session) {
-            // Force a token refresh if token expires within 10 minutes
+        browserClient?.auth.getSession().then(async ({ data, error }) => {
+          if (error) {
+            try {
+              await browserClient?.auth.signOut({ scope: "local" });
+            } catch {}
+            return;
+          }
+          if (data?.session) {
             const expiresAt = data.session.expires_at ?? 0;
             const secondsLeft = expiresAt - Math.floor(Date.now() / 1000);
             if (secondsLeft < 600) {
-              void browserClient?.auth.refreshSession();
+              try {
+                await browserClient?.auth.refreshSession();
+              } catch {
+                // If refreshSession fails with bad request / invalid token, avoid crashing
+              }
             }
           }
-        });
+        }).catch(() => {});
       };
 
       document.addEventListener("visibilitychange", () => {
@@ -51,3 +60,4 @@ export function getSupabaseBrowserClient() {
 
   return browserClient;
 }
+

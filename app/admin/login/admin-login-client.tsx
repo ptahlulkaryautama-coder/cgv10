@@ -32,21 +32,57 @@ export function AdminLoginClient() {
 
     let mounted = true;
 
-    client.auth.getSession().then(({ data }) => {
-      if (!mounted) {
-        return;
-      }
+    async function checkExistingSession() {
+      const purgeTokens = async () => {
+        try { await client.auth.signOut({ scope: "local" }); } catch {}
+        try {
+          if (typeof window !== "undefined") {
+            window.localStorage.removeItem("cgv10-session");
+            for (const key of Object.keys(window.localStorage)) {
+              if (key.startsWith("sb-") || key.includes("supabase") || key.includes("auth-token")) {
+                window.localStorage.removeItem(key);
+              }
+            }
+          }
+        } catch {}
+      };
 
-      if (data.session) {
+      try {
+        const { data: sessionData, error: sessionError } = await client.auth.getSession();
+        if (!mounted) return;
+
+        if (sessionError || !sessionData.session) {
+          if (sessionError) {
+            await purgeTokens();
+          }
+          setState("ready");
+          setMessage("Masuk dengan email dan password akun pengurus CGV10.");
+          return;
+        }
+
+        // Validate token with auth server
+        const { data: userData, error: userError } = await client.auth.getUser();
+        if (!mounted) return;
+
+        if (userError || !userData.user) {
+          await purgeTokens();
+          setState("ready");
+          setMessage("Sesi Anda telah berakhir. Silakan masuk kembali.");
+          return;
+        }
+
         setState("signed-in");
         setMessage("Anda sudah login. Membuka admin...");
         window.location.assign("/admin/");
-        return;
+      } catch {
+        if (!mounted) return;
+        await purgeTokens();
+        setState("ready");
+        setMessage("Masuk dengan email dan password akun pengurus CGV10.");
       }
+    }
 
-      setState("ready");
-      setMessage("Masuk dengan email dan password Supabase yang sudah diberi role admin.");
-    });
+    void checkExistingSession();
 
     return () => {
       mounted = false;
@@ -72,7 +108,11 @@ export function AdminLoginClient() {
 
     if (error) {
       setState("ready");
-      setMessage(error.message);
+      setMessage(
+        error.message === "Invalid login credentials"
+          ? "Email atau kata sandi tidak sesuai. Periksa kembali penulisan Anda."
+          : error.message,
+      );
       return;
     }
 

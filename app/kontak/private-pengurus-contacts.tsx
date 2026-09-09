@@ -49,8 +49,8 @@ export function PrivatePengurusContacts() {
       if (!mounted) return;
 
       if (sessionError) {
-        setState("error");
-        setMessage(sessionError.message);
+        setState("guest");
+        setMessage("Nomor pengurus hanya tampil setelah warga login.");
         return;
       }
 

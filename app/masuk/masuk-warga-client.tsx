@@ -108,12 +108,23 @@ export function MasukWargaClient() {
       if (!mounted) return;
 
       if (error) {
-        setState("error");
-        setMessage(error.message);
+        try { await client.auth.signOut({ scope: "local" }); } catch {}
+        try {
+          if (typeof window !== "undefined") {
+            window.localStorage.removeItem("cgv10-session");
+            for (const key of Object.keys(window.localStorage)) {
+              if (key.startsWith("sb-") || key.includes("supabase") || key.includes("auth-token")) {
+                window.localStorage.removeItem(key);
+              }
+            }
+          }
+        } catch {}
+        setState("ready");
+        setMessage("Masuk dengan email dan password yang sudah didaftarkan.");
         return;
       }
 
-      const user = data.session?.user;
+      const user = data?.session?.user;
       if (!user) {
         setState("ready");
         if (!registerMessage) {

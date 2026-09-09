@@ -84,7 +84,7 @@ export function PortalLapakClient() {
     }
   }, []);
 
-  const [state, setState] = useState<LoadState>("loading");
+  const [state, setState] = useState<LoadState>(supabaseState.client ? "loading" : "error");
   const [listings, setListings] = useState<MyListing[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<{ text: string; type: "ok" | "err" } | null>(null);
@@ -106,10 +106,7 @@ export function PortalLapakClient() {
 
   useEffect(() => {
     const supabase = supabaseState.client;
-    if (!supabase) {
-      setState("error");
-      return;
-    }
+    if (!supabase) return;
 
     let mounted = true;
 

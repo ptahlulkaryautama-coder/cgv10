@@ -310,7 +310,17 @@ export function PortalPostsAdminClient() {
   const [pendingCoverFile, setPendingCoverFile] = useState<File | null>(null);
   const [pendingAttachmentFile, setPendingAttachmentFile] = useState<File | null>(null);
   const [pendingGalleryFiles, setPendingGalleryFiles] = useState<File[]>([]);
-  const [draftRecoveryAvailable, setDraftRecoveryAvailable] = useState(false);
+  const [draftRecoveryAvailable, setDraftRecoveryAvailable] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved) as { title?: string; body?: string };
+        return Boolean(parsed.title || parsed.body);
+      }
+    } catch {}
+    return false;
+  });
 
   // Auto-save draft to localStorage (debounced 2s) for new articles
   useEffect(() => {
@@ -334,19 +344,6 @@ export function PortalPostsAdminClient() {
     return () => window.clearTimeout(timer);
   }, [form.id, form.title, form.slug, form.category, form.excerpt, form.body, form.coverImageUrl, form.coverImageAlt]);
 
-  // Check for recoverable draft on mount
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved) as { title?: string; body?: string; savedAt?: string };
-        if (parsed.title || parsed.body) {
-          setDraftRecoveryAvailable(true);
-        }
-      }
-    } catch { /* ignore */ }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const loadPortalPosts = useCallback(async () => {
     if (!supabase) {
