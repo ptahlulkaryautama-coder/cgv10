@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type LoginState = "checking" | "ready" | "submitting" | "signed-in" | "error";
 
 export function AdminLoginClient() {
+  const router = useRouter();
   const supabaseState = useMemo(() => {
     try {
       return { client: getSupabaseBrowserClient(), error: "" };
@@ -73,7 +75,7 @@ export function AdminLoginClient() {
 
         setState("signed-in");
         setMessage("Anda sudah login. Membuka admin...");
-        window.location.assign("/admin/");
+        router.replace("/admin/");
       } catch {
         if (!mounted) return;
         await purgeTokens();
@@ -87,7 +89,7 @@ export function AdminLoginClient() {
     return () => {
       mounted = false;
     };
-  }, [supabase]);
+  }, [router, supabase]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -118,7 +120,7 @@ export function AdminLoginClient() {
 
     setState("signed-in");
     setMessage("Login berhasil. Membuka admin...");
-    window.location.assign("/admin/");
+    router.replace("/admin/");
   }
 
   const isBusy = state === "checking" || state === "submitting" || state === "signed-in";

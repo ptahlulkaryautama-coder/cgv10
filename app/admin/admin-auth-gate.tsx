@@ -63,48 +63,30 @@ export function AdminAuthGate({ children }: { children: React.ReactNode }) {
     const client = supabaseState.client;
     let mounted = true;
 
-    async function checkAccess() {
+    async function evaluateUser(activeUser: import("@supabase/supabase-js").User | null) {
+      if (!mounted) return;
+
+      if (!activeUser) {
+        setState("denied");
+        setMessage("Sesi login admin diperlukan.");
+        router.replace("/admin/login/");
+        return;
+      }
+
       setState("checking");
-      setMessage("Memeriksa sesi dan role admin...");
-
-      let session = null;
-      try {
-        const { data: sessionData, error: sessionError } = await client.auth.getSession();
-        if (!mounted) return;
-
-        if (sessionError) {
-          // Stale / expired refresh token (e.g. 400 Bad Request) -> clear and redirect
-          await clearStaleSession();
-          router.replace("/admin/login/");
-          return;
-        }
-
-        session = sessionData.session;
-      } catch {
-        if (!mounted) return;
-        await clearStaleSession();
-        router.replace("/admin/login/");
-        return;
-      }
-
-      const user = session?.user;
-      if (!user) {
-        router.replace("/admin/login/");
-        return;
-      }
+      setMessage("Memeriksa kewenangan dan role admin...");
 
       try {
         const [{ data: profile, error: profileError }, { data: roles, error: roleError }] =
           await Promise.all([
-            client.from("profiles").select("status").eq("id", user.id).maybeSingle(),
-            client.from("user_roles").select("role").eq("user_id", user.id),
+            client.from("profiles").select("status").eq("id", activeUser.id).maybeSingle(),
+            client.from("user_roles").select("role").eq("user_id", activeUser.id),
           ]);
 
         if (!mounted) return;
 
         if (profileError || roleError) {
           const rawErr = `${profileError?.message || ""} ${roleError?.message || ""}`.toLowerCase();
-          // If token expired or bad request on PostgREST, gracefully clear and prompt login
           if (
             rawErr.includes("jwt") ||
             rawErr.includes("token") ||
@@ -145,14 +127,31 @@ export function AdminAuthGate({ children }: { children: React.ReactNode }) {
       }
     }
 
-    void checkAccess();
+    // Subscribe to auth events (including INITIAL_SESSION on page hydration)
     const {
       data: { subscription },
-    } = client.auth.onAuthStateChange((event) => {
+    } = client.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
       if (event === "SIGNED_OUT") {
+        setState("denied");
         router.replace("/admin/login/");
-      } else {
-        window.setTimeout(checkAccess, 0);
+      } else if (session?.user) {
+        await evaluateUser(session.user);
+      } else if (event === "INITIAL_SESSION" && !session) {
+        await evaluateUser(null);
+      }
+    });
+
+    // Fallback getSession check
+    client.auth.getSession().then(async ({ data: { session }, error }) => {
+      if (!mounted) return;
+      if (error) {
+        await clearStaleSession();
+        router.replace("/admin/login/");
+        return;
+      }
+      if (session?.user) {
+        await evaluateUser(session.user);
       }
     });
 
