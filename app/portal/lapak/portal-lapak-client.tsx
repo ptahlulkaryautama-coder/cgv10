@@ -28,6 +28,13 @@ type MyListing = {
   created_at: string;
 };
 
+type ProductPhoto = {
+  id: string;
+  file_name: string;
+  storage_path: string;
+  publicUrl: string;
+};
+
 type LoadState = "idle" | "loading" | "loaded" | "empty" | "saving" | "error" | "guest";
 
 const palugadaPublicMediaBucket = "portal-post-media";
@@ -97,6 +104,12 @@ export function PortalLapakClient() {
   const [uploadingCover, setUploadingCover] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
+  // Product photos (attachments)
+  const [productPhotos, setProductPhotos] = useState<Record<string, ProductPhoto[]>>({});
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [deletingPhotoId, setDeletingPhotoId] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
   // Delete confirm
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
@@ -152,6 +165,45 @@ export function PortalLapakClient() {
       mounted = false;
     };
   }, [supabaseState.client]);
+
+  // ─── Load Product Photos ──────────────────────────────────────────────────
+
+  useEffect(() => {
+    const supabase = supabaseState.client;
+    if (!supabase || !selected) return;
+
+    let mounted = true;
+
+    async function loadPhotos() {
+      if (!supabase || !selected) return;
+      const { data } = await supabase
+        .from("attachments")
+        .select("id, file_name, storage_path")
+        .eq("linked_type", "palugada_listing")
+        .eq("linked_id", selected.id)
+        .order("created_at", { ascending: true });
+
+      if (!mounted || !data) return;
+
+      const photos: ProductPhoto[] = data.map((row) => {
+        const { data: urlData } = supabase!.storage
+          .from(palugadaPublicMediaBucket)
+          .getPublicUrl(row.storage_path);
+        return {
+          id: row.id as string,
+          file_name: row.file_name as string,
+          storage_path: row.storage_path as string,
+          publicUrl: urlData.publicUrl,
+        };
+      });
+
+      setProductPhotos((prev) => ({ ...prev, [selected.id]: photos }));
+    }
+
+    void loadPhotos();
+    return () => { mounted = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supabaseState.client, selected?.id]);
 
   // ─── Toggle Online/Offline ────────────────────────────────────────────────
 
@@ -294,6 +346,124 @@ export function PortalLapakClient() {
     } finally {
       setUploadingCover(false);
       if (coverInputRef.current) coverInputRef.current.value = "";
+    }
+  }
+
+  // ─── Upload Product Photo ─────────────────────────────────────────────────
+
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const supabase = supabaseState.client;
+    const file = e.target.files?.[0];
+    if (!file || !supabase || !selected) return;
+
+    const currentPhotos = productPhotos[selected.id] ?? [];
+    if (currentPhotos.length >= 5) {
+      setActionMessage({ text: "Maksimal 5 foto produk per lapak.", type: "err" });
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      setActionMessage({ text: "Format berkas harus gambar (JPG, PNG, WebP).", type: "err" });
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setActionMessage({ text: "Ukuran foto maksimal 10 MB.", type: "err" });
+      return;
+    }
+
+    setUploadingPhoto(true);
+    setActionMessage({ text: "Mengunggah foto produk...", type: "ok" });
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const uid = sessionData.session?.user?.id;
+      if (!uid) throw new Error("Session habis. Silakan login ulang.");
+
+      const safeName = getSafeFileName(file.name);
+      const storagePath = `palugada/${selected.id}/photos/${Date.now()}-${safeName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(palugadaPublicMediaBucket)
+        .upload(storagePath, file, {
+          cacheControl: "31536000",
+          upsert: false,
+          contentType: file.type,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from(palugadaPublicMediaBucket)
+        .getPublicUrl(storagePath);
+
+      // Insert attachment record
+      const { data: attachData, error: attachError } = await supabase
+        .from("attachments")
+        .insert({
+          owner_user_id: uid,
+          linked_type: "palugada_listing",
+          linked_id: selected.id,
+          file_name: file.name,
+          file_type: file.type,
+          file_size: file.size,
+          storage_path: storagePath,
+          visibility: "public_after_approval",
+          moderation_status: "approved",
+        })
+        .select("id")
+        .single();
+
+      if (attachError) throw attachError;
+
+      const newPhoto: ProductPhoto = {
+        id: (attachData as { id: string }).id,
+        file_name: file.name,
+        storage_path: storagePath,
+        publicUrl: urlData.publicUrl,
+      };
+
+      setProductPhotos((prev) => ({
+        ...prev,
+        [selected.id]: [...(prev[selected.id] ?? []), newPhoto],
+      }));
+      setActionMessage({ text: "✅ Foto produk berhasil ditambahkan!", type: "ok" });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Gagal mengunggah foto.";
+      setActionMessage({ text: msg, type: "err" });
+    } finally {
+      setUploadingPhoto(false);
+      if (photoInputRef.current) photoInputRef.current.value = "";
+    }
+  }
+
+  // ─── Delete Product Photo ─────────────────────────────────────────────────
+
+  async function handlePhotoDelete(photo: ProductPhoto) {
+    const supabase = supabaseState.client;
+    if (!supabase || !selected) return;
+    setDeletingPhotoId(photo.id);
+
+    try {
+      // Remove from storage
+      await supabase.storage
+        .from(palugadaPublicMediaBucket)
+        .remove([photo.storage_path]);
+
+      // Remove attachment record
+      await supabase
+        .from("attachments")
+        .delete()
+        .eq("id", photo.id);
+
+      setProductPhotos((prev) => ({
+        ...prev,
+        [selected.id]: (prev[selected.id] ?? []).filter((p) => p.id !== photo.id),
+      }));
+      setActionMessage({ text: "Foto berhasil dihapus.", type: "ok" });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Gagal menghapus foto.";
+      setActionMessage({ text: msg, type: "err" });
+    } finally {
+      setDeletingPhotoId(null);
     }
   }
 
@@ -558,6 +728,78 @@ export function PortalLapakClient() {
                       </label>
                     </div>
                   </div>
+
+                  {/* Product Photos */}
+                  {(() => {
+                    const photos = productPhotos[selected.id] ?? [];
+                    return (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                            Foto Produk ({photos.length}/5)
+                          </p>
+                          {photos.length < 5 && (
+                            <div>
+                              <input
+                                ref={photoInputRef}
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                onChange={(e) => void handlePhotoUpload(e)}
+                                className="hidden"
+                                id="portal-lapak-photo-input"
+                                disabled={uploadingPhoto}
+                              />
+                              <label
+                                htmlFor="portal-lapak-photo-input"
+                                className={`inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-white/15 bg-white/[0.05] px-2.5 text-xs font-bold text-slate-300 hover:border-white/30 hover:bg-white/10 transition-all ${
+                                  uploadingPhoto ? "pointer-events-none opacity-50" : ""
+                                }`}
+                              >
+                                {uploadingPhoto ? (
+                                  <><span className="h-3 w-3 rounded-full border-2 border-slate-400 border-t-transparent animate-spin" /> Mengunggah...</>
+                                ) : (
+                                  <>📎 Tambah Foto</>
+                                )}
+                              </label>
+                            </div>
+                          )}
+                        </div>
+
+                        {photos.length > 0 ? (
+                          <div className="grid grid-cols-3 gap-2">
+                            {photos.map((photo) => (
+                              <div key={photo.id} className="group relative aspect-square overflow-hidden rounded-xl border border-white/10 bg-[#001713]">
+                                <Image
+                                  src={photo.publicUrl}
+                                  alt={photo.file_name}
+                                  fill
+                                  className="object-cover"
+                                  sizes="120px"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => void handlePhotoDelete(photo)}
+                                  disabled={deletingPhotoId === photo.id}
+                                  className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-100"
+                                  aria-label={`Hapus foto ${photo.file_name}`}
+                                >
+                                  {deletingPhotoId === photo.id ? (
+                                    <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                                  ) : (
+                                    <span className="text-xs font-bold text-white">🗑️</span>
+                                  )}
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="rounded-xl border border-dashed border-white/10 py-4 text-center text-xs text-slate-600">
+                            Belum ada foto produk. Tambahkan agar pembeli lebih tertarik!
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {/* Edit toggle */}
                   {!isEditing ? (
