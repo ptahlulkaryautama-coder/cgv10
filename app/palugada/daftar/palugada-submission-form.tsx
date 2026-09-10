@@ -46,7 +46,7 @@ type UploadSession = {
   upload_token: string;
 };
 
-const palugadaAttachmentBucket = "palugada-submissions";
+const palugadaPublicMediaBucket = "portal-post-media";
 const maxAttachmentSize = 10 * 1024 * 1024;
 
 function getFileExtension(fileName: string) {
@@ -84,6 +84,7 @@ function getSafeFileName(fileName: string) {
 
 function buildMessage(
   form: SubmissionState,
+  coverCount: number,
   attachments: CaptureAttachment[],
   reference: string,
 ) {
@@ -99,9 +100,10 @@ function buildMessage(
     `Deskripsi: ${form.description || "-"}`,
     `Ketersediaan: ${form.availability || "-"}`,
     `Catatan foto: ${form.photoNote || "-"}`,
-    `Lampiran foto: ${
+    `Foto cover: ${coverCount > 0 ? "1 foto cover siap tayang" : "Belum diunggah"}`,
+    `Foto produk: ${
       attachments.length > 0
-        ? `${attachments.length} foto tersimpan bersama pendaftaran`
+        ? `${attachments.length} foto produk`
         : "-"
     }`,
     reference ? `Nomor pendaftaran: ${reference}` : "",
@@ -122,6 +124,7 @@ function isReady(form: SubmissionState) {
 
 export function PalugadaSubmissionForm() {
   const [form, setForm] = useState<SubmissionState>(initialState);
+  const [coverAttachments, setCoverAttachments] = useState<CaptureAttachment[]>([]);
   const [attachments, setAttachments] = useState<CaptureAttachment[]>([]);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [saveMessage, setSaveMessage] = useState("");
@@ -130,8 +133,8 @@ export function PalugadaSubmissionForm() {
   const uploadedPathsRef = useRef<Record<string, string>>({});
   const registeredAttachmentIdsRef = useRef(new Set<string>());
   const message = useMemo(
-    () => buildMessage(form, attachments, submissionReference),
-    [attachments, form, submissionReference],
+    () => buildMessage(form, coverAttachments.length, attachments, submissionReference),
+    [attachments, coverAttachments.length, form, submissionReference],
   );
   const whatsappHref = `https://api.whatsapp.com/send?text=${encodeURIComponent(
     message,
@@ -165,14 +168,15 @@ export function PalugadaSubmissionForm() {
       return;
     }
 
-    const oversizedFile = attachments.find((attachment) => attachment.file.size > maxAttachmentSize);
+    const allFiles = [...coverAttachments, ...attachments];
+    const oversizedFile = allFiles.find((attachment) => attachment.file.size > maxAttachmentSize);
     if (oversizedFile) {
       setSaveState("error");
       setSaveMessage(`${oversizedFile.file.name} melebihi batas 10 MB.`);
       return;
     }
 
-    const unsupportedFile = attachments.find((attachment) => !isAcceptedAttachment(attachment.file));
+    const unsupportedFile = allFiles.find((attachment) => !isAcceptedAttachment(attachment.file));
     if (unsupportedFile) {
       setSaveState("error");
       setSaveMessage(`${unsupportedFile.file.name} bukan format gambar yang didukung.`);
@@ -206,9 +210,6 @@ export function PalugadaSubmissionForm() {
             form.description.trim(),
             "",
             `Catatan foto: ${form.photoNote.trim() || "-"}`,
-            attachments.length > 0
-              ? `Lampiran private: ${attachments.length} foto.`
-              : "Lampiran private: tidak ada.",
           ].join("\n"),
           p_availability_note: form.availability.trim(),
           p_contact_method: form.whatsapp.trim(),
@@ -220,16 +221,55 @@ export function PalugadaSubmissionForm() {
         uploadSessionRef.current = uploadSession;
       }
 
+      const listingId = uploadSession.listing_id;
+
+      // 1. Upload Cover Photo if present
+      if (coverAttachments.length > 0) {
+        const coverAttachment = coverAttachments[0];
+        setSaveMessage("Mengunggah foto cover lapak...");
+        const safeName = getSafeFileName(coverAttachment.file.name);
+        const coverStoragePath = `palugada/${listingId}/cover/${Date.now()}-${safeName}`;
+
+        const { error: coverUploadErr } = await supabase.storage
+          .from(palugadaPublicMediaBucket)
+          .upload(coverStoragePath, coverAttachment.file, {
+            cacheControl: "31536000",
+            contentType: getUploadContentType(coverAttachment.file),
+            upsert: true,
+          });
+
+        if (coverUploadErr) throw coverUploadErr;
+
+        const { data: coverUrlData } = supabase.storage
+          .from(palugadaPublicMediaBucket)
+          .getPublicUrl(coverStoragePath);
+
+        const coverPublicUrl = coverUrlData.publicUrl;
+
+        // Update listing cover image
+        const { error: coverUpdateErr } = await supabase
+          .from("palugada_listings")
+          .update({
+            cover_image_url: coverPublicUrl,
+            cover_image_alt: `Cover ${form.businessName.trim()}`,
+          })
+          .eq("id", listingId);
+
+        if (coverUpdateErr) throw coverUpdateErr;
+      }
+
+      // 2. Upload Product Photos (attachments) if present
       for (const [index, attachment] of attachments.entries()) {
-        setSaveMessage(`Mengunggah foto ${index + 1} dari ${attachments.length}...`);
+        setSaveMessage(`Mengunggah foto produk ${index + 1} dari ${attachments.length}...`);
         let storagePath = uploadedPathsRef.current[attachment.id];
 
         if (!storagePath) {
-          storagePath = `${uploadSession.listing_id}/${uploadSession.upload_token}/${crypto.randomUUID()}-${getSafeFileName(attachment.file.name)}`;
+          const safeName = getSafeFileName(attachment.file.name);
+          storagePath = `palugada/${listingId}/photos/${Date.now()}-${safeName}`;
           const { error: uploadError } = await supabase.storage
-            .from(palugadaAttachmentBucket)
+            .from(palugadaPublicMediaBucket)
             .upload(storagePath, attachment.file, {
-              cacheControl: "3600",
+              cacheControl: "31536000",
               contentType: getUploadContentType(attachment.file),
               upsert: true,
             });
@@ -241,14 +281,14 @@ export function PalugadaSubmissionForm() {
           const { error: metadataError } = await supabase.from("attachments").insert({
             owner_user_id: userId,
             linked_type: "palugada_listing",
-            linked_id: uploadSession.listing_id,
+            linked_id: listingId,
             file_name: attachment.file.name,
             file_type: getUploadContentType(attachment.file),
             file_size: attachment.file.size,
             storage_path: storagePath,
             thumbnail_path: null,
-            visibility: "admin_only",
-            moderation_status: "pending",
+            visibility: "public_after_approval",
+            moderation_status: "approved",
           });
           if (metadataError) throw metadataError;
           registeredAttachmentIdsRef.current.add(attachment.id);
@@ -256,11 +296,12 @@ export function PalugadaSubmissionForm() {
       }
 
       setSaveState("saved");
-      const reference = `PLG-${uploadSession.listing_id.slice(0, 8).toUpperCase()}`;
+      const reference = `PLG-${listingId.slice(0, 8).toUpperCase()}`;
       setSubmissionReference(reference);
+      const totalPhotos = (coverAttachments.length > 0 ? 1 : 0) + attachments.length;
       setSaveMessage(
-        attachments.length > 0
-          ? `🎉 Lapak berhasil tayang di katalog PALUGADA CGV bersama ${attachments.length} foto! Nomor: ${reference}`
+        totalPhotos > 0
+          ? `🎉 Lapak berhasil tayang di katalog PALUGADA CGV bersama ${totalPhotos} foto! Nomor: ${reference}`
           : `🎉 Lapak Anda langsung tayang di katalog PALUGADA CGV! Nomor: ${reference}`,
       );
     } catch (error) {
@@ -410,11 +451,33 @@ export function PalugadaSubmissionForm() {
             />
           </label>
 
-          <div className="sm:col-span-2">
+          <div className="sm:col-span-2 space-y-5">
+            {/* Foto Cover Utama */}
+            <div className="rounded-xl border border-primary/20 bg-primary-soft/30 p-3 sm:p-4">
+              <FileCaptureField
+                id="palugada-cover-foto"
+                label="Foto Cover Lapak (Utama)"
+                description="Foto utama yang tampil di kartu katalog PALUGADA & header etalase lapak. Maksimal 1 foto (10 MB)."
+                maxFiles={1}
+                attachments={coverAttachments}
+                onChange={(nextCover) => {
+                  setCoverAttachments(nextCover);
+                  setSaveState("idle");
+                  setSaveMessage("");
+                  setSubmissionReference("");
+                  uploadSessionRef.current = null;
+                  uploadedPathsRef.current = {};
+                  registeredAttachmentIdsRef.current.clear();
+                }}
+              />
+            </div>
+
+            {/* Foto Produk / Menu Tambahan */}
             <FileCaptureField
               id="palugada-foto"
-              label="Foto produk atau lapak"
-              description="Maksimal 4 foto, masing-masing 10 MB. Foto membantu pengurus menilai apakah lapak sudah siap tampil."
+              label="Foto Produk atau Menu Tambahan (Opsional)"
+              description="Maksimal 4 foto tambahan produk, kemasan, atau suasana lapak. Foto langsung tampil di etalase lapak Anda."
+              maxFiles={4}
               attachments={attachments}
               onChange={(nextAttachments) => {
                 setAttachments(nextAttachments);

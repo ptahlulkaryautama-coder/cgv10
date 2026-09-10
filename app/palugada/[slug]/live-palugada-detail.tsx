@@ -59,6 +59,10 @@ export function LivePalugadaDetail({ listingId }: { listingId: string }) {
         .eq("moderation_status", "approved")
         .order("created_at", { ascending: true });
       const signed = await Promise.all(((attachmentData ?? []) as PublicAttachment[]).map(async (attachment) => {
+        if (attachment.storage_path.startsWith("palugada/")) {
+          const { data: urlData } = supabase.storage.from("portal-post-media").getPublicUrl(attachment.storage_path);
+          if (urlData?.publicUrl) return { url: urlData.publicUrl, name: attachment.file_name };
+        }
         const { data: signedData } = await supabase.storage.from("palugada-submissions").createSignedUrl(attachment.storage_path, 3600);
         return signedData?.signedUrl ? { url: signedData.signedUrl, name: attachment.file_name } : null;
       }));
