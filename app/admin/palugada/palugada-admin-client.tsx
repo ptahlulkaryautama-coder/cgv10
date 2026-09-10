@@ -113,20 +113,23 @@ const statusTone: Record<ListingStatus, string> = {
 
 const allowedActions: Record<ListingStatus, Array<{ value: ListingStatus; label: string }>> = {
   draft: [
-    { value: "review", label: "Mulai review" },
-    { value: "rejected", label: "Tolak" },
+    { value: "approved", label: "✓ Setujui lapak" },
   ],
   submitted: [
-    { value: "review", label: "Mulai review" },
-    { value: "rejected", label: "Tolak" },
+    { value: "approved", label: "✓ Setujui lapak" },
   ],
   review: [
-    { value: "approved", label: "Setujui lapak" },
-    { value: "rejected", label: "Tolak" },
+    { value: "approved", label: "✓ Setujui lapak" },
   ],
-  approved: [{ value: "hidden", label: "Sembunyikan dari katalog" }],
-  hidden: [{ value: "approved", label: "Tampilkan kembali" }],
-  rejected: [{ value: "review", label: "Kembalikan ke review" }],
+  approved: [
+    { value: "hidden", label: "👁️ Sembunyikan dari katalog" },
+  ],
+  hidden: [
+    { value: "approved", label: "✓ Tampilkan di katalog" },
+  ],
+  rejected: [
+    { value: "approved", label: "✓ Setujui lapak" },
+  ],
 };
 
 function formatDate(value: string | null) {
