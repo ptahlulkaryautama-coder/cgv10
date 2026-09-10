@@ -8,6 +8,7 @@ import { SellerStorefront, type StorefrontSeller } from "./seller-storefront";
 
 type LiveListing = {
   id: string;
+  seller_user_id?: string | null;
   catalog_key: string | null;
   name: string;
   category: string;
@@ -34,6 +35,7 @@ export function LivePalugadaDetail({ listingId }: { listingId: string }) {
     try { return getSupabaseBrowserClient(); } catch { return null; }
   }, []);
   const [listing, setListing] = useState<LiveListing | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [images, setImages] = useState<Array<{ url: string; name: string }>>([]);
   const [state, setState] = useState<"loading" | "ready" | "missing" | "error">("loading");
 
@@ -41,9 +43,15 @@ export function LivePalugadaDetail({ listingId }: { listingId: string }) {
     let mounted = true;
     async function loadListing() {
       if (!supabase || !/^[0-9a-f-]{36}$/i.test(listingId)) { setState("missing"); return; }
+      
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (mounted) {
+        setCurrentUserId(sessionData?.session?.user?.id ?? null);
+      }
+
       const { data, error } = await supabase
         .from("palugada_listings")
-        .select("id, catalog_key, name, category, cluster, description, availability_note, contact_method, seller_status, seller_status_note, cover_image_url, cover_image_alt")
+        .select("id, seller_user_id, catalog_key, name, category, cluster, description, availability_note, contact_method, seller_status, seller_status_note, cover_image_url, cover_image_alt")
         .eq("id", listingId)
         .eq("status", "approved")
         .maybeSingle<LiveListing>();
@@ -79,6 +87,7 @@ export function LivePalugadaDetail({ listingId }: { listingId: string }) {
     return <PageShell><section className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6"><div className="mx-auto grid h-14 w-14 place-items-center rounded-xl bg-primary-soft text-primary"><Icon name="store" /></div><h1 className="mt-5 text-3xl font-semibold tracking-tight text-foreground">{state === "loading" ? "Memuat lapak..." : "Lapak tidak tersedia"}</h1><p className="mt-3 text-sm leading-6 text-muted">{state === "loading" ? "Kami sedang menyiapkan etalase penjual." : "Lapak mungkin sedang diperiksa atau sudah tidak ditayangkan."}</p>{state !== "loading" ? <Link href="/palugada/" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-white">Kembali ke katalog</Link> : null}</section></PageShell>;
   }
 
+  const isOwner = Boolean(currentUserId && listing.seller_user_id === currentUserId);
   const heroImage = images[0]?.url ?? listing.cover_image_url ?? "/assets/palugada/maniez-donut-main-optimized.jpg";
   const seller: StorefrontSeller = {
     slug: listing.catalog_key ?? listing.id,
@@ -96,6 +105,7 @@ export function LivePalugadaDetail({ listingId }: { listingId: string }) {
     sellerStatusLabel: listing.seller_status === "online" ? "Buka untuk pesanan" : "Konfirmasi terlebih dahulu",
     sellerStatusNote: listing.seller_status_note,
     availabilityNote: listing.availability_note,
+    isOwner,
     highlights: [],
   };
   return <SellerStorefront seller={seller} />;

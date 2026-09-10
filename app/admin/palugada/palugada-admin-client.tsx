@@ -162,9 +162,11 @@ export function PalugadaAdminClient() {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Partial<Listing>>({});
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
   const [uploadNotice, setUploadNotice] = useState<string | null>(null);
   const requestedListingIdRef = useRef<string | null | undefined>(undefined);
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const loadListings = useCallback(async () => {
     if (!supabase) return;
@@ -251,6 +253,14 @@ export function PalugadaAdminClient() {
 
       loadedAttachments = await Promise.all(
         ((attachmentData ?? []) as Omit<ListingAttachment, "signed_url">[]).map(async (attachment) => {
+          if (attachment.storage_path.startsWith("palugada/")) {
+            const { data: urlData } = supabase.storage
+              .from(palugadaPublicMediaBucket)
+              .getPublicUrl(attachment.storage_path);
+            if (urlData?.publicUrl) {
+              return { ...attachment, signed_url: urlData.publicUrl };
+            }
+          }
           const { data: signedData } = await supabase.storage
             .from(palugadaAttachmentBucket)
             .createSignedUrl(attachment.storage_path, 600);
@@ -426,6 +436,107 @@ export function PalugadaAdminClient() {
     await loadListings();
   }
 
+  async function handleGalleryFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file || !supabase || !selected || !canWrite) return;
+
+    if (!file.type.startsWith("image/")) {
+      setUploadNotice("Format berkas harus gambar (JPG, PNG, WebP).");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadNotice("Ukuran foto maksimal 10 MB.");
+      return;
+    }
+
+    setUploadingGallery(true);
+    setUploadNotice("Mengunggah foto galeri produk...");
+
+    try {
+      const safeName = getSafeFileName(file.name);
+      const storagePath = `palugada/${selected.id}/photos/${Date.now()}-${safeName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(palugadaPublicMediaBucket)
+        .upload(storagePath, file, {
+          cacheControl: "31536000",
+          upsert: false,
+          contentType: file.type,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { error: metadataError } = await supabase.from("attachments").insert({
+        owner_user_id: user?.id ?? null,
+        linked_type: "palugada_listing",
+        linked_id: selected.id,
+        file_name: file.name,
+        file_type: file.type,
+        file_size: file.size,
+        storage_path: storagePath,
+        thumbnail_path: null,
+        visibility: "public_after_approval",
+        moderation_status: "approved",
+      });
+
+      if (metadataError) throw metadataError;
+
+      setUploadNotice("Foto galeri produk berhasil ditambahkan.");
+      await loadListings();
+    } catch (err) {
+      const errMessage = err instanceof Error ? err.message : "Gagal mengunggah foto galeri.";
+      setUploadNotice(errMessage);
+    } finally {
+      setUploadingGallery(false);
+      if (galleryInputRef.current) galleryInputRef.current.value = "";
+    }
+  }
+
+  async function handleGalleryFileDelete(attachment: ListingAttachment) {
+    if (!supabase || !selected || !canWrite) return;
+    setState("saving");
+    setMessage(`Menghapus foto ${attachment.file_name}...`);
+
+    try {
+      const bucket = attachment.storage_path.startsWith("palugada/") ? palugadaPublicMediaBucket : palugadaAttachmentBucket;
+      await supabase.storage.from(bucket).remove([attachment.storage_path]);
+
+      const { error } = await supabase
+        .from("attachments")
+        .delete()
+        .eq("id", attachment.id);
+
+      if (error) throw error;
+      setUploadNotice("Foto berhasil dihapus.");
+      await loadListings();
+    } catch (err) {
+      const errMessage = err instanceof Error ? err.message : "Gagal menghapus foto.";
+      setUploadNotice(errMessage);
+      setState("loaded");
+    }
+  }
+
+  async function toggleSellerStatus() {
+    if (!supabase || !selected || !canWrite) return;
+    setState("saving");
+    const nextStatus = selected.seller_status === "online" ? "offline" : "online";
+    const nextNote = nextStatus === "online" ? "Buka · Lapak aktif" : "Tutup sementara";
+    setMessage(`Mengubah status toko menjadi ${nextStatus === "online" ? "Buka" : "Tutup"}...`);
+
+    const { error } = await supabase
+      .from("palugada_listings")
+      .update({ seller_status: nextStatus, seller_status_note: nextNote })
+      .eq("id", selected.id);
+
+    if (error) {
+      setState("error");
+      setMessage(`Gagal mengubah status toko: ${error.message}`);
+      return;
+    }
+
+    await loadListings();
+  }
+
   async function updateStatus(status: ListingStatus) {
     if (!supabase || !selected || !canWrite) return;
     if (!allowedActions[selected.status].some((action) => action.value === status)) return;
@@ -446,12 +557,19 @@ export function PalugadaAdminClient() {
       }
     }
 
+    const updates: Record<string, unknown> = {
+      status,
+      published_at: status === "approved" ? selected.published_at ?? new Date().toISOString() : null,
+    };
+
+    if (status === "approved" && selected.seller_status !== "online") {
+      updates.seller_status = "online";
+      updates.seller_status_note = "Buka · Lapak aktif";
+    }
+
     const { error } = await supabase
       .from("palugada_listings")
-      .update({
-        status,
-        published_at: status === "approved" ? selected.published_at ?? new Date().toISOString() : null,
-      })
+      .update(updates)
       .eq("id", selected.id);
 
     if (error) {
@@ -749,7 +867,30 @@ export function PalugadaAdminClient() {
                         </div>
                         <InfoRow label="Harga" value={selected.price_label || "-"} />
                         <InfoRow label="Ketersediaan" value={selected.availability_note || "-"} />
-                        <InfoRow label="Status penjual" value={`${selected.seller_status} · ${selected.seller_status_note || "-"}`} />
+                        <div className="rounded-xl border border-border bg-white p-3">
+                          <dt className="font-bold text-muted">Status Penjual</dt>
+                          <dd className="mt-1 flex flex-wrap items-center justify-between gap-2 font-bold text-foreground">
+                            <span className="flex items-center gap-1.5 text-xs">
+                              <span className={`h-2 w-2 rounded-full ${selected.seller_status === "online" ? "bg-emerald-500 animate-pulse" : "bg-stone-400"}`} />
+                              {selected.seller_status === "online" ? "Buka (Online)" : "Tutup (Offline)"} · {selected.seller_status_note || "-"}
+                            </span>
+                            {canWrite && (
+                              <button
+                                type="button"
+                                onClick={() => void toggleSellerStatus()}
+                                disabled={isBusy}
+                                className={cx(
+                                  "rounded-lg border px-2.5 py-1 text-xs font-bold transition-all",
+                                  selected.seller_status === "online"
+                                    ? "border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100"
+                                    : "border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                                )}
+                              >
+                                {selected.seller_status === "online" ? "⏸️ Set Tutup (Offline)" : "🟢 Set Buka (Online)"}
+                              </button>
+                            )}
+                          </dd>
+                        </div>
                       </dl>
                       <pre className="mt-4 max-h-80 overflow-auto whitespace-pre-wrap rounded-xl border border-border bg-cream p-4 font-sans text-sm leading-6 text-foreground">{selected.description}</pre>
                     </>
@@ -818,23 +959,50 @@ export function PalugadaAdminClient() {
                     ) : null}
                   </section>
 
-                  {/* ── ATTACHMENTS & PRIVATE SUBMISSION PHOTOS ── */}
-                  <section className="mt-5" aria-labelledby="palugada-attachments-title">
-                    <div className="flex items-center justify-between gap-3">
-                      <h4 id="palugada-attachments-title" className="text-sm font-bold text-foreground">Foto & Lampiran Warga</h4>
+                  {/* ── ATTACHMENTS & GALLERY PHOTOS ── */}
+                  <section className="mt-5 rounded-2xl border border-border bg-white p-4" aria-labelledby="palugada-attachments-title">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <h4 id="palugada-attachments-title" className="text-sm font-bold text-foreground">Foto Produk & Galeri Lapak</h4>
+                        <p className="text-xs text-muted">Foto pendukung produk / menu yang tampil di etalase lapak.</p>
+                      </div>
                       <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-bold text-primary">{selectedAttachments.length} file</span>
                     </div>
+
+                    {canWrite ? (
+                      <div className="mt-3 flex items-center gap-2">
+                        <input
+                          ref={galleryInputRef}
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={(e) => void handleGalleryFileUpload(e)}
+                          className="hidden"
+                          id="palugada-gallery-file-input"
+                          disabled={uploadingGallery}
+                        />
+                        <label
+                          htmlFor="palugada-gallery-file-input"
+                          className={cx(
+                            "inline-flex min-h-9 cursor-pointer items-center justify-center gap-1.5 rounded-[9px] border border-primary/25 bg-primary-soft px-3 text-xs font-bold text-primary transition-colors hover:bg-primary hover:text-white",
+                            uploadingGallery && "pointer-events-none opacity-60",
+                          )}
+                        >
+                          {uploadingGallery ? "Mengunggah galeri..." : "📎 Tambah Foto Galeri / Produk"}
+                        </label>
+                      </div>
+                    ) : null}
+
                     {selectedAttachments.length > 0 ? (
                       <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
                         {selectedAttachments.map((attachment) => (
-                          <article key={attachment.id} className="overflow-hidden rounded-xl border border-border bg-white">
+                          <article key={attachment.id} className="overflow-hidden rounded-xl border border-border bg-cream">
                             {attachment.signed_url ? (
                               // eslint-disable-next-line @next/next/no-img-element
-                              <img src={attachment.signed_url} alt={`Lampiran ${attachment.file_name}`} className="aspect-[4/3] w-full bg-cream object-cover" />
+                              <img src={attachment.signed_url} alt={`Lampiran ${attachment.file_name}`} className="aspect-[4/3] w-full bg-white object-cover" />
                             ) : (
-                              <div className="grid aspect-[4/3] place-items-center bg-cream px-4 text-center text-xs font-semibold text-muted">Preview tidak tersedia</div>
+                              <div className="grid aspect-[4/3] place-items-center bg-white px-4 text-center text-xs font-semibold text-muted">Preview tidak tersedia</div>
                             )}
-                            <div className="p-3">
+                            <div className="p-3 bg-white">
                               <p className="truncate text-xs font-bold text-foreground" title={attachment.file_name}>{attachment.file_name}</p>
                               <p className="mt-1 text-xs text-muted">{formatFileSize(attachment.file_size)} · {attachment.moderation_status}</p>
                               <div className="mt-3 flex gap-2">
@@ -843,6 +1011,17 @@ export function PalugadaAdminClient() {
                                     Buka File
                                   </a>
                                 ) : null}
+                                {canWrite ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => void handleGalleryFileDelete(attachment)}
+                                    disabled={isBusy}
+                                    className="inline-flex min-h-8 cursor-pointer items-center justify-center rounded-[8px] border border-red-200 bg-white px-2.5 text-xs font-bold text-red-600 hover:bg-red-50"
+                                    title="Hapus foto ini"
+                                  >
+                                    🗑️ Hapus
+                                  </button>
+                                ) : null}
                               </div>
                             </div>
                           </article>
@@ -850,7 +1029,7 @@ export function PalugadaAdminClient() {
                       </div>
                     ) : (
                       <div className="mt-3 rounded-xl border border-dashed border-border bg-cream p-4 text-xs font-medium leading-5 text-muted">
-                        Pendaftaran ini belum memiliki berkas lampiran otomatis. Anda dapat mengunggah foto lapak langsung di bagian <strong className="text-foreground">Foto Cover Katalog</strong> di atas setelah menerima foto dari warga via WhatsApp.
+                        Belum ada foto galeri/produk. Klik tombol <strong className="text-foreground">📎 Tambah Foto Galeri / Produk</strong> di atas untuk menambahkan foto menu atau produk lapak ini.
                       </div>
                     )}
                   </section>

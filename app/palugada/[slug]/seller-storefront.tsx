@@ -21,6 +21,7 @@ export type StorefrontSeller = {
   sellerStatusNote: string;
   availabilityNote?: string;
   priceNote?: string;
+  isOwner?: boolean;
   highlights?: string[];
 };
 
@@ -167,9 +168,39 @@ export function SellerStorefront({ seller }: { seller: StorefrontSeller }) {
 
   return (
     <main className="pb-24 lg:pb-12">
+      {seller.isOwner && (
+        <aside aria-label="Akses pemilik lapak" className="border-b border-[#D4AF37]/40 bg-gradient-to-r from-[#D4AF37] to-[#E8C865] px-4 py-3 text-[#15140b] shadow-sm">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 sm:px-6 lg:px-8 xl:px-10">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">👑</span>
+              <p className="text-xs font-black sm:text-sm">
+                Anda adalah pemilik lapak ini. Ingin ganti foto cover, tambah foto galeri, ubah harga, atau buka/tutup toko?
+              </p>
+            </div>
+            <Link
+              href="/portal/lapak/"
+              className="inline-flex min-h-9 items-center justify-center rounded-xl bg-[#001713] px-4 text-xs font-black text-white shadow hover:bg-black transition-all"
+            >
+              ✏️ Buka Menu Kelola Lapak
+            </Link>
+          </div>
+        </aside>
+      )}
+
       <section className="border-b border-primary/15 bg-primary text-white">
         <div className="mx-auto max-w-7xl px-4 pb-7 pt-5 sm:px-6 lg:px-8 xl:px-10">
-          <Link href="/palugada/" className="inline-flex min-h-10 items-center text-sm font-semibold text-white/78 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft">← Kembali ke PALUGADA</Link>
+          <div className="flex items-center justify-between gap-2">
+            <Link href="/palugada/" className="inline-flex min-h-10 items-center text-sm font-semibold text-white/78 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft">← Kembali ke PALUGADA</Link>
+            {seller.isOwner && (
+              <Link
+                href="/portal/lapak/"
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-amber-300/40 bg-amber-400/15 px-3 text-xs font-black text-amber-200 hover:bg-amber-400/25 transition-all"
+              >
+                <span>✏️</span>
+                <span>Kelola Lapak Saya</span>
+              </Link>
+            )}
+          </div>
           <div className="mt-5 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-4">
               <div className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-2xl border border-white/20 bg-cream shadow-lg sm:h-[5.5rem] sm:w-[5.5rem]">
@@ -181,7 +212,17 @@ export function SellerStorefront({ seller }: { seller: StorefrontSeller }) {
                 <p className="mt-1 text-sm text-white/75">{seller.cluster} <span className="mx-1.5 text-white/35">•</span> Lapak warga terverifikasi</p>
               </div>
             </div>
-            {seller.whatsappHref ? <a href={seller.whatsappHref} target="_blank" rel="noreferrer" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-accent px-4 text-sm font-bold text-foreground transition-colors hover:bg-accent/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"><Icon name="whatsapp" className="h-5 w-5" />{seller.whatsappLabel ?? "Hubungi penjual"}</a> : null}
+            <div className="flex flex-wrap items-center gap-2">
+              {seller.isOwner && (
+                <Link
+                  href="/portal/lapak/"
+                  className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#E8C865] px-4 text-sm font-black text-[#15140b] shadow-md transition-all hover:brightness-110"
+                >
+                  ✏️ Kelola Lapak
+                </Link>
+              )}
+              {seller.whatsappHref ? <a href={seller.whatsappHref} target="_blank" rel="noreferrer" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-accent px-4 text-sm font-bold text-foreground transition-colors hover:bg-accent/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"><Icon name="whatsapp" className="h-5 w-5" />{seller.whatsappLabel ?? "Hubungi penjual"}</a> : null}
+            </div>
           </div>
         </div>
       </section>

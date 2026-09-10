@@ -56,6 +56,8 @@ export type MarketplaceItem = {
   sellerStatus: "online" | "offline";
   sellerStatusLabel: string;
   sellerStatusNote: string;
+  sellerUserId?: string | null;
+  isOwner?: boolean;
   icon: IconName;
   imageSrc?: string;
   imageAlt?: string;

@@ -16,6 +16,7 @@ type PalugadaFilterDetail = {
 
 type LivePalugadaRow = {
   id: string;
+  seller_user_id?: string | null;
   name: string;
   category: "barang" | "kuliner" | "jasa" | "properti" | "lainnya";
   cluster: string;
@@ -88,9 +89,11 @@ function buildWhatsappHref(contactMethod: string) {
 function mapLiveListing(
   row: LivePalugadaRow,
   cover?: LivePalugadaAttachment & { signedUrl: string },
+  currentUserId?: string | null,
 ): MarketplaceItem {
   const category = palugadaCategoryLabel[row.category] || "Lainnya";
   const whatsappHref = buildWhatsappHref(row.contact_method);
+  const isOwner = Boolean(currentUserId && row.seller_user_id === currentUserId);
 
   return {
     name: row.name,
@@ -101,6 +104,8 @@ function mapLiveListing(
     sellerStatus: row.seller_status,
     sellerStatusLabel: row.seller_status === "online" ? "Online" : "Offline",
     sellerStatusNote: row.seller_status_note || "Lapak aktif warga CGV10.",
+    sellerUserId: row.seller_user_id,
+    isOwner,
     icon: palugadaCategoryIcon[row.category] || "store",
     imageSrc: cover?.signedUrl ?? row.cover_image_url ?? undefined,
     imageAlt: cover
@@ -230,32 +235,43 @@ function ListingCard({ item }: { item: MarketplaceItem }) {
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-auto grid grid-cols-2 gap-2 pt-4">
-          <Link
-            href={item.detailHref ?? `/palugada/detail/?id=${encodeURIComponent(item.detailSlug ?? "")}`}
-            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-primary/25 bg-primary-soft/60 px-3 text-xs font-bold text-primary transition-colors hover:bg-primary hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:text-sm"
-          >
-            Detail Lapak
-          </Link>
-
-          {item.whatsappHref ? (
+        <div className="mt-auto pt-4 space-y-2">
+          {item.isOwner && (
             <Link
-              href={item.whatsappHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center justify-center rounded-xl bg-accent px-3 text-xs font-bold text-foreground shadow-sm transition-colors hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm"
-              aria-label={`${item.whatsappLabel ?? "Hubungi WhatsApp"} untuk ${item.name}`}
+              href="/portal/lapak/"
+              className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#E8C865] px-3 text-xs font-black text-[#15140b] shadow-sm transition-all hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 sm:text-sm"
             >
-              Hubungi WA
-            </Link>
-          ) : (
-            <Link
-              href="/kontak/"
-              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-surface px-3 text-xs font-semibold text-muted transition-colors hover:bg-cream hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:text-sm"
-            >
-              Tanya RT
+              ✏️ Kelola Lapak Saya (Ganti Foto & Status)
             </Link>
           )}
+
+          <div className="grid grid-cols-2 gap-2">
+            <Link
+              href={item.detailHref ?? `/palugada/detail/?id=${encodeURIComponent(item.detailSlug ?? "")}`}
+              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-primary/25 bg-primary-soft/60 px-3 text-xs font-bold text-primary transition-colors hover:bg-primary hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:text-sm"
+            >
+              Detail Lapak
+            </Link>
+
+            {item.whatsappHref ? (
+              <Link
+                href={item.whatsappHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 items-center justify-center rounded-xl bg-accent px-3 text-xs font-bold text-foreground shadow-sm transition-colors hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm"
+                aria-label={`${item.whatsappLabel ?? "Hubungi WhatsApp"} untuk ${item.name}`}
+              >
+                Hubungi WA
+              </Link>
+            ) : (
+              <Link
+                href="/kontak/"
+                className="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-surface px-3 text-xs font-semibold text-muted transition-colors hover:bg-cream hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:text-sm"
+              >
+                Tanya RT
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </article>
@@ -270,7 +286,6 @@ export function PalugadaCatalog() {
   const normalizedQuery = normalize(query);
 
   const catalogItems = useMemo(() => {
-    // Only return live items from Supabase database.
     return liveItems;
   }, [liveItems]);
 
@@ -304,10 +319,13 @@ export function PalugadaCatalog() {
       try {
         setLiveState("loading");
         const supabase = getSupabaseBrowserClient();
+        const { data: sessionData } = await supabase.auth.getSession();
+        const currentUserId = sessionData?.session?.user?.id ?? null;
+
         const { data, error } = await supabase
           .from("palugada_listings")
           .select(
-            "id, name, category, cluster, price_label, description, availability_note, contact_method, seller_status, seller_status_note, cover_image_url, cover_image_alt, published_at, updated_at",
+            "id, seller_user_id, name, category, cluster, price_label, description, availability_note, contact_method, seller_status, seller_status_note, cover_image_url, cover_image_alt, published_at, updated_at",
           )
           .in("status", ["approved", "submitted"])
           .order("published_at", { ascending: false, nullsFirst: false })
@@ -337,6 +355,18 @@ export function PalugadaCatalog() {
 
           for (const attachment of (attachmentData ?? []) as LivePalugadaAttachment[]) {
             if (covers.has(attachment.linked_id)) continue;
+            if (attachment.storage_path.startsWith("palugada/")) {
+              const { data: urlData } = supabase.storage
+                .from("portal-post-media")
+                .getPublicUrl(attachment.storage_path);
+              if (urlData?.publicUrl) {
+                covers.set(attachment.linked_id, {
+                  ...attachment,
+                  signedUrl: urlData.publicUrl,
+                });
+                continue;
+              }
+            }
             const { data: signedData } = await supabase.storage
               .from("palugada-submissions")
               .createSignedUrl(attachment.storage_path, 3600);
@@ -349,17 +379,21 @@ export function PalugadaCatalog() {
           }
         }
 
-        setLiveItems(rows.map((row) => mapLiveListing(row, covers.get(row.id))));
+        if (!mounted) {
+          return;
+        }
+
+        setLiveItems(rows.map((row) => mapLiveListing(row, covers.get(row.id), currentUserId)));
         setLiveState("ready");
       } catch (err) {
-        console.error("Failed to load PALUGADA:", err);
+        console.error("Failed to fetch live PALUGADA items:", err);
         if (mounted) {
           setLiveState("error");
         }
       }
     }
 
-    loadLiveListings();
+    void loadLiveListings();
 
     return () => {
       mounted = false;
