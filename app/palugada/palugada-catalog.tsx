@@ -131,62 +131,71 @@ function ListingCard({ item }: { item: MarketplaceItem }) {
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-surface shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md">
       {/* Media Header */}
-      <div className="relative border-b border-border/70 bg-stone-100 overflow-hidden">
-        <div className="relative aspect-[4/3] w-full">
-          {item.imageSrc ? (
-            <ImagePreview
-              src={item.imageSrc}
-              alt={item.imageAlt ?? item.name}
-              title={item.name}
-              caption={`${item.category} • ${item.cluster}`}
-              className="aspect-[4/3] w-full"
-            >
-              {item.imageSrc.startsWith("http") ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={item.imageSrc}
-                  alt={item.imageAlt ?? item.name}
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                />
-              ) : (
-                <Image
-                  src={item.imageSrc}
-                  alt={item.imageAlt ?? item.name}
-                  fill
-                  sizes="(min-width: 1280px) 300px, (min-width: 768px) 43vw, 92vw"
-                  className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                />
-              )}
-            </ImagePreview>
-          ) : (
-            /* Premium Branded Placeholder */
-            <div className="relative flex h-full w-full flex-col justify-between bg-gradient-to-br from-[#0c2217] via-primary to-[#194b34] p-4 text-white sm:p-5">
-              <div className="flex items-center justify-between">
-                <div className="grid h-11 w-11 place-items-center rounded-xl border border-white/20 bg-white/10 text-accent backdrop-blur-sm shadow-sm sm:h-12 sm:w-12 sm:rounded-2xl">
-                  <Icon name={item.icon} />
-                </div>
-              </div>
-              <div className="mt-auto">
-                <p className="text-[10px] font-extrabold uppercase tracking-wider text-accent-soft sm:text-[11px]">
-                  PALUGADA CGV
-                </p>
-                <p className="text-xs font-semibold text-white/90 line-clamp-1 sm:text-sm">
-                  {item.category} • {item.cluster}
-                </p>
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-stone-100">
+        {item.imageSrc ? (
+          <ImagePreview
+            src={item.imageSrc}
+            alt={item.imageAlt ?? item.name}
+            title={item.name}
+            caption={`${item.category} • ${item.cluster}`}
+            className="h-full w-full"
+          >
+            {item.imageSrc.startsWith("http") ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={item.imageSrc}
+                alt={item.imageAlt ?? item.name}
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+              />
+            ) : (
+              <Image
+                src={item.imageSrc}
+                alt={item.imageAlt ?? item.name}
+                fill
+                sizes="(min-width: 1280px) 300px, (min-width: 768px) 43vw, 92vw"
+                className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+              />
+            )}
+          </ImagePreview>
+        ) : (
+          /* Premium Branded Placeholder */
+          <div className="relative flex h-full w-full flex-col justify-between bg-gradient-to-br from-[#0c2217] via-primary to-[#194b34] p-4 text-white sm:p-5">
+            <div className="flex items-center justify-between">
+              <div className="grid h-11 w-11 place-items-center rounded-xl border border-white/20 bg-white/10 text-accent backdrop-blur-sm shadow-sm sm:h-12 sm:w-12 sm:rounded-2xl">
+                <Icon name={item.icon} />
               </div>
             </div>
-          )}
+            <div className="mt-auto">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-accent-soft sm:text-[11px]">
+                PALUGADA CGV
+              </p>
+              <p className="text-xs font-semibold text-white/90 line-clamp-1 sm:text-sm">
+                {item.category} • {item.cluster}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Category Pill */}
+        <div className="absolute left-3 top-3">
+          <span className="rounded-lg bg-surface/90 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-foreground shadow-sm backdrop-blur-md">
+            {item.category}
+          </span>
         </div>
 
-        {/* Category Badge */}
-        <div className="absolute left-2.5 top-2.5 rounded-lg border border-white/15 bg-slate-900/80 px-2.5 py-1 text-[11px] font-bold text-accent-soft backdrop-blur-md shadow-sm sm:left-3 sm:top-3">
-          {item.category}
-        </div>
+        {/* Owner Pill */}
+        {item.isOwner && (
+          <div className="absolute left-3 bottom-3">
+            <span className="inline-flex items-center gap-1 rounded-md border border-amber-400/50 bg-[#001713]/90 px-2 py-0.5 text-[11px] font-bold text-[#E8C865] shadow backdrop-blur-md">
+              👑 Lapak Anda
+            </span>
+          </div>
+        )}
 
-        {/* Seller Online/Offline Badge */}
+        {/* Status Pill (Buka / Tutup) */}
         <div
           aria-label={`Penjual ${item.sellerStatusLabel}`}
-          className={`absolute right-2.5 top-2.5 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold backdrop-blur-md shadow-sm sm:right-3 sm:top-3 ${
+          className={`absolute right-3 top-3 flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-bold shadow-sm backdrop-blur-md ${
             isOnline
               ? "border-emerald-400/40 bg-emerald-950/85 text-emerald-200"
               : "border-stone-400/30 bg-stone-900/80 text-stone-300"
@@ -235,43 +244,52 @@ function ListingCard({ item }: { item: MarketplaceItem }) {
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-auto pt-4 space-y-2">
-          {item.isOwner && (
-            <Link
-              href="/portal/lapak/"
-              className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#E8C865] px-3 text-xs font-black text-[#15140b] shadow-sm transition-all hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 sm:text-sm"
-            >
-              ✏️ Kelola Lapak Saya (Ganti Foto & Status)
-            </Link>
+        <div className="mt-auto pt-4">
+          {item.isOwner ? (
+            <div className="grid grid-cols-2 gap-2">
+              <Link
+                href="/portal/lapak/"
+                className="inline-flex min-h-10 items-center justify-center gap-1 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#E8C865] px-3 text-xs font-black text-[#15140b] shadow-sm transition-all hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+              >
+                <span>✏️</span>
+                <span>Kelola Lapak</span>
+              </Link>
+              <Link
+                href={item.detailHref ?? `/palugada/detail/?id=${encodeURIComponent(item.detailSlug ?? "")}`}
+                className="inline-flex min-h-10 items-center justify-center rounded-xl border border-primary/25 bg-primary-soft/60 px-3 text-xs font-bold text-primary transition-colors hover:bg-primary hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                Lihat Detail
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              <Link
+                href={item.detailHref ?? `/palugada/detail/?id=${encodeURIComponent(item.detailSlug ?? "")}`}
+                className="inline-flex min-h-10 items-center justify-center rounded-xl border border-primary/25 bg-primary-soft/60 px-3 text-xs font-bold text-primary transition-colors hover:bg-primary hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                Detail Lapak
+              </Link>
+
+              {item.whatsappHref ? (
+                <Link
+                  href={item.whatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl bg-accent px-3 text-xs font-bold text-foreground shadow-sm transition-colors hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  aria-label={`${item.whatsappLabel ?? "Hubungi WhatsApp"} untuk ${item.name}`}
+                >
+                  Hubungi WA
+                </Link>
+              ) : (
+                <Link
+                  href="/kontak/"
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-surface px-3 text-xs font-semibold text-muted transition-colors hover:bg-cream hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  Tanya RT
+                </Link>
+              )}
+            </div>
           )}
-
-          <div className="grid grid-cols-2 gap-2">
-            <Link
-              href={item.detailHref ?? `/palugada/detail/?id=${encodeURIComponent(item.detailSlug ?? "")}`}
-              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-primary/25 bg-primary-soft/60 px-3 text-xs font-bold text-primary transition-colors hover:bg-primary hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:text-sm"
-            >
-              Detail Lapak
-            </Link>
-
-            {item.whatsappHref ? (
-              <Link
-                href={item.whatsappHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center justify-center rounded-xl bg-accent px-3 text-xs font-bold text-foreground shadow-sm transition-colors hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm"
-                aria-label={`${item.whatsappLabel ?? "Hubungi WhatsApp"} untuk ${item.name}`}
-              >
-                Hubungi WA
-              </Link>
-            ) : (
-              <Link
-                href="/kontak/"
-                className="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-surface px-3 text-xs font-semibold text-muted transition-colors hover:bg-cream hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:text-sm"
-              >
-                Tanya RT
-              </Link>
-            )}
-          </div>
         </div>
       </div>
     </article>

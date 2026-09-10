@@ -51,8 +51,8 @@ const statusLabels: Record<ListingStatus, string> = {
   approved: "Aktif di Katalog",
   hidden: "Disembunyikan",
   draft: "Draft",
-  submitted: "Diproses",
-  review: "Ditinjau",
+  submitted: "Sedang Diproses",
+  review: "Dalam Peninjauan",
   rejected: "Ditolak",
 };
 
@@ -166,7 +166,7 @@ export function PortalLapakClient() {
     };
   }, [supabaseState.client]);
 
-  // ─── Load Product Photos ──────────────────────────────────────────────────
+  // ─── Load Product Photos (Handles public & signed URLs) ───────────────────
 
   useEffect(() => {
     const supabase = supabaseState.client;
@@ -185,33 +185,46 @@ export function PortalLapakClient() {
 
       if (!mounted || !data) return;
 
-      const photos: ProductPhoto[] = data.map((row) => {
-        const { data: urlData } = supabase!.storage
-          .from(palugadaPublicMediaBucket)
-          .getPublicUrl(row.storage_path);
-        return {
-          id: row.id as string,
-          file_name: row.file_name as string,
-          storage_path: row.storage_path as string,
-          publicUrl: urlData.publicUrl,
-        };
-      });
+      const photos: ProductPhoto[] = await Promise.all(
+        data.map(async (row) => {
+          let publicUrl = "";
+          if (row.storage_path.startsWith("palugada/")) {
+            const { data: urlData } = supabase!.storage
+              .from(palugadaPublicMediaBucket)
+              .getPublicUrl(row.storage_path);
+            publicUrl = urlData.publicUrl;
+          } else {
+            const { data: signedData } = await supabase!.storage
+              .from("palugada-submissions")
+              .createSignedUrl(row.storage_path, 3600);
+            publicUrl = signedData?.signedUrl ?? "";
+          }
+          return {
+            id: row.id as string,
+            file_name: row.file_name as string,
+            storage_path: row.storage_path as string,
+            publicUrl,
+          };
+        }),
+      );
 
+      if (!mounted) return;
       setProductPhotos((prev) => ({ ...prev, [selected.id]: photos }));
     }
 
     void loadPhotos();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabaseState.client, selected?.id]);
 
-  // ─── Toggle Online/Offline ────────────────────────────────────────────────
+  // ─── Set Seller Status (Online / Offline) ──────────────────────────────────
 
-  async function toggleSellerStatus() {
+  async function setSellerStatus(newStatus: SellerStatus) {
     const supabase = supabaseState.client;
-    if (!supabase || !selected) return;
+    if (!supabase || !selected || selected.seller_status === newStatus) return;
     setState("saving");
-    const newStatus: SellerStatus = selected.seller_status === "online" ? "offline" : "online";
     const newNote = newStatus === "online" ? "Buka · Lapak aktif" : "Tutup sementara";
 
     const { error } = await supabase
@@ -233,7 +246,7 @@ export function PortalLapakClient() {
       ),
     );
     setActionMessage({
-      text: newStatus === "online" ? "✅ Lapak sekarang Buka (Online)" : "⏸️ Lapak ditutup sementara (Offline)",
+      text: newStatus === "online" ? "✅ Status lapak sekarang: Buka (Online)" : "⏸️ Status lapak sekarang: Tutup Sementara (Offline)",
       type: "ok",
     });
     setState("loaded");
@@ -279,7 +292,7 @@ export function PortalLapakClient() {
     );
     setIsEditing(false);
     setEditForm({});
-    setActionMessage({ text: "✅ Perubahan berhasil disimpan.", type: "ok" });
+    setActionMessage({ text: "✅ Informasi lapak berhasil diperbarui.", type: "ok" });
     setState("loaded");
   }
 
@@ -300,7 +313,7 @@ export function PortalLapakClient() {
     }
 
     setUploadingCover(true);
-    setActionMessage({ text: "Mengunggah foto cover...", type: "ok" });
+    setActionMessage({ text: "Mengunggah foto cover utama...", type: "ok" });
 
     try {
       const safeName = getSafeFileName(file.name);
@@ -339,7 +352,7 @@ export function PortalLapakClient() {
             : l,
         ),
       );
-      setActionMessage({ text: "✅ Foto cover berhasil diperbarui!", type: "ok" });
+      setActionMessage({ text: "✅ Foto cover utama berhasil diperbarui!", type: "ok" });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Gagal mengunggah foto.";
       setActionMessage({ text: msg, type: "err" });
@@ -376,7 +389,7 @@ export function PortalLapakClient() {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const uid = sessionData.session?.user?.id;
-      if (!uid) throw new Error("Session habis. Silakan login ulang.");
+      if (!uid) throw new Error("Sesi login berakhir. Silakan login kembali.");
 
       const safeName = getSafeFileName(file.name);
       const storagePath = `palugada/${selected.id}/photos/${Date.now()}-${safeName}`;
@@ -443,12 +456,16 @@ export function PortalLapakClient() {
     setDeletingPhotoId(photo.id);
 
     try {
-      // Remove from storage
-      await supabase.storage
-        .from(palugadaPublicMediaBucket)
-        .remove([photo.storage_path]);
+      if (photo.storage_path.startsWith("palugada/")) {
+        await supabase.storage
+          .from(palugadaPublicMediaBucket)
+          .remove([photo.storage_path]);
+      } else {
+        await supabase.storage
+          .from("palugada-submissions")
+          .remove([photo.storage_path]);
+      }
 
-      // Remove attachment record
       await supabase
         .from("attachments")
         .delete()
@@ -458,7 +475,7 @@ export function PortalLapakClient() {
         ...prev,
         [selected.id]: (prev[selected.id] ?? []).filter((p) => p.id !== photo.id),
       }));
-      setActionMessage({ text: "Foto berhasil dihapus.", type: "ok" });
+      setActionMessage({ text: "✅ Foto berhasil dihapus.", type: "ok" });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Gagal menghapus foto.";
       setActionMessage({ text: msg, type: "err" });
@@ -493,20 +510,22 @@ export function PortalLapakClient() {
     setState(remaining.length ? "loaded" : "empty");
   }
 
-  // ─── Render ───────────────────────────────────────────────────────────────
+  // ─── Render Guest / Error ─────────────────────────────────────────────────
 
   if (state === "guest") {
     return (
       <main className="min-h-screen bg-[#001713] pb-24 text-slate-100">
-        <div className="mx-auto max-w-lg px-4 pt-16 text-center">
-          <div className="text-4xl mb-4">🏪</div>
-          <h1 className="text-xl font-black text-white">Kelola Lapak Saya</h1>
-          <p className="mt-3 text-sm text-slate-400">
-            Masuk dulu ke akun warga untuk melihat dan mengelola lapak PALUGADA Anda.
+        <div className="mx-auto max-w-lg px-4 pt-20 text-center">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-amber-400/10 border border-amber-300/20 text-3xl">
+            🏪
+          </div>
+          <h1 className="mt-5 text-2xl font-black text-white">Kelola Lapak PALUGADA</h1>
+          <p className="mt-3 text-sm text-slate-400 leading-relaxed">
+            Masuk terlebih dahulu dengan akun warga Anda untuk mengelola foto, status buka/tutup, dan informasi lapak.
           </p>
           <Link
             href="/masuk/?next=/portal/lapak/"
-            className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#E8C865] px-6 text-sm font-black text-[#15140b] shadow-lg hover:brightness-110"
+            className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#E8C865] px-6 text-sm font-black text-[#15140b] shadow-lg hover:brightness-110 transition-all"
           >
             Masuk ke Portal Warga
           </Link>
@@ -518,465 +537,585 @@ export function PortalLapakClient() {
   if (state === "error") {
     return (
       <main className="min-h-screen bg-[#001713] pb-24 text-slate-100">
-        <div className="mx-auto max-w-lg px-4 pt-16 text-center">
-          <p className="text-sm text-red-400">Gagal memuat lapak. Coba muat ulang halaman.</p>
+        <div className="mx-auto max-w-lg px-4 pt-20 text-center">
+          <p className="text-sm font-semibold text-red-400">Gagal memuat data lapak. Silakan muat ulang halaman.</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-4 inline-flex min-h-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 text-xs font-bold text-white hover:bg-white/10"
+          >
+            Muat Ulang
+          </button>
         </div>
       </main>
     );
   }
 
+  // Cover image fallback to 1st product photo
+  const activePhotos = selected ? productPhotos[selected.id] ?? [] : [];
+  const displayCoverUrl = selected?.cover_image_url || activePhotos[0]?.publicUrl || null;
+
   return (
-    <main className="min-h-screen bg-[#001713] pb-24 text-slate-100 font-sans">
-      {/* Header */}
+    <main className="min-h-screen bg-[#001713] pb-24 text-slate-100 font-sans selection:bg-[#D4AF37]/30 selection:text-white">
+      {/* ── Header ── */}
       <header className="sticky top-0 z-40 border-b border-white/[0.08] bg-[#001d18]/95 backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3">
             <Link
               href="/portal/"
               className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-white/12 bg-white/[0.05] text-slate-300 hover:border-white/25 hover:text-white transition-all"
-              aria-label="Kembali ke Portal"
+              aria-label="Kembali ke Portal Warga"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="15 18 9 12 15 6" />
               </svg>
             </Link>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">PALUGADA CGV</p>
-              <h1 className="text-sm font-black text-white">Lapak Saya</h1>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">PALUGADA CGV</span>
+                <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-extrabold text-emerald-300">Mandiri</span>
+              </div>
+              <h1 className="text-sm font-black text-white sm:text-base">Kelola Lapak Saya</h1>
             </div>
           </div>
           <Link
             href="/palugada/daftar/"
-            className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-3 text-xs font-bold text-emerald-300 hover:bg-emerald-500/20 transition-all"
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-3.5 text-xs font-bold text-emerald-300 hover:bg-emerald-500/20 transition-all"
           >
             <span>+</span>
-            <span>Lapak Baru</span>
+            <span>Tambah Lapak</span>
           </Link>
         </div>
       </header>
 
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 py-6 space-y-5">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 py-6 space-y-6">
 
-        {/* Action message */}
+        {/* ── Action Notification Banner ── */}
         {actionMessage && (
           <div
             role="status"
             aria-live="polite"
-            className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition-all ${
+            className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-xs sm:text-sm font-semibold transition-all shadow-sm ${
               actionMessage.type === "ok"
-                ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
-                : "border-red-400/30 bg-red-500/10 text-red-300"
+                ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-200"
+                : "border-red-400/30 bg-red-500/10 text-red-200"
             }`}
           >
-            {actionMessage.text}
+            <span>{actionMessage.text}</span>
             <button
               type="button"
               onClick={() => setActionMessage(null)}
-              className="ml-3 text-xs opacity-60 hover:opacity-100"
+              className="ml-3 rounded-lg p-1 text-xs opacity-60 hover:opacity-100 hover:bg-white/10"
+              aria-label="Tutup notifikasi"
             >
               ✕
             </button>
           </div>
         )}
 
-        {/* Loading state */}
+        {/* ── Loading Skeleton ── */}
         {state === "loading" && (
-          <div className="space-y-3">
-            {[1, 2].map((i) => (
-              <div key={i} className="h-24 rounded-2xl border border-white/8 bg-white/[0.04] animate-pulse" />
-            ))}
+          <div className="space-y-4">
+            <div className="h-44 rounded-3xl border border-white/8 bg-white/[0.04] animate-pulse" />
+            <div className="h-64 rounded-3xl border border-white/8 bg-white/[0.04] animate-pulse" />
           </div>
         )}
 
-        {/* Empty state */}
+        {/* ── Empty State ── */}
         {state === "empty" && (
-          <div className="rounded-3xl border border-white/10 bg-[#00241b] p-10 text-center">
-            <div className="text-4xl mb-4">🏪</div>
-            <h2 className="text-lg font-black text-white">Belum ada lapak</h2>
-            <p className="mt-2 text-sm text-slate-400">
-              Daftarkan lapak pertama Anda di katalog PALUGADA CGV. Lapak langsung tayang!
+          <div className="rounded-3xl border border-white/10 bg-[#00241b] p-10 text-center shadow-xl">
+            <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-white/5 text-4xl">🏪</div>
+            <h2 className="mt-4 text-xl font-black text-white">Belum Ada Lapak Terdaftar</h2>
+            <p className="mt-2 text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
+              Daftarkan usaha, produk, atau jasa Anda di katalog PALUGADA CGV. Lapak langsung tayang untuk seluruh warga tetangga!
             </p>
             <Link
               href="/palugada/daftar/"
-              className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#E8C865] px-6 text-sm font-black text-[#15140b] shadow-lg hover:brightness-110"
+              className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#E8C865] px-6 text-sm font-black text-[#15140b] shadow-lg hover:brightness-110 transition-all"
             >
               Daftarkan Lapak Sekarang
             </Link>
           </div>
         )}
 
-        {/* Listings grid */}
-        {(state === "loaded" || state === "saving") && listings.length > 0 && (
-          <div className="grid gap-5 lg:grid-cols-[1fr_1.4fr] lg:items-start">
+        {/* ── Main Content Area ── */}
+        {(state === "loaded" || state === "saving") && listings.length > 0 && selected && (
+          <div className="space-y-6">
 
-            {/* Left: Listing list */}
-            <div className="space-y-3">
-              <p className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">
-                {listings.length} Lapak Saya
-              </p>
-              {listings.map((listing) => (
-                <button
-                  key={listing.id}
-                  type="button"
-                  onClick={() => {
-                    setSelectedId(listing.id);
-                    setIsEditing(false);
-                    setEditForm({});
-                    setDeleteConfirmId(null);
-                    setActionMessage(null);
-                  }}
-                  className={`w-full cursor-pointer text-left rounded-2xl border p-4 transition-all ${
-                    selectedId === listing.id
-                      ? "border-[#D4AF37]/60 bg-[#D4AF37]/10 shadow-lg"
-                      : "border-white/10 bg-[#00241b] hover:border-[#D4AF37]/30 hover:bg-[#002b23]"
-                  }`}
-                >
-                  {/* Cover thumbnail */}
-                  <div className="flex items-start gap-3">
-                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-[#001713]">
-                      {listing.cover_image_url ? (
-                        <Image
-                          src={listing.cover_image_url}
-                          alt={listing.cover_image_alt || listing.name}
-                          width={64}
-                          height={64}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center text-2xl">🏪</div>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${statusColors[listing.status]}`}>
-                          {statusLabels[listing.status]}
-                        </span>
-                        <span className={`flex items-center gap-1 text-[10px] font-bold ${listing.seller_status === "online" ? "text-emerald-400" : "text-slate-500"}`}>
-                          <span className={`h-1.5 w-1.5 rounded-full ${listing.seller_status === "online" ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
-                          {listing.seller_status === "online" ? "Buka" : "Tutup"}
-                        </span>
-                      </div>
-                      <p className="mt-1 truncate text-sm font-black text-white">{listing.name}</p>
-                      <p className="text-xs text-[#D4AF37] font-semibold">{listing.price_label || "Harga belum diisi"}</p>
-                      <p className="mt-1 text-[10px] text-slate-500">{categoryLabels[listing.category] || listing.category} · {listing.cluster}</p>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {/* Right: Detail panel */}
-            {selected && (
-              <div className="rounded-2xl border border-white/10 bg-[#00241b] overflow-hidden">
-
-                {/* Cover image */}
-                <div className="relative aspect-[16/9] w-full bg-[#001713]">
-                  {selected.cover_image_url ? (
-                    <Image
-                      src={selected.cover_image_url}
-                      alt={selected.cover_image_alt || selected.name}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 1024px) 100vw, 60vw"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-5xl">🏪</div>
-                  )}
-                  {/* Status badge overlay */}
-                  <div className="absolute left-3 top-3">
-                    <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider backdrop-blur-md ${statusColors[selected.status]}`}>
-                      {statusLabels[selected.status]}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-5 space-y-5">
-
-                  {/* Quick Controls */}
-                  <div className="grid grid-cols-2 gap-2">
-                    {/* Toggle Buka/Tutup */}
-                    <button
-                      type="button"
-                      onClick={() => void toggleSellerStatus()}
-                      disabled={state === "saving"}
-                      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-bold transition-all disabled:opacity-60 ${
-                        selected.seller_status === "online"
-                          ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
-                          : "border-slate-400/30 bg-slate-500/10 text-slate-400 hover:bg-slate-500/20"
-                      }`}
-                    >
-                      <span className={`h-2 w-2 rounded-full ${selected.seller_status === "online" ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
-                      {state === "saving" ? "Menyimpan..." : selected.seller_status === "online" ? "Buka → Tutup" : "Tutup → Buka"}
-                    </button>
-
-                    {/* Upload Cover */}
-                    <div>
-                      <input
-                        ref={coverInputRef}
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        onChange={(e) => void handleCoverUpload(e)}
-                        className="hidden"
-                        id="portal-lapak-cover-input"
-                        disabled={uploadingCover}
-                      />
-                      <label
-                        htmlFor="portal-lapak-cover-input"
-                        className={`inline-flex min-h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.05] px-3 text-sm font-bold text-slate-200 hover:border-white/30 hover:bg-white/10 transition-all ${uploadingCover ? "pointer-events-none opacity-60" : ""}`}
-                      >
-                        📷 {uploadingCover ? "Mengunggah..." : "Ganti Cover"}
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Product Photos */}
-                  {(() => {
-                    const photos = productPhotos[selected.id] ?? [];
-                    return (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                            Foto Produk ({photos.length}/5)
-                          </p>
-                          {photos.length < 5 && (
-                            <div>
-                              <input
-                                ref={photoInputRef}
-                                type="file"
-                                accept="image/jpeg,image/png,image/webp"
-                                onChange={(e) => void handlePhotoUpload(e)}
-                                className="hidden"
-                                id="portal-lapak-photo-input"
-                                disabled={uploadingPhoto}
-                              />
-                              <label
-                                htmlFor="portal-lapak-photo-input"
-                                className={`inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-white/15 bg-white/[0.05] px-2.5 text-xs font-bold text-slate-300 hover:border-white/30 hover:bg-white/10 transition-all ${
-                                  uploadingPhoto ? "pointer-events-none opacity-50" : ""
-                                }`}
-                              >
-                                {uploadingPhoto ? (
-                                  <><span className="h-3 w-3 rounded-full border-2 border-slate-400 border-t-transparent animate-spin" /> Mengunggah...</>
-                                ) : (
-                                  <>📎 Tambah Foto</>
-                                )}
-                              </label>
-                            </div>
-                          )}
-                        </div>
-
-                        {photos.length > 0 ? (
-                          <div className="grid grid-cols-3 gap-2">
-                            {photos.map((photo) => (
-                              <div key={photo.id} className="group relative aspect-square overflow-hidden rounded-xl border border-white/10 bg-[#001713]">
-                                <Image
-                                  src={photo.publicUrl}
-                                  alt={photo.file_name}
-                                  fill
-                                  className="object-cover"
-                                  sizes="120px"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => void handlePhotoDelete(photo)}
-                                  disabled={deletingPhotoId === photo.id}
-                                  className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-100"
-                                  aria-label={`Hapus foto ${photo.file_name}`}
-                                >
-                                  {deletingPhotoId === photo.id ? (
-                                    <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                                  ) : (
-                                    <span className="text-xs font-bold text-white">🗑️</span>
-                                  )}
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="rounded-xl border border-dashed border-white/10 py-4 text-center text-xs text-slate-600">
-                            Belum ada foto produk. Tambahkan agar pembeli lebih tertarik!
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })()}
-
-                  {/* Edit toggle */}
-                  {!isEditing ? (
-                    <>
-                      {/* View mode */}
-                      <div className="space-y-3 text-sm">
-                        <div>
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Nama Lapak</p>
-                          <p className="mt-0.5 font-black text-white">{selected.name}</p>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Harga</p>
-                            <p className="mt-0.5 font-semibold text-[#E8C865]">{selected.price_label || "–"}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Kontak WA</p>
-                            <p className="mt-0.5 font-semibold text-slate-200">{selected.contact_method || "–"}</p>
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Ketersediaan</p>
-                          <p className="mt-0.5 font-semibold text-slate-200">{selected.availability_note || "–"}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Deskripsi</p>
-                          <p className="mt-0.5 text-xs text-slate-300 leading-relaxed line-clamp-4">{selected.description}</p>
-                        </div>
-                        <p className="text-[10px] text-slate-600">Tayang sejak {formatDate(selected.published_at)}</p>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2 pt-2 border-t border-white/10">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEditForm({
-                              name: selected.name,
-                              price_label: selected.price_label,
-                              contact_method: selected.contact_method,
-                              availability_note: selected.availability_note,
-                              description: selected.description,
-                            });
-                            setIsEditing(true);
-                          }}
-                          className="inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-3 text-xs font-bold text-[#E8C865] hover:bg-[#D4AF37]/20 transition-all"
-                        >
-                          ✏️ Edit Data Lapak
-                        </button>
-                        <Link
-                          href="/palugada/"
-                          target="_blank"
-                          className="inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.05] px-3 text-xs font-bold text-slate-300 hover:border-white/25 hover:text-white transition-all"
-                        >
-                          🔗 Lihat di Katalog
-                        </Link>
-                      </div>
-                    </>
-                  ) : (
-                    /* Edit mode */
-                    <div className="space-y-3 rounded-2xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-4">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">Mode Edit Lapak</p>
-
-                      <div>
-                        <label className="block text-xs font-bold text-slate-300">Nama Lapak</label>
-                        <input
-                          type="text"
-                          value={editForm.name ?? ""}
-                          onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
-                          maxLength={120}
-                          className="mt-1 w-full rounded-xl border border-white/15 bg-[#001713] px-3 py-2 text-sm font-semibold text-white placeholder:text-slate-600 focus:border-[#D4AF37]/60 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-xs font-bold text-slate-300">Harga / Status</label>
-                          <input
-                            type="text"
-                            value={editForm.price_label ?? ""}
-                            onChange={(e) => setEditForm((p) => ({ ...p, price_label: e.target.value }))}
-                            maxLength={120}
-                            className="mt-1 w-full rounded-xl border border-white/15 bg-[#001713] px-3 py-2 text-sm font-semibold text-white placeholder:text-slate-600 focus:border-[#D4AF37]/60 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-bold text-slate-300">Nomor WA</label>
-                          <input
-                            type="tel"
-                            value={editForm.contact_method ?? ""}
-                            onChange={(e) => setEditForm((p) => ({ ...p, contact_method: e.target.value }))}
-                            maxLength={20}
-                            className="mt-1 w-full rounded-xl border border-white/15 bg-[#001713] px-3 py-2 text-sm font-semibold text-white placeholder:text-slate-600 focus:border-[#D4AF37]/60 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-slate-300">Ketersediaan</label>
-                        <input
-                          type="text"
-                          value={editForm.availability_note ?? ""}
-                          onChange={(e) => setEditForm((p) => ({ ...p, availability_note: e.target.value }))}
-                          maxLength={300}
-                          className="mt-1 w-full rounded-xl border border-white/15 bg-[#001713] px-3 py-2 text-sm font-semibold text-white placeholder:text-slate-600 focus:border-[#D4AF37]/60 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-slate-300">Deskripsi</label>
-                        <textarea
-                          rows={5}
-                          value={editForm.description ?? ""}
-                          onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))}
-                          maxLength={3000}
-                          className="mt-1 w-full rounded-xl border border-white/15 bg-[#001713] px-3 py-2 text-xs font-medium leading-relaxed text-white placeholder:text-slate-600 focus:border-[#D4AF37]/60 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30"
-                        />
-                      </div>
-
-                      <div className="flex gap-2 pt-1">
-                        <button
-                          type="button"
-                          onClick={() => { setIsEditing(false); setEditForm({}); }}
-                          className="flex-1 min-h-10 rounded-xl border border-white/15 bg-white/[0.05] text-xs font-bold text-slate-300 hover:text-white transition-all"
-                        >
-                          Batal
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => void saveEdit()}
-                          disabled={state === "saving"}
-                          className="flex-1 min-h-10 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#E8C865] text-xs font-black text-[#15140b] hover:brightness-110 transition-all disabled:opacity-60"
-                        >
-                          {state === "saving" ? "Menyimpan..." : "Simpan Perubahan"}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Delete zone */}
-                  <div className="border-t border-red-500/20 pt-4">
-                    {deleteConfirmId === selected.id ? (
-                      <div className="rounded-2xl border border-red-400/30 bg-red-500/10 p-4 space-y-3">
-                        <p className="text-sm font-bold text-red-300">Hapus lapak ini secara permanen?</p>
-                        <p className="text-xs text-red-400 leading-relaxed">
-                          Lapak akan hilang dari katalog PALUGADA dan tidak dapat dikembalikan.
-                        </p>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setDeleteConfirmId(null)}
-                            className="flex-1 min-h-9 rounded-xl border border-white/15 text-xs font-bold text-slate-300 hover:text-white transition-all"
-                          >
-                            Batal
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => void deleteListing()}
-                            disabled={state === "saving"}
-                            className="flex-1 min-h-9 rounded-xl bg-red-600 text-xs font-bold text-white hover:bg-red-700 transition-all disabled:opacity-60"
-                          >
-                            Ya, Hapus Sekarang
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setDeleteConfirmId(selected.id)}
-                        className="w-full min-h-10 rounded-xl border border-red-400/30 bg-red-500/5 text-xs font-bold text-red-400 hover:bg-red-500/15 hover:border-red-400/50 transition-all"
-                      >
-                        🗑️ Hapus Lapak Ini
-                      </button>
-                    )}
-                  </div>
-                </div>
+            {/* ── Lapak Selector Tabs (if multiple listings) ── */}
+            {listings.length > 1 && (
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                {listings.map((l) => (
+                  <button
+                    key={l.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedId(l.id);
+                      setIsEditing(false);
+                      setEditForm({});
+                      setDeleteConfirmId(null);
+                      setActionMessage(null);
+                    }}
+                    className={`flex items-center gap-2 whitespace-nowrap rounded-xl border px-4 py-2 text-xs font-bold transition-all ${
+                      selectedId === l.id
+                        ? "border-[#D4AF37] bg-[#D4AF37]/15 text-[#E8C865] shadow-sm"
+                        : "border-white/10 bg-[#00241b] text-slate-300 hover:border-white/20 hover:text-white"
+                    }`}
+                  >
+                    <span>{l.name}</span>
+                    <span className={`h-2 w-2 rounded-full ${l.seller_status === "online" ? "bg-emerald-400" : "bg-slate-500"}`} />
+                  </button>
+                ))}
               </div>
             )}
+
+            {/* ── SECTION 1: HERO COVER & DIRECT ACTIONS ── */}
+            <section className="overflow-hidden rounded-3xl border border-white/10 bg-[#00241b] shadow-xl">
+              {/* Cover Banner */}
+              <div className="relative aspect-[21/9] sm:aspect-[3/1] w-full bg-[#001713] overflow-hidden">
+                {displayCoverUrl ? (
+                  <Image
+                    src={displayCoverUrl}
+                    alt={selected.cover_image_alt || selected.name}
+                    fill
+                    priority
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 100vw, 900px"
+                  />
+                ) : (
+                  <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-[#00241b] via-[#001713] to-[#043327] p-6 text-center">
+                    <span className="text-4xl sm:text-5xl">🏪</span>
+                    <p className="mt-2 text-xs font-bold text-slate-400">Belum ada foto cover utama</p>
+                  </div>
+                )}
+
+                {/* Dark gradient overlay for readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+
+                {/* Badges on Top */}
+                <div className="absolute left-3 top-3 sm:left-4 sm:top-4 flex flex-wrap items-center gap-2">
+                  <span className={`rounded-full border px-3 py-0.5 text-[10px] font-black uppercase tracking-wider backdrop-blur-md ${statusColors[selected.status]}`}>
+                    {statusLabels[selected.status]}
+                  </span>
+                  <span className="rounded-full border border-white/20 bg-black/50 px-2.5 py-0.5 text-[10px] font-bold text-slate-200 backdrop-blur-md">
+                    {categoryLabels[selected.category] || selected.category}
+                  </span>
+                </div>
+
+                {/* Title & Info on Bottom of Cover */}
+                <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-5 sm:right-5 flex items-end justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-[#D4AF37]">
+                      {selected.cluster}
+                    </p>
+                    <h2 className="truncate text-lg sm:text-2xl font-black text-white drop-shadow-md">
+                      {selected.name}
+                    </h2>
+                  </div>
+                  <span className="shrink-0 rounded-xl bg-black/60 px-3 py-1 text-xs sm:text-sm font-black text-[#E8C865] backdrop-blur-md border border-[#D4AF37]/30">
+                    {selected.price_label || "Harga Belum Diisi"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Toolbar below Cover */}
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-[#001d18] px-4 py-3 sm:px-6">
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(e) => void handleCoverUpload(e)}
+                    className="hidden"
+                    id="portal-lapak-cover-input"
+                    disabled={uploadingCover}
+                  />
+                  <label
+                    htmlFor="portal-lapak-cover-input"
+                    className={`inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.05] px-3.5 text-xs font-bold text-slate-200 hover:border-white/30 hover:bg-white/10 transition-all ${
+                      uploadingCover ? "pointer-events-none opacity-60" : ""
+                    }`}
+                  >
+                    <span>📷</span>
+                    <span>{uploadingCover ? "Mengunggah..." : "Ganti Foto Cover"}</span>
+                  </label>
+                  <span className="hidden sm:inline text-[11px] text-slate-500">Maks. 10MB (JPG/PNG/WebP)</span>
+                </div>
+
+                <Link
+                  href={`/palugada/detail/?id=${encodeURIComponent(selected.id)}`}
+                  target="_blank"
+                  className="inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3.5 text-xs font-bold text-emerald-300 hover:bg-emerald-500/20 transition-all"
+                >
+                  <span>🌐</span>
+                  <span>Lihat Tampilan Publik ↗</span>
+                </Link>
+              </div>
+            </section>
+
+            {/* ── SECTION 2: STATUS OPERASIONAL (ONLINE / OFFLINE) ── */}
+            <section className="rounded-3xl border border-white/10 bg-[#00241b] p-5 sm:p-6 shadow-xl space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">STATUS TOKO</p>
+                  <h3 className="text-base font-black text-white">Status Operasional Lapak</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`h-2.5 w-2.5 rounded-full ${selected.seller_status === "online" ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
+                  <span className={`text-xs font-black ${selected.seller_status === "online" ? "text-emerald-300" : "text-slate-400"}`}>
+                    {selected.seller_status === "online" ? "Sedang Buka" : "Sedang Tutup"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Segmented Switch */}
+              <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-[#001713] p-1.5">
+                <button
+                  type="button"
+                  onClick={() => void setSellerStatus("online")}
+                  disabled={state === "saving"}
+                  className={`flex min-h-11 items-center justify-center gap-2 rounded-xl text-xs font-extrabold transition-all disabled:opacity-60 ${
+                    selected.seller_status === "online"
+                      ? "bg-emerald-500 text-slate-950 shadow-md"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <span>🟢</span>
+                  <span>Buka untuk Pesanan (Online)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => void setSellerStatus("offline")}
+                  disabled={state === "saving"}
+                  className={`flex min-h-11 items-center justify-center gap-2 rounded-xl text-xs font-extrabold transition-all disabled:opacity-60 ${
+                    selected.seller_status === "offline"
+                      ? "bg-zinc-700 text-white shadow-md"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <span>⏸️</span>
+                  <span>Tutup Sementara (Offline)</span>
+                </button>
+              </div>
+              <p className="text-xs text-slate-400">
+                {selected.seller_status === "online"
+                  ? "Lapak Anda berstatus Buka. Tetangga dapat langsung menghubungi via WhatsApp untuk memesan."
+                  : "Lapak sedang dinonaktifkan sementara. Pengunjung akan melihat tanda toko sedang tutup."}
+              </p>
+            </section>
+
+            {/* ── SECTION 3: PRODUCT PHOTOS & GALLERY (UP TO 5) ── */}
+            <section className="rounded-3xl border border-white/10 bg-[#00241b] p-5 sm:p-6 shadow-xl space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">GALERI PRODUK</p>
+                    <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-black text-slate-300">
+                      {activePhotos.length}/5 Foto
+                    </span>
+                  </div>
+                  <h3 className="text-base font-black text-white">Foto Produk atau Menu Tambahan</h3>
+                </div>
+
+                {activePhotos.length < 5 && (
+                  <div>
+                    <input
+                      ref={photoInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={(e) => void handlePhotoUpload(e)}
+                      className="hidden"
+                      id="portal-lapak-photo-input"
+                      disabled={uploadingPhoto}
+                    />
+                    <label
+                      htmlFor="portal-lapak-photo-input"
+                      className={`inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-xl border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-3.5 text-xs font-black text-[#E8C865] hover:bg-[#D4AF37]/20 transition-all ${
+                        uploadingPhoto ? "pointer-events-none opacity-50" : ""
+                      }`}
+                    >
+                      {uploadingPhoto ? (
+                        <>
+                          <span className="h-3 w-3 rounded-full border-2 border-[#E8C865] border-t-transparent animate-spin" />
+                          <span>Mengunggah...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>+</span>
+                          <span>Tambah Foto Produk</span>
+                        </>
+                      )}
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              {/* Photo Grid */}
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+                {activePhotos.map((photo, idx) => (
+                  <div
+                    key={photo.id}
+                    className="group relative aspect-square overflow-hidden rounded-2xl border border-white/10 bg-[#001713] shadow-md"
+                  >
+                    {photo.publicUrl ? (
+                      <Image
+                        src={photo.publicUrl}
+                        alt={photo.file_name}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        sizes="(max-width: 640px) 50vw, 180px"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-xs text-slate-500">
+                        Foto {idx + 1}
+                      </div>
+                    )}
+
+                    {/* Delete overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        onClick={() => void handlePhotoDelete(photo)}
+                        disabled={deletingPhotoId === photo.id}
+                        className="inline-flex items-center gap-1 rounded-lg bg-red-600 px-2.5 py-1.5 text-xs font-bold text-white shadow hover:bg-red-700 transition-colors disabled:opacity-50"
+                        aria-label={`Hapus foto ${photo.file_name}`}
+                      >
+                        {deletingPhotoId === photo.id ? (
+                          <span className="h-3 w-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                        ) : (
+                          <>
+                            <span>🗑️</span>
+                            <span>Hapus</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    <span className="absolute bottom-1.5 left-1.5 rounded-md bg-black/60 px-1.5 py-0.5 text-[9px] font-bold text-white backdrop-blur-sm">
+                      #{idx + 1}
+                    </span>
+                  </div>
+                ))}
+
+                {/* Empty Slots */}
+                {Array.from({ length: Math.max(0, 5 - activePhotos.length) }).map((_, idx) => (
+                  <label
+                    key={idx}
+                    htmlFor={idx === 0 ? "portal-lapak-photo-input" : undefined}
+                    className={`flex aspect-square flex-col items-center justify-center rounded-2xl border-2 border-dashed border-white/10 bg-white/[0.02] p-3 text-center transition-all ${
+                      idx === 0
+                        ? "cursor-pointer hover:border-[#D4AF37]/50 hover:bg-[#D4AF37]/5"
+                        : "opacity-40"
+                    }`}
+                  >
+                    <span className="text-xl text-slate-500">{idx === 0 ? "➕" : "📷"}</span>
+                    <span className="mt-1 text-[10px] font-bold text-slate-400">
+                      {idx === 0 ? "Unggah Foto" : `Slot ${activePhotos.length + idx + 1}`}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </section>
+
+            {/* ── SECTION 4: INFORMASI DETAIL LAPAK ── */}
+            <section className="rounded-3xl border border-white/10 bg-[#00241b] p-5 sm:p-6 shadow-xl space-y-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">DATA INFORMASI</p>
+                  <h3 className="text-base font-black text-white">Detail & Deskripsi Lapak</h3>
+                </div>
+
+                {!isEditing && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditForm({
+                        name: selected.name,
+                        price_label: selected.price_label,
+                        contact_method: selected.contact_method,
+                        availability_note: selected.availability_note,
+                        description: selected.description,
+                      });
+                      setIsEditing(true);
+                    }}
+                    className="inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-3.5 text-xs font-black text-[#E8C865] hover:bg-[#D4AF37]/20 transition-all"
+                  >
+                    <span>✏️</span>
+                    <span>Edit Informasi</span>
+                  </button>
+                )}
+              </div>
+
+              {!isEditing ? (
+                /* View Mode */
+                <div className="space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-2xl border border-white/8 bg-[#001713] p-3.5">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Nama Lapak</p>
+                      <p className="mt-1 text-sm font-black text-white">{selected.name}</p>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/8 bg-[#001713] p-3.5">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Harga / Tarif</p>
+                      <p className="mt-1 text-sm font-black text-[#E8C865]">{selected.price_label || "–"}</p>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/8 bg-[#001713] p-3.5">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Nomor WhatsApp</p>
+                      <p className="mt-1 text-sm font-bold text-slate-200">{selected.contact_method || "–"}</p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/8 bg-[#001713] p-3.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Ketersediaan</p>
+                    <p className="mt-1 text-xs font-semibold text-slate-200">{selected.availability_note || "–"}</p>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/8 bg-[#001713] p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Deskripsi Lengkap</p>
+                    <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed whitespace-pre-line">
+                      {selected.description}
+                    </p>
+                  </div>
+
+                  <p className="text-[10px] text-slate-500">
+                    Tayang di katalog sejak {formatDate(selected.published_at || selected.created_at)}
+                  </p>
+                </div>
+              ) : (
+                /* Edit Mode */
+                <div className="space-y-4 rounded-2xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-4 sm:p-5">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                    <p className="text-xs font-black uppercase tracking-wider text-[#E8C865]">Formulir Edit Data Lapak</p>
+                    <button
+                      type="button"
+                      onClick={() => { setIsEditing(false); setEditForm({}); }}
+                      className="text-xs text-slate-400 hover:text-white"
+                    >
+                      Batal
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300">Nama Lapak / Usaha</label>
+                    <input
+                      type="text"
+                      value={editForm.name ?? ""}
+                      onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
+                      maxLength={120}
+                      className="mt-1.5 w-full rounded-xl border border-white/15 bg-[#001713] px-3.5 py-2.5 text-sm font-semibold text-white placeholder:text-slate-600 focus:border-[#D4AF37]/60 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30"
+                    />
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300">Harga / Label Tarif</label>
+                      <input
+                        type="text"
+                        value={editForm.price_label ?? ""}
+                        onChange={(e) => setEditForm((p) => ({ ...p, price_label: e.target.value }))}
+                        placeholder="Contoh: 5.300.000 atau Mulai Rp 20.000"
+                        maxLength={120}
+                        className="mt-1.5 w-full rounded-xl border border-white/15 bg-[#001713] px-3.5 py-2.5 text-sm font-semibold text-white placeholder:text-slate-600 focus:border-[#D4AF37]/60 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300">Nomor WhatsApp Aktif</label>
+                      <input
+                        type="tel"
+                        value={editForm.contact_method ?? ""}
+                        onChange={(e) => setEditForm((p) => ({ ...p, contact_method: e.target.value }))}
+                        placeholder="Contoh: 081291254064"
+                        maxLength={20}
+                        className="mt-1.5 w-full rounded-xl border border-white/15 bg-[#001713] px-3.5 py-2.5 text-sm font-semibold text-white placeholder:text-slate-600 focus:border-[#D4AF37]/60 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300">Catatan Ketersediaan / Stok</label>
+                    <input
+                      type="text"
+                      value={editForm.availability_note ?? ""}
+                      onChange={(e) => setEditForm((p) => ({ ...p, availability_note: e.target.value }))}
+                      placeholder="Contoh: Stok ready, pengiriman setiap sore"
+                      maxLength={300}
+                      className="mt-1.5 w-full rounded-xl border border-white/15 bg-[#001713] px-3.5 py-2.5 text-sm font-semibold text-white placeholder:text-slate-600 focus:border-[#D4AF37]/60 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300">Deskripsi Lengkap</label>
+                    <textarea
+                      rows={5}
+                      value={editForm.description ?? ""}
+                      onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))}
+                      maxLength={3000}
+                      placeholder="Tuliskan spesifikasi produk, keunggulan, atau ketentuan pemesanan..."
+                      className="mt-1.5 w-full rounded-xl border border-white/15 bg-[#001713] px-3.5 py-2.5 text-xs font-medium leading-relaxed text-white placeholder:text-slate-600 focus:border-[#D4AF37]/60 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30"
+                    />
+                  </div>
+
+                  <div className="flex gap-2.5 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => { setIsEditing(false); setEditForm({}); }}
+                      className="flex-1 min-h-11 rounded-xl border border-white/15 bg-white/[0.05] text-xs font-bold text-slate-300 hover:text-white transition-all"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void saveEdit()}
+                      disabled={state === "saving"}
+                      className="flex-1 min-h-11 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#E8C865] text-xs font-black text-[#15140b] hover:brightness-110 transition-all disabled:opacity-60 shadow-md"
+                    >
+                      {state === "saving" ? "Menyimpan Perubahan..." : "Simpan Perubahan"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
+
+            {/* ── SECTION 5: DANGER ZONE (HAPUS LAPAK) ── */}
+            <section className="rounded-3xl border border-red-500/20 bg-red-950/20 p-5 sm:p-6 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h4 className="text-sm font-bold text-red-300">Hapus Lapak dari Katalog</h4>
+                  <p className="text-xs text-red-400/80">Lapak akan dihapus secara permanen dari etalase warga.</p>
+                </div>
+
+                {deleteConfirmId !== selected.id ? (
+                  <button
+                    type="button"
+                    onClick={() => setDeleteConfirmId(selected.id)}
+                    className="inline-flex min-h-9 items-center justify-center rounded-xl border border-red-400/30 bg-red-500/10 px-4 text-xs font-bold text-red-300 hover:bg-red-500/20 transition-all"
+                  >
+                    🗑️ Hapus Lapak
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setDeleteConfirmId(null)}
+                      className="inline-flex min-h-9 items-center justify-center rounded-xl border border-white/15 px-3 text-xs font-bold text-slate-300 hover:text-white"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void deleteListing()}
+                      disabled={state === "saving"}
+                      className="inline-flex min-h-9 items-center justify-center rounded-xl bg-red-600 px-4 text-xs font-black text-white hover:bg-red-700 transition-all disabled:opacity-60"
+                    >
+                      Konfirmasi Hapus
+                    </button>
+                  </div>
+                )}
+              </div>
+            </section>
+
           </div>
         )}
       </div>

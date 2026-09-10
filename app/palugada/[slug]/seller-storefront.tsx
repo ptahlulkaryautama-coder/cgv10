@@ -169,19 +169,19 @@ export function SellerStorefront({ seller }: { seller: StorefrontSeller }) {
   return (
     <main className="pb-24 lg:pb-12">
       {seller.isOwner && (
-        <aside aria-label="Akses pemilik lapak" className="border-b border-[#D4AF37]/40 bg-gradient-to-r from-[#D4AF37] to-[#E8C865] px-4 py-3 text-[#15140b] shadow-sm">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 sm:px-6 lg:px-8 xl:px-10">
+        <aside aria-label="Akses pemilik lapak" className="border-b border-[#D4AF37]/30 bg-gradient-to-r from-[#D4AF37] via-[#E8C865] to-[#D4AF37] px-4 py-2.5 text-[#15140b] shadow-sm">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 sm:px-6 lg:px-8 xl:px-10">
             <div className="flex items-center gap-2">
-              <span className="text-lg">👑</span>
-              <p className="text-xs font-black sm:text-sm">
-                Anda adalah pemilik lapak ini. Ingin ganti foto cover, tambah foto galeri, ubah harga, atau buka/tutup toko?
+              <span className="text-base">👑</span>
+              <p className="text-xs font-bold sm:text-sm">
+                Anda adalah pemilik lapak ini.
               </p>
             </div>
             <Link
               href="/portal/lapak/"
-              className="inline-flex min-h-9 items-center justify-center rounded-xl bg-[#001713] px-4 text-xs font-black text-white shadow hover:bg-black transition-all"
+              className="inline-flex min-h-8 items-center justify-center rounded-lg bg-[#001713] px-3.5 text-xs font-bold text-white shadow hover:bg-black transition-all"
             >
-              ✏️ Buka Menu Kelola Lapak
+              ✏️ Kelola Lapak
             </Link>
           </div>
         </aside>
@@ -191,15 +191,6 @@ export function SellerStorefront({ seller }: { seller: StorefrontSeller }) {
         <div className="mx-auto max-w-7xl px-4 pb-7 pt-5 sm:px-6 lg:px-8 xl:px-10">
           <div className="flex items-center justify-between gap-2">
             <Link href="/palugada/" className="inline-flex min-h-10 items-center text-sm font-semibold text-white/78 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft">← Kembali ke PALUGADA</Link>
-            {seller.isOwner && (
-              <Link
-                href="/portal/lapak/"
-                className="inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-amber-300/40 bg-amber-400/15 px-3 text-xs font-black text-amber-200 hover:bg-amber-400/25 transition-all"
-              >
-                <span>✏️</span>
-                <span>Kelola Lapak Saya</span>
-              </Link>
-            )}
           </div>
           <div className="mt-5 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-4">
