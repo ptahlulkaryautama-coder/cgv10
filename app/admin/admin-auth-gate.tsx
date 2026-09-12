@@ -66,6 +66,16 @@ export function AdminAuthGate({ children }: { children: React.ReactNode }) {
         }
 
         const user = sessionData.session.user;
+
+        // Validasi kesehatan JWT token
+        const token = sessionData.session.access_token;
+        if (token && token.length > 8000) {
+          console.warn("[AdminAuthGate] JWT access token is abnormally large:", token.length);
+          await client.auth.signOut({ scope: "local" });
+          router.replace("/admin/login/");
+          return;
+        }
+
         const [{ data: profile, error: profileErr }, { data: roles, error: roleErr }] =
           await Promise.all([
             client.from("profiles").select("status").eq("id", user.id).maybeSingle(),
@@ -76,13 +86,17 @@ export function AdminAuthGate({ children }: { children: React.ReactNode }) {
 
         if (profileErr || roleErr) {
           setState("error");
-          setMessage(profileErr?.message || roleErr?.message || "Gagal memverifikasi hak akses admin.");
+          setMessage(
+            profileErr?.message || roleErr?.message || "Gagal memverifikasi hak akses admin.",
+          );
           return;
         }
 
         if (profile?.status !== "active") {
           setState("denied");
-          setMessage("Akun pengurus Anda belum aktif atau dinonaktifkan. Silakan hubungi pengurus RT.");
+          setMessage(
+            "Akun pengurus Anda belum aktif atau dinonaktifkan. Silakan hubungi pengurus RT.",
+          );
           return;
         }
 
@@ -90,14 +104,17 @@ export function AdminAuthGate({ children }: { children: React.ReactNode }) {
         const hasAdmin = userRoles.some((r) => productionAdminRoles.includes(r));
         if (!hasAdmin) {
           setState("denied");
-          setMessage("Akun ini terdaftar, namun belum memiliki hak akses role pengurus admin.");
+          setMessage(
+            "Akun ini terdaftar, namun belum memiliki hak akses role pengurus admin.",
+          );
           return;
         }
 
         setState("authorized");
       } catch (err: unknown) {
         if (!mounted) return;
-        const errMsg = err instanceof Error ? err.message : "Terjadi kesalahan saat memeriksa akses.";
+        const errMsg =
+          err instanceof Error ? err.message : "Terjadi kesalahan saat memeriksa akses.";
         setState("error");
         setMessage(errMsg);
       }

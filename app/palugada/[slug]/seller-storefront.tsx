@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { ImagePreview } from "@/app/components/image-preview";
 
 export type StorefrontSeller = {
   slug: string;
@@ -103,7 +104,37 @@ function Icon({ name, className = "h-5 w-5" }: { name: "cart" | "plus" | "minus"
   return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={className}>{paths[name]}</svg>;
 }
 
-function StoreImage({ src, alt, sizes, priority = false, className }: { src: string; alt: string; sizes: string; priority?: boolean; className: string }) {
+const categoryEmoji: Record<string, string> = {
+  Kuliner: "🍽️",
+  Jasa: "💼",
+  Barang: "📦",
+  Properti: "🏠",
+  Lainnya: "🏪",
+};
+
+function StoreImage({
+  src,
+  alt,
+  sizes,
+  priority = false,
+  className,
+  category = "Lainnya",
+}: {
+  src: string;
+  alt: string;
+  sizes: string;
+  priority?: boolean;
+  className: string;
+  category?: string;
+}) {
+  if (!src) {
+    const icon = categoryEmoji[category] || "🏪";
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-[#0c2217] via-[#003d34] to-[#194b34] text-white">
+        <span className="text-3xl sm:text-4xl">{icon}</span>
+      </div>
+    );
+  }
   if (src.startsWith("http")) {
     // Signed Supabase URLs are temporary and are intentionally not routed through Next's static optimizer.
     // eslint-disable-next-line @next/next/no-img-element
@@ -195,7 +226,7 @@ export function SellerStorefront({ seller }: { seller: StorefrontSeller }) {
           <div className="mt-5 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-4">
               <div className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-2xl border border-white/20 bg-cream shadow-lg sm:h-[5.5rem] sm:w-[5.5rem]">
-                <StoreImage src={seller.imageSrc} alt={seller.imageAlt} sizes="88px" className="object-cover" priority />
+                <StoreImage src={seller.imageSrc} alt={seller.imageAlt} sizes="88px" className="object-cover" priority category={seller.category} />
               </div>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-accent-soft px-2.5 py-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-primary">{seller.category}</span><span className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/85"><span className={`h-2 w-2 rounded-full ${seller.sellerStatus === "online" ? "bg-emerald-400" : "bg-stone-300"}`} />{seller.sellerStatusLabel}</span></div>
@@ -251,19 +282,84 @@ function ProductCard({ product, quantity, onChange }: { product: Product; quanti
 }
 
 function ListingSummary({ seller }: { seller: StorefrontSeller }) {
+  const images =
+    seller.galleryImages.length > 0
+      ? seller.galleryImages
+      : seller.imageSrc && !seller.imageSrc.startsWith("/")
+        ? [{ src: seller.imageSrc, alt: seller.imageAlt }]
+        : [];
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">Harga / ketentuan</p>
-        <p className="mt-3 text-lg font-semibold text-foreground">{seller.priceNote ?? "Sesuai konfirmasi penjual"}</p>
-        <p className="mt-2 text-sm leading-6 text-muted">Harga akhir, jadwal, dan cara pemenuhan mengikuti informasi terbaru dari penyedia.</p>
-      </article>
-      <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">Ketersediaan</p>
-        <p className="mt-3 text-lg font-semibold text-foreground">{seller.sellerStatusLabel}</p>
-        <p className="mt-2 text-sm leading-6 text-muted">{seller.availabilityNote ?? "Konfirmasi langsung diperlukan sebelum membuat pesanan."}</p>
-      </article>
-      {seller.highlights?.length ? <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:col-span-2"><p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">Cakupan layanan</p><ul className="mt-3 space-y-2 text-sm leading-6 text-muted">{seller.highlights.map((highlight) => <li key={highlight} className="flex gap-3"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />{highlight}</li>)}</ul></article> : null}
+    <div className="space-y-6">
+      {/* ── Galeri Foto Produk / Menu Lapak ── */}
+      {images.length > 0 && (
+        <section aria-label="Galeri Foto Produk" className="rounded-3xl border border-border bg-surface p-5 sm:p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-primary">
+                GALERI PRODUK ({images.length} FOTO)
+              </p>
+              <h3 className="text-base sm:text-lg font-black text-foreground">
+                Foto Produk & Menu Lapak
+              </h3>
+            </div>
+            <span className="text-xs font-semibold text-muted">Klik foto untuk perbesar</span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+            {images.map((img, idx) => (
+              <div
+                key={idx}
+                className="group relative aspect-square overflow-hidden rounded-2xl border border-border/80 bg-stone-100 shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
+              >
+                <ImagePreview
+                  src={img.src}
+                  alt={img.alt || `Foto ${idx + 1} ${seller.name}`}
+                  title={seller.name}
+                  caption={`Foto produk #${idx + 1} • ${seller.name}`}
+                  className="h-full w-full"
+                >
+                  <img
+                    src={img.src}
+                    alt={img.alt || `Foto ${idx + 1} ${seller.name}`}
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                </ImagePreview>
+                <span className="absolute bottom-2 left-2 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm pointer-events-none">
+                  #{idx + 1}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Informasi Detail Lapak ── */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">Harga / ketentuan</p>
+          <p className="mt-3 text-lg font-semibold text-foreground">{seller.priceNote ?? "Sesuai konfirmasi penjual"}</p>
+          <p className="mt-2 text-sm leading-6 text-muted">Harga akhir, jadwal, dan cara pemenuhan mengikuti informasi terbaru dari penyedia.</p>
+        </article>
+        <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">Ketersediaan</p>
+          <p className="mt-3 text-lg font-semibold text-foreground">{seller.sellerStatusLabel}</p>
+          <p className="mt-2 text-sm leading-6 text-muted">{seller.availabilityNote ?? "Konfirmasi langsung diperlukan sebelum membuat pesanan."}</p>
+        </article>
+        {seller.highlights?.length ? (
+          <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:col-span-2">
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">Cakupan layanan</p>
+            <ul className="mt-3 space-y-2 text-sm leading-6 text-muted">
+              {seller.highlights.map((highlight) => (
+                <li key={highlight} className="flex gap-3">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                  {highlight}
+                </li>
+              ))}
+            </ul>
+          </article>
+        ) : null}
+      </div>
     </div>
   );
 }

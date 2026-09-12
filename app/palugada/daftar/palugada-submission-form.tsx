@@ -136,9 +136,6 @@ export function PalugadaSubmissionForm() {
     () => buildMessage(form, coverAttachments.length, attachments, submissionReference),
     [attachments, coverAttachments.length, form, submissionReference],
   );
-  const whatsappHref = `https://api.whatsapp.com/send?text=${encodeURIComponent(
-    message,
-  )}`;
   const ready = isReady(form);
   const completedFields = [
     form.businessName.trim(),
@@ -275,6 +272,23 @@ export function PalugadaSubmissionForm() {
             });
           if (uploadError) throw uploadError;
           uploadedPathsRef.current[attachment.id] = storagePath;
+        }
+
+        // If no dedicated cover photo was uploaded, set the first product photo as cover_image_url
+        if (coverAttachments.length === 0 && index === 0) {
+          const { data: firstPhotoUrlData } = supabase.storage
+            .from(palugadaPublicMediaBucket)
+            .getPublicUrl(storagePath);
+
+          if (firstPhotoUrlData?.publicUrl) {
+            await supabase
+              .from("palugada_listings")
+              .update({
+                cover_image_url: firstPhotoUrlData.publicUrl,
+                cover_image_alt: `Cover ${form.businessName.trim()}`,
+              })
+              .eq("id", listingId);
+          }
         }
 
         if (!registeredAttachmentIdsRef.current.has(attachment.id)) {

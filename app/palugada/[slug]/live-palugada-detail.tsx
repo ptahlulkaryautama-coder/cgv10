@@ -53,7 +53,7 @@ export function LivePalugadaDetail({ listingId }: { listingId: string }) {
         .from("palugada_listings")
         .select("id, seller_user_id, catalog_key, name, category, cluster, description, availability_note, contact_method, seller_status, seller_status_note, cover_image_url, cover_image_alt")
         .eq("id", listingId)
-        .eq("status", "approved")
+        .in("status", ["approved", "submitted"])
         .maybeSingle<LiveListing>();
       if (!mounted) return;
       if (error) { setState("error"); return; }
@@ -88,7 +88,16 @@ export function LivePalugadaDetail({ listingId }: { listingId: string }) {
   }
 
   const isOwner = Boolean(currentUserId && listing.seller_user_id === currentUserId);
-  const heroImage = images[0]?.url ?? listing.cover_image_url ?? "/assets/palugada/maniez-donut-main-optimized.jpg";
+  const heroImage = images[0]?.url ?? listing.cover_image_url ?? (listing.catalog_key === "maniez-donut" ? "/assets/palugada/maniez-donut-main-optimized.jpg" : "");
+
+  const allGallery: Array<{ src: string; alt: string }> = [];
+  if (listing.cover_image_url && !images.some((img) => img.url === listing.cover_image_url)) {
+    allGallery.push({ src: listing.cover_image_url, alt: listing.cover_image_alt ?? `Foto cover ${listing.name}` });
+  }
+  for (const img of images) {
+    allGallery.push({ src: img.url, alt: `Foto ${listing.name} - ${img.name}` });
+  }
+
   const seller: StorefrontSeller = {
     slug: listing.catalog_key ?? listing.id,
     name: listing.name,
@@ -97,7 +106,7 @@ export function LivePalugadaDetail({ listingId }: { listingId: string }) {
     description: listing.description,
     imageSrc: heroImage,
     imageAlt: listing.cover_image_alt ?? `Foto ${listing.name}`,
-    galleryImages: images.map((image) => ({ src: image.url, alt: `Foto ${listing.name} - ${image.name}` })),
+    galleryImages: allGallery,
     whatsappHref: buildWhatsappHref(listing.contact_method),
     whatsappLabel: "Hubungi WhatsApp",
     whatsappDisplayNumber: listing.contact_method || undefined,

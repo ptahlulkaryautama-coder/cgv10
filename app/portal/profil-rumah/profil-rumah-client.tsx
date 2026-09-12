@@ -20,43 +20,6 @@ type UserProfile = {
   adminNote?: string;
 };
 
-function fileToDataUrl(file: File, maxDimension = 500, quality = 0.85): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new window.Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        let width = img.width;
-        let height = img.height;
-
-        if (width > maxDimension || height > maxDimension) {
-          if (width > height) {
-            height = Math.round((height * maxDimension) / width);
-            width = maxDimension;
-          } else {
-            width = Math.round((width * maxDimension) / height);
-            height = maxDimension;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          resolve(e.target?.result as string);
-          return;
-        }
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/jpeg", quality));
-      };
-      img.onerror = () => resolve(e.target?.result as string);
-      img.src = e.target?.result as string;
-    };
-    reader.onerror = (err) => reject(err);
-    reader.readAsDataURL(file);
-  });
-}
 
 export function ProfilRumahClient() {
   const supabaseState = useMemo(() => {
@@ -234,16 +197,15 @@ export function ProfilRumahClient() {
           .getPublicUrl(fileName);
         newAvatarUrl = publicUrlData.publicUrl;
       } else {
-        // Fallback otomatis jika bucket storage belum terkonfigurasi di Supabase (e.g. Bucket not found)
-        newAvatarUrl = await fileToDataUrl(file, 500, 0.85);
+        throw new Error(uploadErr.message || "Gagal mengunggah foto ke storage.");
       }
 
-      // 1. Selalu simpan ke auth user_metadata (tanpa tergantung kolom schema PostgreSQL)
+      // 1. Simpan public URL ke auth user_metadata
       await supabase.auth.updateUser({
         data: { avatar_url: newAvatarUrl },
       });
 
-      // 2. Coba perbarui public.profiles (jika kolom avatar_url tersedia di DB, abaikan jika tidak)
+      // 2. Coba perbarui public.profiles jika kolom avatar_url tersedia
       const { error: updateErr } = await supabase
         .from("profiles")
         .update({ avatar_url: newAvatarUrl })
