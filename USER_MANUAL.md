@@ -14,16 +14,25 @@
    - [2.6 Pengajuan Layanan, Surat & Pengaduan Warga](#26-pengajuan-layanan-surat--pengaduan-warga)
    - [2.7 Katalog & Pendaftaran Lapak PALUGADA CGV](#27-katalog--pendaftaran-lapak-palugada-cgv)
    - [2.8 Membaca Kabar Warga, Agenda, Transparansi Keuangan & Kontak](#28-membaca-kabar-warga-agenda-transparansi-keuangan--kontak)
-3. [Panduan Pengurus & Admin (Admin & Board Guide)](#3-panduan-pengurus--admin-admin--board-guide)
-   - [3.1 Akses Admin Dashboard & Shortcut PWA Pengurus](#31-akses-admin-dashboard--shortcut-pwa-pengurus)
-   - [3.2 Matriks Wewenang & Peran (Roles & Permissions)](#32-matriks-wewenang--peran-roles--permissions)
-   - [3.3 Verifikasi Pendaftaran Warga Baru](#33-verifikasi-pendaftaran-warga-baru)
-   - [3.4 Verifikasi & Approval Iuran Otomatis (Auto-Ledger)](#34-verifikasi--approval-iuran-otomatis-auto-ledger)
-   - [3.5 Manajemen Tiket Layanan & Aspirasi Warga](#35-manajemen-tiket-layanan--aspirasi-warga)
-   - [3.6 Pengelolaan Kabar Warga, Galeri Foto & Video](#36-pengelolaan-kabar-warga-galeri-foto--video)
-   - [3.7 Kurasi & Moderasi Lapak PALUGADA](#37-kurasi--moderasi-lapak-palugada)
-   - [3.8 Pengaturan Portal, Hero Slideshow & Manajemen User](#38-pengaturan-portal-hero-slideshow--manajemen-user)
-4. [Tanya Jawab & Troubleshooting (FAQ)](#4-tanya-jawab--troubleshooting-faq)
+3. [Panduan Petugas Keamanan & Pos Satpam (Security Guard Guide)](#3-panduan-petugas-keamanan--pos-satpam-security-guard-guide)
+   - [3.1 Akses Guard Terminal POS (`/security`) & Mode HP/Tablet](#31-akses-guard-terminal-pos-security--mode-hptablet)
+   - [3.2 Alur Pencatatan Masuk Tamu Baru (Check-In)](#32-alur-pencatatan-masuk-tamu-baru-check-in)
+   - [3.3 Fitur Optical Camera HUD (Capture Wajah & Dokumen Identitas)](#33-fitur-optical-camera-hud-capture-wajah--dokumen-identitas)
+   - [3.4 Shortcut Template Cepat (Kurir, Ojol, Tamu Warga, Teknisi)](#34-shortcut-template-cepat-kurir-ojol-tamu-warga-teknisi)
+   - [3.5 Penerbitan Security Digital Pass / Dossier Kunjungan](#35-penerbitan-security-digital-pass--dossier-kunjungan)
+   - [3.6 Alur Pencatatan Tamu Keluar (Check-Out) & Durasi Kunjungan](#36-alur-pencatatan-tamu-keluar-check-out--durasi-kunjungan)
+   - [3.7 Telemetri Realtime & Manajemen Data Demo](#37-telemetri-realtime--manajemen-data-demo)
+4. [Panduan Pengurus & Admin (Admin & Board Guide)](#4-panduan-pengurus--admin-admin--board-guide)
+   - [4.1 Akses Admin Dashboard & Shortcut PWA Pengurus](#41-akses-admin-dashboard--shortcut-pwa-pengurus)
+   - [4.2 Matriks Wewenang & Peran (Roles & Permissions)](#42-matriks-wewenang--peran-roles--permissions)
+   - [4.3 Verifikasi Pendaftaran Warga Baru](#43-verifikasi-pendaftaran-warga-baru)
+   - [4.4 Verifikasi & Approval Iuran Otomatis (Auto-Ledger)](#44-verifikasi--approval-iuran-otomatis-auto-ledger)
+   - [4.5 Manajemen Tiket Layanan & Aspirasi Warga](#45-manajemen-tiket-layanan--aspirasi-warga)
+   - [4.6 Pengelolaan Kabar Warga, Galeri Foto & Video](#46-pengelolaan-kabar-warga-galeri-foto--video)
+   - [4.7 Kurasi & Moderasi Lapak PALUGADA](#47-kurasi--moderasi-lapak-palugada)
+   - [4.8 Audit Trail & Rekapitulasi Buku Tamu Keamanan (`/admin/buku-tamu`)](#48-audit-trail--rekapitulasi-buku-tamu-keamanan-adminbuku-tamu)
+   - [4.9 Pengaturan Portal, Hero Slideshow & Manajemen User](#49-pengaturan-portal-hero-slideshow--manajemen-user)
+5. [Tanya Jawab & Troubleshooting (FAQ)](#5-tanya-jawab--troubleshooting-faq)
 
 ---
 
@@ -34,6 +43,7 @@ Portal CGV10 adalah platform digital terintegrasi untuk warga dan pengurus lingk
 - **Kemudahan Administrasi**: Pengajuan surat pengantar, permohonan layanan keamanan/kebersihan, dan penyampaian aspirasi/keluhan.
 - **Pengelolaan Iuran Warga**: Konfirmasi pembayaran iuran bulanan/tahunan secara mandiri dengan verifikasi otomatis ke buku kas keuangan.
 - **Pemberdayaan Ekonomi (PALUGADA)**: Direktori UMKM dan etalase promosi produk/jasa antar-warga lingkungan Cipta Greenville.
+- **Sistem Keamanan & Buku Tamu Cerdas (Security POS Terminal)**: Pencatatan identitas pengunjung, kurir, ojol, dan teknisi dengan foto optical HUD dan pemantauan realtime tamu aktif di kawasan RT.
 - **Aplikasi Ringan & Modern**: Berbasis Progressive Web App (PWA) yang dapat dipasang di smartphone Android, iPhone/iPad, maupun laptop/PC tanpa membebani penyimpanan perangkat.
 
 ---
@@ -173,9 +183,123 @@ PALUGADA (*Apa Lu Butuh, Gua Ada*) adalah etalase UMKM warga Cipta Greenville.
 
 ---
 
-## 3. Panduan Pengurus & Admin (Admin & Board Guide)
+---
 
-### 3.1 Akses Admin Dashboard & Shortcut PWA Pengurus
+## 3. Panduan Petugas Keamanan & Pos Satpam (Security Guard Guide)
+
+Modul **Buku Tamu Security (Guard POS Terminal)** dirancang khusus untuk petugas keamanan lingkungan Cipta Greenville RT 010. Antarmuka mengusung standar *High-Level Tactical HUD* (Obsidian & Emerald) yang optimal dioperasikan di smartphone/tablet pos jaga dalam kondisi siang maupun malam hari.
+
+---
+
+### 3.1 Akses Guard Terminal POS (`/security`) & Mode HP/Tablet
+
+1. **Alamat Akses**: Buka browser di ponsel/tablet pos jaga dan akses: `https://portalwargacgv.id/security` (atau `/security` di localhost).
+2. **Kemudahan Akses**: Dirancang tanpa hambatan (frictionless) sehingga satpam dapat langsung mencatat tamu dalam hitungan detik saat bertugas di gerbang utama.
+3. **PWA Standalone Shortcut**:
+   - Di Chrome Android: Tekan titik tiga (⋮) -> **"Tambahkan ke Layar Utama"** -> Beri nama *"Security CGV10"*.
+   - Di Safari iPhone: Tekan icon Bagikan -> **"Add to Home Screen"**.
+   - Aplikasi akan terbuka fullscreen tanpa bilah alamat browser, layaknya aplikasi terminal taktis POS.
+
+---
+
+### 3.2 Alur Pencatatan Masuk Tamu Baru (Check-In)
+
+Saat ada tamu, kurir, ojol, atau teknisi tiba di pos gerbang:
+1. Tekan tombol besar **"+ Check-In Pengunjung Baru"** di bagian atas terminal.
+2. Formulir entri digital taktis akan terbuka:
+   - **Kategori Kunjungan**:
+     * 👥 **Tamu Warga**: Kerabat, keluarga, atau rekan bertamu ke rumah warga.
+     * 📦 **Kurir Paket**: Pengantar paket belanja online (J&T, SiCepat, JNE, Shopee, dll.).
+     * 🛵 **Ojek Online / Delivery**: Antar makanan / belanjaan (GoFood, GrabFood, ShopeeFood, Maxim).
+     * 🔧 **Teknisi / Tukang**: Pekerja renovasi, tukang bangunan, teknisi AC/listrik/internet.
+     * 🏛️ **Instansi / Dinas**: Petugas PLN, PDAM, Telkom, Pos, atau instansi pemerintahan.
+     * 🏢 **Agen Properti / Survey**: Peninjau unit rumah atau tamu pengembang.
+     * 📄 **Lainnya**: Keperluan kedinasan atau komersial lainnya.
+   - **Unit Rumah Tujuan**:
+     * **Cluster / Blok**: Pilih blok tujuan (misal: *Aurora*, *Colloseum*, *Greenville*, dll.).
+     * **Nomor Rumah**: Masukkan nomor unit rumah warga yang dituju (misal: *12*, *08*, *25A*).
+   - **Data Identitas Tamu**:
+     * **Nama Lengkap Tamu**: Nama pengendara / kurir / pengunjung.
+     * **Nomor Plat Kendaraan**: Nomor polisi motor / mobil (misal: `BP 1234 CD`).
+     * **Nomor Kontak / WhatsApp**: Nomor HP tamu (opsional).
+     * **Keperluan / Keterangan**: Catatan singkat keperluan kunjungan.
+3. Lampirkan foto bukti optik (lihat panduan kamera di bawah).
+4. Tekan **"Simpan & Terbitkan Pass"**.
+
+---
+
+### 3.3 Fitur Optical Camera HUD (Capture Wajah & Dokumen Identitas)
+
+Terminal keamanan dilengkapi sensor kamera optik dengan *Tactical HUD Reticle* dan kompresi cerdas:
+1. **Optical Facial Capture (Foto Wajah Tamu/Driver)**:
+   - Tekan tombol **"Optical Facial Capture"** untuk membuka jendela kamera.
+   - Posisikan wajah pengunjung di dalam bingkai reticle pemindai hijau.
+   - Tekan tombol rana (shutter).
+   - Periksa hasil foto, lalu tekan **"Gunakan Bukti Ini"** (atau "Ulangi Foto" jika buram).
+2. **Optical Document Scan (Foto Identitas KTP / SIM / Kartu Pengenal)**:
+   - Tekan tombol **"Optical Document Scan"** untuk memotret fisik KTP / SIM / ID Card.
+   - Posisikan kartu di dalam kotak fokus dokumen.
+3. **Kompresi Otomatis**:
+   - Sistem otomatis mengompresi foto menjadi resolusi tajam maksimal 1200px dengan format ringan (±150 KB).
+   - Proses upload instan dan tidak menghabiskan kuota internet pos satpam.
+4. **Fallback Berkas**: Jika kamera terkendala izin atau menggunakan perangkat tertentu, satpam dapat memilih foto langsung dari galeri berkas perangkat via tombol **"Berkas"**.
+
+---
+
+### 3.4 Shortcut Template Cepat (Kurir, Ojol, Tamu Warga, Teknisi)
+
+Untuk situasi jam sibuk (peak hours) di mana banyak kurir dan ojol masuk bersamaan:
+1. Di dalam formulir entri tamu, gunakan baris **"Shortcut Template Cepat"**:
+   - **📦 Kurir**: Otomatis memilih tipe kurir, mengisi keperluan "Antar paket", dan memposisikan kursor di blok tujuan.
+   - **🛵 Ojol**: Otomatis memilih tipe ojek online & keperluan "Antar makanan / pesanan".
+   - **👥 Tamu**: Otomatis memilih tipe tamu warga & keperluan "Bertamu / silaturahmi".
+   - **🔧 Tukang**: Otomatis memilih tipe teknisi & keperluan "Pekerjaan teknis / renovasi".
+2. Petugas hanya perlu melengkapi blok dan nomor rumah tujuan, lalu simpan dalam waktu kurang dari 5 detik!
+
+---
+
+### 3.5 Penerbitan Security Digital Pass / Dossier Kunjungan
+
+Setelah data tamu disimpan:
+1. Sistem akan otomatis menampilkan modal **"Pass Kunjungan Digital (Inspection Dossier)"**.
+2. Dossier ini memuat:
+   - **Kode Pass Unik**: Misal `#CGV-202610-0042`.
+   - **Waktu Masuk (Timestamp Exact)**: Jam & tanggal tercatat presisi.
+   - **Identitas Lengkap & Blok Tujuan**.
+   - **Badge Status Keamanan**: `AKTIF DI DALAM KAWASAN` (Hijau Berkedip).
+   - **Foto Wajah & Dokumen**.
+3. Petugas dapat menunjukkan layar pass kepada pengunjung sebagai bukti izin masuk kawasan RT 010.
+
+---
+
+### 3.6 Alur Pencatatan Tamu Keluar (Check-Out) & Durasi Kunjungan
+
+Saat tamu/kurir selesai berkunjung dan keluar melewati pos gerbang:
+1. Buka tab **"Aktif di Dalam"** di terminal security.
+2. Cari nama tamu atau plat kendaraan pada kolom pencarian cepat.
+3. Tekan tombol **"Catat Keluar"** (ikon pintu keluar).
+4. Sistem otomatis:
+   - Mencatat waktu keluar pengunjung secara realtime.
+   - Menghitung durasi kunjungan secara presisi (contoh: *"35 Menit"*, *"1 Jam 20 Menit"*).
+   - Memindahkan status kunjungan menjadi `COMPLETED // SELESAI`.
+
+---
+
+### 3.7 Telemetri Realtime & Manajemen Data Demo
+
+1. **Dashboard Telemetri Keamanan**:
+   - **Tamu Aktif Saat Ini**: Jumlah kendaraan/pengunjung yang saat ini masih berada di dalam area perumahan.
+   - **Total Kunjungan Hari Ini**: Akumulasi seluruh tamu yang masuk sejak pukul 00:00.
+   - **Kunjungan Selesai**: Jumlah tamu yang sudah check-out hari ini.
+2. **Manajemen Data & Hapus Log Demo**:
+   - **Hapus Log Tertentu**: Klik ikon tempat sampah pada baris riwayat yang ingin dihapus (berguna saat uji coba/data salah input).
+   - **Reset Data Demo**: Tekan tombol *"Reset Demo Data"* untuk mengembalikan log simulasi awal.
+
+---
+
+## 4. Panduan Pengurus & Admin (Admin & Board Guide)
+
+### 4.1 Akses Admin Dashboard & Shortcut PWA Pengurus
 
 Akses admin dilindungi oleh otorisasi berbasis peran (Role-Based Access Control / RBAC).
 
@@ -187,21 +311,22 @@ Akses admin dilindungi oleh otorisasi berbasis peran (Role-Based Access Control 
 
 ---
 
-### 3.2 Matriks Wewenang & Peran (Roles & Permissions)
+### 4.2 Matriks Wewenang & Peran (Roles & Permissions)
 
 | Role Sistem | Jabatan / Fungsi | Hak Akses Utama |
 | :--- | :--- | :--- |
-| `super_admin` | Administrator Utama / IT | Akses penuh seluruh modul, manajemen user & role, audit log, konfigurasi portal, dan override data profil. |
-| `ketua_rt` | Ketua RT 010 | Monitoring seluruh warga, verifikasi pendaftaran warga, approval iuran, disposisi layanan, persetujuan publikasi berita, kurasi PALUGADA. |
-| `sekretaris` | Sekretaris RT | Pengelolaan database warga & rumah, intake layanan & surat pengantar, penerbitan artikel/kabar warga & pengumuman. |
+| `super_admin` | Administrator Utama / IT | Akses penuh seluruh modul, manajemen user & role, audit log, buku tamu, konfigurasi portal, dan override data profil. |
+| `ketua_rt` | Ketua RT 010 | Monitoring seluruh warga, audit log buku tamu security, verifikasi pendaftaran warga, approval iuran, disposisi layanan, persetujuan publikasi berita, kurasi PALUGADA. |
+| `sekretaris` | Sekretaris RT | Pengelolaan database warga & rumah, intake layanan & surat pengantar, audit log buku tamu, penerbitan artikel/kabar warga & pengumuman. |
 | `bendahara` | Bendahara RT | Verifikasi & approval iuran warga, pencatatan transaksi kas masuk/keluar, monitoring tagihan & tunggakan, laporan keuangan. |
+| `security_guard` | Petugas Satpam / Pos Jaga | Akses Terminal Pos Keamanan (`/security`), check-in tamu, check-out tamu, capture foto KTP & wajah, monitor tamu aktif. |
 | `palugada_reviewer` | Kurator UMKM | Peninjauan pendaftaran lapak warga, edit status lapak (Draft/Approved/Rejected). |
 | `admin_support_1` s/d `admin_support_5` | Staf Pembantu / Seksi Khusus | Akses penugasan khusus sesuai mandat pengurus (keamanan, kebersihan, kepemudaan, humas). |
 | `warga` | Warga Terverifikasi | Akses portal warga, konfirmasi iuran, pengajuan layanan, lihat kontak privat RT, dan buka profil rumah. |
 
 ---
 
-### 3.3 Verifikasi Pendaftaran Warga Baru
+### 4.3 Verifikasi Pendaftaran Warga Baru
 
 Saat warga baru mengisi formulir registrasi rumah di portal:
 1. Buka Admin Dashboard -> Menu **Data Warga** (`/admin/warga`).
@@ -214,7 +339,7 @@ Saat warga baru mengisi formulir registrasi rumah di portal:
 
 ---
 
-### 3.4 Verifikasi & Approval Iuran Otomatis (Auto-Ledger)
+### 4.4 Verifikasi & Approval Iuran Otomatis (Auto-Ledger)
 
 Proses verifikasi iuran telah terotomatisasi secara end-to-end:
 
@@ -236,7 +361,7 @@ Proses verifikasi iuran telah terotomatisasi secara end-to-end:
 
 ---
 
-### 3.5 Manajemen Tiket Layanan & Aspirasi Warga
+### 4.5 Manajemen Tiket Layanan & Aspirasi Warga
 
 1. Buka Admin Dashboard -> Menu **Layanan & Aspirasi** (`/admin/intake`).
 2. Pilih tiket layanan yang masuk.
@@ -249,7 +374,7 @@ Proses verifikasi iuran telah terotomatisasi secara end-to-end:
 
 ---
 
-### 3.6 Pengelolaan Kabar Warga, Galeri Foto & Video
+### 4.6 Pengelolaan Kabar Warga, Galeri Foto & Video
 
 1. Buka Admin Dashboard -> Menu **Kabar Warga & Konten** (`/admin/portal-posts`).
 2. Klik **"Tulis Artikel / Pengumuman Baru"**.
@@ -266,7 +391,7 @@ Proses verifikasi iuran telah terotomatisasi secara end-to-end:
 
 ---
 
-### 3.7 Kurasi & Moderasi Lapak PALUGADA
+### 4.7 Kurasi & Moderasi Lapak PALUGADA
 
 1. Buka Admin Dashboard -> Menu **PALUGADA** (`/admin/palugada`).
 2. Telusuri antrean lapak warga dengan status *Submitted* atau *Draft*.
@@ -275,7 +400,24 @@ Proses verifikasi iuran telah terotomatisasi secara end-to-end:
 
 ---
 
-### 3.8 Pengaturan Portal, Hero Slideshow & Manajemen User
+### 4.8 Audit Trail & Rekapitulasi Buku Tamu Keamanan (`/admin/buku-tamu`)
+
+Pengurus RT (Ketua RT, Seksi Keamanan, dan Sekretaris) dapat memantau seluruh aktivitas keluar masuk tamu secara komprehensif:
+1. Buka Admin Dashboard -> Menu **Buku Tamu Security** (`/admin/buku-tamu`).
+2. **Monitoring Realtime**:
+   - Mengetahui tamu yang saat ini masih berada di dalam perumahan.
+   - Mendeteksi tamu yang bertamu melebihi batas waktu wajar (durasi > 3 jam).
+3. **Inspeksi Bukti Foto**:
+   - Klik kartu/baris kunjungan untuk melihat foto wajah dan kartu identitas resolusi tinggi.
+4. **Tindakan Check-Out Paksa**:
+   - Jika ada tamu yang sudah keluar namun petugas pos jaga lupa melakukan checkout, admin berwenang dapat menekan tombol **"Checkout Tamu"** langsung dari dashboard pengurus.
+5. **Pencarian & Filter**:
+   - Filter berdasarkan status (`Semua`, `Sedang Berkunjung`, `Selesai`).
+   - Pencarian berdasarkan nama tamu, plat nomor kendaraan, atau nama blok rumah.
+
+---
+
+### 4.9 Pengaturan Portal, Hero Slideshow & Manajemen User
 
 Fitur khusus Administrator di menu **Pengaturan** (`/admin/pengaturan`):
 
@@ -285,12 +427,12 @@ Fitur khusus Administrator di menu **Pengaturan** (`/admin/pengaturan`):
    - **Upload Langsung Foto Banner**: Unggah foto kegiatan lingkungan berkualitas tinggi langsung dari perangkat tanpa perlu input URL manual.
 2. **Manajemen Pengguna & Peran (User & Role Matrix)**:
    - Melihat daftar seluruh akun warga dan pengurus.
-   - Mengundang admin baru dengan menetapkan role (`sekretaris`, `bendahara`, `palugada_reviewer`, dll.).
+   - Mengundang admin baru dengan menetapkan role (`sekretaris`, `bendahara`, `security_guard`, `palugada_reviewer`, dll.).
    - Super Admin dapat mengubah *Display Name* (Nama Tampilan) warga atau pengurus secara instan jika terdapat kesalahan pengetikan nama.
 
 ---
 
-## 4. Tanya Jawab & Troubleshooting (FAQ)
+## 5. Tanya Jawab & Troubleshooting (FAQ)
 
 ### ❓ T: Saya tidak menerima email Magic Link saat login, apa yang harus dilakukan?
 > **Jawab**:
@@ -303,6 +445,20 @@ Fitur khusus Administrator di menu **Pengaturan** (`/admin/pengaturan`):
 ### ❓ T: Mengapa nomor kontak pribadi pengurus RT tidak muncul di halaman Kontak?
 > **Jawab**:
 > Demi privasi dan keamanan pengurus dari spam pihak luar, nomor telepon pengurus inti RT 010 hanya ditampilkan kepada warga yang **sudah login dan akunnya telah diverifikasi**. Jika Anda baru mendaftar, tunggu pengurus memverifikasi profil rumah Anda.
+
+---
+
+### ❓ T: Bagaimana jika kamera di POS Satpam tidak bisa terbuka?
+> **Jawab**:
+> 1. Pastikan izin kamera telah diberikan di browser (Chrome: klik ikon gembok di address bar -> *Site Settings* -> *Camera* -> *Allow*).
+> 2. Jika kamera fisik bermasalah, gunakan tombol cadangan **"Berkas"** untuk memilih foto dari penyimpanan galeri perangkat.
+> 3. Periksa apakah kamera sedang dipakai oleh aplikasi lain di ponsel pos.
+
+---
+
+### ❓ T: Bagaimana jika seorang tamu lupa dicatat keluar saat meninggalkan perumahan?
+> **Jawab**:
+> Petugas satpam di pos jaga dapat mencari nama/plat nomor tamu tersebut di daftar *"Aktif di Dalam"*, lalu klik *"Catat Keluar"*. Alternatifnya, pengurus RT melalui halaman `/admin/buku-tamu` juga dapat melakukan checkout manual.
 
 ---
 
@@ -327,3 +483,4 @@ Fitur khusus Administrator di menu **Pengaturan** (`/admin/pengaturan`):
 ---
 
 *Panduan ini disusun dan diperbarui secara berkala oleh Tim Pengurus & IT Portal CGV10 Cipta Greenville.*
+

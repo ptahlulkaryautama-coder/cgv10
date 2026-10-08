@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Icon, PageShell } from "@/app/components/portal";
+import { cleanCorruptChars, normalizeWhatsappNumber } from "@/lib/palugada-storefront-utils";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { SellerStorefront, type StorefrontSeller } from "./seller-storefront";
 
@@ -13,6 +14,7 @@ type LiveListing = {
   name: string;
   category: string;
   cluster: string;
+  price_label: string | null;
   description: string;
   availability_note: string;
   contact_method: string;
@@ -24,15 +26,18 @@ type LiveListing = {
 
 type PublicAttachment = { storage_path: string; file_name: string };
 
-function buildWhatsappHref(contactMethod: string) {
-  const digits = contactMethod.replace(/\D/g, "");
-  if (!digits) return undefined;
-  return `https://wa.me/${digits.startsWith("0") ? `62${digits.slice(1)}` : digits}`;
+function buildWhatsappHref(contactMethod?: string | null) {
+  const normalized = normalizeWhatsappNumber(contactMethod);
+  return normalized ? `https://wa.me/${normalized}` : undefined;
 }
 
 export function LivePalugadaDetail({ listingId }: { listingId: string }) {
   const supabase = useMemo(() => {
-    try { return getSupabaseBrowserClient(); } catch { return null; }
+    try {
+      return getSupabaseBrowserClient();
+    } catch {
+      return null;
+    }
   }, []);
   const [listing, setListing] = useState<LiveListing | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -42,8 +47,11 @@ export function LivePalugadaDetail({ listingId }: { listingId: string }) {
   useEffect(() => {
     let mounted = true;
     async function loadListing() {
-      if (!supabase || !/^[0-9a-f-]{36}$/i.test(listingId)) { setState("missing"); return; }
-      
+      if (!supabase || !/^[0-9a-f-]{36}$/i.test(listingId)) {
+        setState("missing");
+        return;
+      }
+
       const { data: sessionData } = await supabase.auth.getSession();
       if (mounted) {
         setCurrentUserId(sessionData?.session?.user?.id ?? null);
@@ -51,13 +59,23 @@ export function LivePalugadaDetail({ listingId }: { listingId: string }) {
 
       const { data, error } = await supabase
         .from("palugada_listings")
-        .select("id, seller_user_id, catalog_key, name, category, cluster, description, availability_note, contact_method, seller_status, seller_status_note, cover_image_url, cover_image_alt")
+        .select(
+          "id, seller_user_id, catalog_key, name, category, cluster, price_label, description, availability_note, contact_method, seller_status, seller_status_note, cover_image_url, cover_image_alt"
+        )
         .eq("id", listingId)
         .in("status", ["approved", "submitted"])
         .maybeSingle<LiveListing>();
+
       if (!mounted) return;
-      if (error) { setState("error"); return; }
-      if (!data) { setState("missing"); return; }
+      if (error) {
+        setState("error");
+        return;
+      }
+      if (!data) {
+        setState("missing");
+        return;
+      }
+
       const { data: attachmentData } = await supabase
         .from("attachments")
         .select("storage_path, file_name")
@@ -66,37 +84,93 @@ export function LivePalugadaDetail({ listingId }: { listingId: string }) {
         .eq("visibility", "public_after_approval")
         .eq("moderation_status", "approved")
         .order("created_at", { ascending: true });
-      const signed = await Promise.all(((attachmentData ?? []) as PublicAttachment[]).map(async (attachment) => {
-        if (attachment.storage_path.startsWith("palugada/")) {
-          const { data: urlData } = supabase.storage.from("portal-post-media").getPublicUrl(attachment.storage_path);
-          if (urlData?.publicUrl) return { url: urlData.publicUrl, name: attachment.file_name };
-        }
-        const { data: signedData } = await supabase.storage.from("palugada-submissions").createSignedUrl(attachment.storage_path, 3600);
-        return signedData?.signedUrl ? { url: signedData.signedUrl, name: attachment.file_name } : null;
-      }));
+
+      const signed = await Promise.all(
+        ((attachmentData ?? []) as PublicAttachment[]).map(async (attachment) => {
+          if (attachment.storage_path.startsWith("palugada/")) {
+            const { data: urlData } = supabase.storage.from("portal-post-media").getPublicUrl(attachment.storage_path);
+            if (urlData?.publicUrl) return { url: urlData.publicUrl, name: attachment.file_name };
+          }
+          const { data: signedData } = await supabase.storage
+            .from("palugada-submissions")
+            .createSignedUrl(attachment.storage_path, 3600);
+          return signedData?.signedUrl ? { url: signedData.signedUrl, name: attachment.file_name } : null;
+        })
+      );
+
       if (!mounted) return;
       setListing(data);
       setImages(signed.filter((image): image is { url: string; name: string } => Boolean(image)));
       setState("ready");
     }
+
     void loadListing();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [listingId, supabase]);
 
   if (state !== "ready" || !listing) {
-    return <PageShell><section className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6"><div className="mx-auto grid h-14 w-14 place-items-center rounded-xl bg-primary-soft text-primary"><Icon name="store" /></div><h1 className="mt-5 text-3xl font-semibold tracking-tight text-foreground">{state === "loading" ? "Memuat lapak..." : "Lapak tidak tersedia"}</h1><p className="mt-3 text-sm leading-6 text-muted">{state === "loading" ? "Kami sedang menyiapkan etalase penjual." : "Lapak mungkin sedang diperiksa atau sudah tidak ditayangkan."}</p>{state !== "loading" ? <Link href="/palugada/" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-white">Kembali ke katalog</Link> : null}</section></PageShell>;
+    return (
+      <PageShell>
+        <section className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-xl bg-primary-soft text-primary">
+            <Icon name="store" />
+          </div>
+          <h1 className="mt-5 text-3xl font-semibold tracking-tight text-foreground">
+            {state === "loading" ? "Memuat lapak..." : "Lapak tidak tersedia"}
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-muted">
+            {state === "loading"
+              ? "Kami sedang menyiapkan etalase penjual."
+              : "Lapak mungkin sedang diperiksa atau sudah tidak ditayangkan."}
+          </p>
+          {state !== "loading" ? (
+            <Link
+              href="/palugada/"
+              className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-white"
+            >
+              Kembali ke katalog
+            </Link>
+          ) : null}
+        </section>
+      </PageShell>
+    );
   }
 
   const isOwner = Boolean(currentUserId && listing.seller_user_id === currentUserId);
-  const heroImage = images[0]?.url ?? listing.cover_image_url ?? (listing.catalog_key === "maniez-donut" ? "/assets/palugada/maniez-donut-main-optimized.jpg" : "");
 
-  const allGallery: Array<{ src: string; alt: string }> = [];
-  if (listing.cover_image_url && !images.some((img) => img.url === listing.cover_image_url)) {
-    allGallery.push({ src: listing.cover_image_url, alt: listing.cover_image_alt ?? `Foto cover ${listing.name}` });
+  // Gallery compilation
+  const allGallery: Array<{ src: string; alt: string; isMenu?: boolean }> = [];
+  if (listing.cover_image_url) {
+    allGallery.push({
+      src: listing.cover_image_url,
+      alt: listing.cover_image_alt ?? `Foto utama ${listing.name}`,
+    });
   }
+
   for (const img of images) {
-    allGallery.push({ src: img.url, alt: `Foto ${listing.name} - ${img.name}` });
+    if (!allGallery.some((existing) => existing.src === img.url)) {
+      const isMenu =
+        img.name.toLowerCase().includes("menu") ||
+        img.name.toLowerCase().includes("142");
+      allGallery.push({
+        src: img.url,
+        alt: `Foto ${listing.name} - ${img.name}`,
+        isMenu,
+      });
+    }
   }
+
+  // Cover & Logo
+  const coverImage = listing.cover_image_url || allGallery[0]?.src || "";
+  const logoImage =
+    images.find((img) => img.name.toLowerCase().includes("logo"))?.url ||
+    listing.cover_image_url ||
+    allGallery[0]?.src ||
+    "";
+
+  const cleanNote = cleanCorruptChars(listing.seller_status_note);
 
   const seller: StorefrontSeller = {
     slug: listing.catalog_key ?? listing.id,
@@ -104,18 +178,21 @@ export function LivePalugadaDetail({ listingId }: { listingId: string }) {
     category: listing.category[0].toUpperCase() + listing.category.slice(1),
     cluster: listing.cluster,
     description: listing.description,
-    imageSrc: heroImage,
-    imageAlt: listing.cover_image_alt ?? `Foto ${listing.name}`,
+    imageSrc: logoImage,
+    coverImageSrc: coverImage,
+    imageAlt: listing.cover_image_alt ?? `Logo ${listing.name}`,
     galleryImages: allGallery,
     whatsappHref: buildWhatsappHref(listing.contact_method),
     whatsappLabel: "Hubungi WhatsApp",
     whatsappDisplayNumber: listing.contact_method || undefined,
     sellerStatus: listing.seller_status,
-    sellerStatusLabel: listing.seller_status === "online" ? "Buka untuk pesanan" : "Konfirmasi terlebih dahulu",
-    sellerStatusNote: listing.seller_status_note,
+    sellerStatusLabel: listing.seller_status === "online" ? "Buka · Menerima Pesanan" : "Tutup Sementara",
+    sellerStatusNote: cleanNote || (listing.seller_status === "online" ? "Buka · Lapak aktif" : "Tutup sementara"),
     availabilityNote: listing.availability_note,
+    priceNote: listing.price_label || undefined,
     isOwner,
     highlights: [],
   };
+
   return <SellerStorefront seller={seller} />;
 }

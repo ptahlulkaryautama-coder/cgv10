@@ -83,6 +83,7 @@ function formatPercentage(value: number) {
 export function KeuanganClient() {
   const [authState, setAuthState] = useState<AuthState>("checking");
   const [userEmail, setUserEmail] = useState<string>("");
+  const [copiedFeedback, setCopiedFeedback] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -218,11 +219,46 @@ export function KeuanganClient() {
 
       <section className="border-y border-border bg-surface">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 xl:px-10">
-          <SectionHeading
-            eyebrow="Laporan Keuangan"
-            title="Ringkasan kas."
-            text={`${reportPeriod} · angka utama dan komposisi pengeluaran.`}
-          />
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <SectionHeading
+              eyebrow="Laporan Keuangan"
+              title="Ringkasan kas."
+              text={`${reportPeriod} · angka utama dan komposisi pengeluaran.`}
+            />
+
+            <div className="no-print flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-primary/20 bg-background px-3.5 py-2 text-xs font-bold text-primary shadow-sm hover:bg-primary-soft transition-all cursor-pointer"
+              >
+                <span>🖨️ Cetak / Unduh PDF</span>
+              </button>
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                  `📢 *LAPORAN KEUANGAN KAS RT 010 CGV*\nPeriode: *${reportPeriod}*\n\n💰 Saldo Awal: Rp8.510.000\n📈 Pemasukan: Rp2.500.000\n📉 Pengeluaran: Rp11.000.000\n💵 Saldo Akhir: Rp10.000\n\n🔍 Cek transparansi laporan lengkap warga di:\n👉 https://cgv10.com/keuangan/`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#25D366] px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:brightness-105 transition-all cursor-pointer"
+              >
+                <span>💬 Bagikan ke WA</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    typeof window !== "undefined" ? window.location.href : "https://cgv10.com/keuangan/"
+                  );
+                  setCopiedFeedback(true);
+                  setTimeout(() => setCopiedFeedback(false), 2500);
+                }}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-bold text-foreground hover:bg-surface transition-all cursor-pointer"
+              >
+                <span>{copiedFeedback ? "✅ Tautan Disalin!" : "🔗 Salin Tautan"}</span>
+              </button>
+            </div>
+          </div>
 
           <dl className="mt-8 grid overflow-hidden rounded-2xl border border-border bg-background sm:grid-cols-2 lg:grid-cols-5">
             {financeSummary.map((item) => (

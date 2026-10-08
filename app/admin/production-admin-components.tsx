@@ -4,7 +4,7 @@ import { Icon } from "../components/portal";
 import type { IconName } from "@/lib/portal-data";
 import { AdminMobileNavigation } from "./admin-mobile-navigation";
 
-export type ProductionAdminSection = "dashboard" | "warga" | "iuran" | "intake" | "palugada" | "portal-posts" | "pengaturan" | "debug";
+export type ProductionAdminSection = "dashboard" | "warga" | "iuran" | "intake" | "palugada" | "portal-posts" | "buku-tamu" | "pengaturan" | "debug";
 
 type ProductionNavItem = {
   id: ProductionAdminSection | "login";
@@ -49,8 +49,15 @@ const productionNav: ProductionNavItem[] = [
     id: "portal-posts",
     label: "Portal Posts",
     href: "/admin/portal-posts/",
-    icon: "shield",
+    icon: "file",
     badge: "Live",
+  },
+  {
+    id: "buku-tamu",
+    label: "Buku Tamu",
+    href: "/admin/buku-tamu/",
+    icon: "shield",
+    badge: "Pos",
   },
   {
     id: "pengaturan",

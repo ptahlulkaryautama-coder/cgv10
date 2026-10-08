@@ -3,6 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  PalugadaEditorForm,
+  type PalugadaEditorFiles,
+} from "@/app/components/palugada-editor-form";
+import {
+  type StructuredPalugadaListing,
+  parseStructuredListing,
+  serializeStructuredListing,
+} from "@/lib/palugada-storefront-utils";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -80,6 +89,18 @@ function formatDate(isoString: string | null) {
   );
 }
 
+function getUploadContentType(file: File) {
+  if (file.type) return file.type;
+  const ext = file.name.split(".").pop()?.toLowerCase();
+  const fallback: Record<string, string> = {
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    webp: "image/webp",
+  };
+  return (ext && fallback[ext]) || "application/octet-stream";
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function PortalLapakClient() {
@@ -96,19 +117,15 @@ export function PortalLapakClient() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<{ text: string; type: "ok" | "err" } | null>(null);
 
-  // Edit form state
+  // Edit mode toggle
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState<Partial<MyListing>>({});
-
-  // Cover upload
-  const [uploadingCover, setUploadingCover] = useState(false);
-  const coverInputRef = useRef<HTMLInputElement>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [editSaveMessage, setEditSaveMessage] = useState("");
 
   // Product photos (attachments)
   const [productPhotos, setProductPhotos] = useState<Record<string, ProductPhoto[]>>({});
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [deletingPhotoId, setDeletingPhotoId] = useState<string | null>(null);
-  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   // Delete confirm
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -166,7 +183,7 @@ export function PortalLapakClient() {
     };
   }, [supabaseState.client]);
 
-  // ─── Load Product Photos (Handles public & signed URLs) ───────────────────
+  // ─── Load Product Photos (Attachments) ────────────────────────────────────
 
   useEffect(() => {
     const supabase = supabaseState.client;
@@ -216,8 +233,14 @@ export function PortalLapakClient() {
     return () => {
       mounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabaseState.client, selected?.id]);
+
+  // Parse structured data for currently selected listing
+  const structuredSelected = useMemo(() => {
+    if (!selected) return null;
+    const currentAttachments = productPhotos[selected.id] ?? [];
+    return parseStructuredListing(selected, currentAttachments);
+  }, [selected, productPhotos]);
 
   // ─── Set Seller Status (Online / Offline) ──────────────────────────────────
 
@@ -225,7 +248,7 @@ export function PortalLapakClient() {
     const supabase = supabaseState.client;
     if (!supabase || !selected || selected.seller_status === newStatus) return;
     setState("saving");
-    const newNote = newStatus === "online" ? "Buka · Lapak aktif" : "Tutup sementara";
+    const newNote = newStatus === "online" ? "Buka · Menerima pesanan" : "Tutup sementara";
 
     const { error } = await supabase
       .from("palugada_listings")
@@ -252,51 +275,232 @@ export function PortalLapakClient() {
     setState("loaded");
   }
 
-  // ─── Save Edit ────────────────────────────────────────────────────────────
+  // ─── Full Structured Save Handler ─────────────────────────────────────────
 
-  async function saveEdit() {
+  async function handleStructuredSave(
+    data: StructuredPalugadaListing,
+    files: PalugadaEditorFiles
+  ): Promise<{ success: boolean; listingId?: string; error?: string }> {
     const supabase = supabaseState.client;
-    if (!supabase || !selected) return;
-    setState("saving");
+    if (!supabase || !selected) return { success: false, error: "Database tidak tersedia." };
 
-    const { error } = await supabase
-      .from("palugada_listings")
-      .update({
-        name: editForm.name?.trim() || selected.name,
-        price_label: editForm.price_label?.trim() ?? selected.price_label,
-        contact_method: editForm.contact_method?.trim() ?? selected.contact_method,
-        availability_note: editForm.availability_note?.trim() ?? selected.availability_note,
-        description: editForm.description?.trim() ?? selected.description,
-      })
-      .eq("id", selected.id);
+    setIsSavingEdit(true);
+    setEditSaveMessage("Menyimpan data lapak...");
 
-    if (error) {
-      setActionMessage({ text: "Gagal menyimpan: " + error.message, type: "err" });
-      setState("loaded");
-      return;
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const uid = sessionData.session?.user?.id;
+      if (!uid) throw new Error("Sesi login berakhir. Silakan login kembali.");
+
+      let finalLogoUrl = data.logoUrl;
+      let finalCoverUrl = data.coverUrl;
+      let finalMenuUrl = data.menuPhotoUrl;
+      const finalGalleryUrls = [...(data.galleryUrls || [])];
+
+      // 1. Upload Logo if newly provided
+      if (files.logoFile) {
+        setEditSaveMessage("Mengunggah logo usaha...");
+        const safeName = getSafeFileName(files.logoFile.name);
+        const storagePath = `palugada/${selected.id}/logo/${Date.now()}-${safeName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from(palugadaPublicMediaBucket)
+          .upload(storagePath, files.logoFile, {
+            cacheControl: "31536000",
+            contentType: getUploadContentType(files.logoFile),
+            upsert: true,
+          });
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from(palugadaPublicMediaBucket)
+            .getPublicUrl(storagePath);
+          finalLogoUrl = urlData.publicUrl;
+
+          await supabase.from("attachments").insert({
+            owner_user_id: uid,
+            linked_type: "palugada_listing",
+            linked_id: selected.id,
+            file_name: files.logoFile.name,
+            file_type: getUploadContentType(files.logoFile),
+            file_size: files.logoFile.size,
+            storage_path: storagePath,
+            visibility: "public_after_approval",
+            moderation_status: "approved",
+          });
+        }
+      }
+
+      // 2. Upload Cover if newly provided
+      if (files.coverFile) {
+        setEditSaveMessage("Mengunggah foto cover lapak...");
+        const safeName = getSafeFileName(files.coverFile.name);
+        const storagePath = `palugada/${selected.id}/cover/${Date.now()}-${safeName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from(palugadaPublicMediaBucket)
+          .upload(storagePath, files.coverFile, {
+            cacheControl: "31536000",
+            contentType: getUploadContentType(files.coverFile),
+            upsert: true,
+          });
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from(palugadaPublicMediaBucket)
+            .getPublicUrl(storagePath);
+          finalCoverUrl = urlData.publicUrl;
+
+          await supabase.from("attachments").insert({
+            owner_user_id: uid,
+            linked_type: "palugada_listing",
+            linked_id: selected.id,
+            file_name: files.coverFile.name,
+            file_type: getUploadContentType(files.coverFile),
+            file_size: files.coverFile.size,
+            storage_path: storagePath,
+            visibility: "public_after_approval",
+            moderation_status: "approved",
+          });
+        }
+      }
+
+      // 3. Upload Menu if newly provided
+      if (files.menuFile) {
+        setEditSaveMessage("Mengunggah foto menu / brosur...");
+        const safeName = getSafeFileName(files.menuFile.name);
+        const storagePath = `palugada/${selected.id}/menu/${Date.now()}-${safeName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from(palugadaPublicMediaBucket)
+          .upload(storagePath, files.menuFile, {
+            cacheControl: "31536000",
+            contentType: getUploadContentType(files.menuFile),
+            upsert: true,
+          });
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from(palugadaPublicMediaBucket)
+            .getPublicUrl(storagePath);
+          finalMenuUrl = urlData.publicUrl;
+
+          await supabase.from("attachments").insert({
+            owner_user_id: uid,
+            linked_type: "palugada_listing",
+            linked_id: selected.id,
+            file_name: files.menuFile.name,
+            file_type: getUploadContentType(files.menuFile),
+            file_size: files.menuFile.size,
+            storage_path: storagePath,
+            visibility: "public_after_approval",
+            moderation_status: "approved",
+          });
+        }
+      }
+
+      // 4. Upload Gallery files
+      for (const [idx, item] of files.galleryFiles.entries()) {
+        if (item.file) {
+          setEditSaveMessage(`Mengunggah galeri ${idx + 1}...`);
+          const safeName = getSafeFileName(item.file.name);
+          const storagePath = `palugada/${selected.id}/photos/${Date.now()}-${safeName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from(palugadaPublicMediaBucket)
+            .upload(storagePath, item.file, {
+              cacheControl: "31536000",
+              contentType: getUploadContentType(item.file),
+              upsert: true,
+            });
+
+          if (!uploadError) {
+            const { data: urlData } = supabase.storage
+              .from(palugadaPublicMediaBucket)
+              .getPublicUrl(storagePath);
+            const pubUrl = urlData.publicUrl;
+            finalGalleryUrls.push(pubUrl);
+
+            await supabase.from("attachments").insert({
+              owner_user_id: uid,
+              linked_type: "palugada_listing",
+              linked_id: selected.id,
+              file_name: item.file.name,
+              file_type: getUploadContentType(item.file),
+              file_size: item.file.size,
+              storage_path: storagePath,
+              visibility: "public_after_approval",
+              moderation_status: "approved",
+            });
+          }
+        }
+      }
+
+      // 5. Serialize updated structured listing
+      const updatedListing: StructuredPalugadaListing = {
+        ...data,
+        id: selected.id,
+        logoUrl: finalLogoUrl,
+        coverUrl: finalCoverUrl,
+        menuPhotoUrl: finalMenuUrl,
+        galleryUrls: finalGalleryUrls,
+      };
+
+      const serialized = serializeStructuredListing(updatedListing);
+
+      const { error: updateError } = await supabase
+        .from("palugada_listings")
+        .update({
+          name: serialized.name,
+          category: serialized.category,
+          cluster: serialized.cluster,
+          price_label: serialized.price_label,
+          description: serialized.description,
+          availability_note: serialized.availability_note,
+          contact_method: serialized.contact_method,
+          seller_status: serialized.seller_status,
+          seller_status_note: serialized.seller_status_note,
+          cover_image_url: finalCoverUrl || selected.cover_image_url,
+          cover_image_alt: `Cover ${serialized.name}`,
+        })
+        .eq("id", selected.id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      setListings((prev) =>
+        prev.map((l) =>
+          l.id === selected.id
+            ? {
+                ...l,
+                name: serialized.name,
+                category: serialized.category,
+                cluster: serialized.cluster,
+                price_label: serialized.price_label,
+                description: serialized.description,
+                availability_note: serialized.availability_note,
+                contact_method: serialized.contact_method,
+                seller_status: serialized.seller_status,
+                seller_status_note: serialized.seller_status_note,
+                cover_image_url: finalCoverUrl || l.cover_image_url,
+              }
+            : l,
+        ),
+      );
+
+      setActionMessage({ text: "✅ Lapak berhasil diperbarui dengan data terstruktur!", type: "ok" });
+      setIsEditing(false);
+      return { success: true, listingId: selected.id };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Gagal memperbarui lapak.";
+      setActionMessage({ text: msg, type: "err" });
+      return { success: false, error: msg };
+    } finally {
+      setIsSavingEdit(false);
     }
-
-    setListings((prev) =>
-      prev.map((l) =>
-        l.id === selected.id
-          ? {
-              ...l,
-              name: editForm.name?.trim() || l.name,
-              price_label: editForm.price_label?.trim() ?? l.price_label,
-              contact_method: editForm.contact_method?.trim() ?? l.contact_method,
-              availability_note: editForm.availability_note?.trim() ?? l.availability_note,
-              description: editForm.description?.trim() ?? l.description,
-            }
-          : l,
-      ),
-    );
-    setIsEditing(false);
-    setEditForm({});
-    setActionMessage({ text: "✅ Informasi lapak berhasil diperbarui.", type: "ok" });
-    setState("loaded");
   }
 
-  // ─── Upload Cover ─────────────────────────────────────────────────────────
+  // ─── Direct Cover Upload from Top Banner ──────────────────────────────────
 
   async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const supabase = supabaseState.client;
@@ -359,128 +563,6 @@ export function PortalLapakClient() {
     } finally {
       setUploadingCover(false);
       if (coverInputRef.current) coverInputRef.current.value = "";
-    }
-  }
-
-  // ─── Upload Product Photo ─────────────────────────────────────────────────
-
-  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const supabase = supabaseState.client;
-    const file = e.target.files?.[0];
-    if (!file || !supabase || !selected) return;
-
-    const currentPhotos = productPhotos[selected.id] ?? [];
-    if (currentPhotos.length >= 5) {
-      setActionMessage({ text: "Maksimal 5 foto produk per lapak.", type: "err" });
-      return;
-    }
-    if (!file.type.startsWith("image/")) {
-      setActionMessage({ text: "Format berkas harus gambar (JPG, PNG, WebP).", type: "err" });
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      setActionMessage({ text: "Ukuran foto maksimal 10 MB.", type: "err" });
-      return;
-    }
-
-    setUploadingPhoto(true);
-    setActionMessage({ text: "Mengunggah foto produk...", type: "ok" });
-
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const uid = sessionData.session?.user?.id;
-      if (!uid) throw new Error("Sesi login berakhir. Silakan login kembali.");
-
-      const safeName = getSafeFileName(file.name);
-      const storagePath = `palugada/${selected.id}/photos/${Date.now()}-${safeName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from(palugadaPublicMediaBucket)
-        .upload(storagePath, file, {
-          cacheControl: "31536000",
-          upsert: false,
-          contentType: file.type,
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from(palugadaPublicMediaBucket)
-        .getPublicUrl(storagePath);
-
-      // Insert attachment record
-      const { data: attachData, error: attachError } = await supabase
-        .from("attachments")
-        .insert({
-          owner_user_id: uid,
-          linked_type: "palugada_listing",
-          linked_id: selected.id,
-          file_name: file.name,
-          file_type: file.type,
-          file_size: file.size,
-          storage_path: storagePath,
-          visibility: "public_after_approval",
-          moderation_status: "approved",
-        })
-        .select("id")
-        .single();
-
-      if (attachError) throw attachError;
-
-      const newPhoto: ProductPhoto = {
-        id: (attachData as { id: string }).id,
-        file_name: file.name,
-        storage_path: storagePath,
-        publicUrl: urlData.publicUrl,
-      };
-
-      setProductPhotos((prev) => ({
-        ...prev,
-        [selected.id]: [...(prev[selected.id] ?? []), newPhoto],
-      }));
-      setActionMessage({ text: "✅ Foto produk berhasil ditambahkan!", type: "ok" });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Gagal mengunggah foto.";
-      setActionMessage({ text: msg, type: "err" });
-    } finally {
-      setUploadingPhoto(false);
-      if (photoInputRef.current) photoInputRef.current.value = "";
-    }
-  }
-
-  // ─── Delete Product Photo ─────────────────────────────────────────────────
-
-  async function handlePhotoDelete(photo: ProductPhoto) {
-    const supabase = supabaseState.client;
-    if (!supabase || !selected) return;
-    setDeletingPhotoId(photo.id);
-
-    try {
-      if (photo.storage_path.startsWith("palugada/")) {
-        await supabase.storage
-          .from(palugadaPublicMediaBucket)
-          .remove([photo.storage_path]);
-      } else {
-        await supabase.storage
-          .from("palugada-submissions")
-          .remove([photo.storage_path]);
-      }
-
-      await supabase
-        .from("attachments")
-        .delete()
-        .eq("id", photo.id);
-
-      setProductPhotos((prev) => ({
-        ...prev,
-        [selected.id]: (prev[selected.id] ?? []).filter((p) => p.id !== photo.id),
-      }));
-      setActionMessage({ text: "✅ Foto berhasil dihapus.", type: "ok" });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Gagal menghapus foto.";
-      setActionMessage({ text: msg, type: "err" });
-    } finally {
-      setDeletingPhotoId(null);
     }
   }
 
@@ -652,7 +734,6 @@ export function PortalLapakClient() {
                     onClick={() => {
                       setSelectedId(l.id);
                       setIsEditing(false);
-                      setEditForm({});
                       setDeleteConfirmId(null);
                       setActionMessage(null);
                     }}
@@ -742,14 +823,24 @@ export function PortalLapakClient() {
                   <span className="hidden sm:inline text-[11px] text-slate-500">Maks. 10MB (JPG/PNG/WebP)</span>
                 </div>
 
-                <Link
-                  href={`/palugada/detail/?id=${encodeURIComponent(selected.id)}`}
-                  target="_blank"
-                  className="inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3.5 text-xs font-bold text-emerald-300 hover:bg-emerald-500/20 transition-all"
-                >
-                  <span>🌐</span>
-                  <span>Lihat Tampilan Publik ↗</span>
-                </Link>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(!isEditing)}
+                    className="inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-3.5 text-xs font-black text-[#E8C865] hover:bg-[#D4AF37]/20 transition-all"
+                  >
+                    <span>{isEditing ? "👁️ Selesai / Tutup Edit" : "✏️ Edit Seluruh Data Lapak"}</span>
+                  </button>
+
+                  <Link
+                    href={`/palugada/detail/?id=${encodeURIComponent(selected.id)}`}
+                    target="_blank"
+                    className="inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3.5 text-xs font-bold text-emerald-300 hover:bg-emerald-500/20 transition-all"
+                  >
+                    <span>🌐</span>
+                    <span>Tampilan Publik ↗</span>
+                  </Link>
+                </div>
               </div>
             </section>
 
@@ -798,6 +889,7 @@ export function PortalLapakClient() {
                   <span>Tutup Sementara (Offline)</span>
                 </button>
               </div>
+
               <p className="text-xs text-slate-400">
                 {selected.seller_status === "online"
                   ? "Lapak Anda berstatus Buka. Tetangga dapat langsung menghubungi via WhatsApp untuk memesan."
@@ -805,280 +897,100 @@ export function PortalLapakClient() {
               </p>
             </section>
 
-            {/* ── SECTION 3: PRODUCT PHOTOS & GALLERY (UP TO 5) ── */}
-            <section className="rounded-3xl border border-white/10 bg-[#00241b] p-5 sm:p-6 shadow-xl space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">GALERI PRODUK</p>
-                    <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-black text-slate-300">
-                      {activePhotos.length}/5 Foto
-                    </span>
-                  </div>
-                  <h3 className="text-base font-black text-white">Foto Produk atau Menu Tambahan</h3>
-                </div>
-
-                {activePhotos.length < 5 && (
+            {/* ── SECTION 3: FORM EDIT TERPADU / DETAIL VIEW ── */}
+            {isEditing && structuredSelected ? (
+              <section className="rounded-3xl border border-[#D4AF37]/30 bg-[#FBF9F5] p-5 sm:p-7 text-[#1A1A1A] shadow-2xl space-y-4">
+                <div className="flex items-center justify-between border-b border-stone-200 pb-3">
                   <div>
-                    <input
-                      ref={photoInputRef}
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      onChange={(e) => void handlePhotoUpload(e)}
-                      className="hidden"
-                      id="portal-lapak-photo-input"
-                      disabled={uploadingPhoto}
-                    />
-                    <label
-                      htmlFor="portal-lapak-photo-input"
-                      className={`inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-xl border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-3.5 text-xs font-black text-[#E8C865] hover:bg-[#D4AF37]/20 transition-all ${
-                        uploadingPhoto ? "pointer-events-none opacity-50" : ""
-                      }`}
-                    >
-                      {uploadingPhoto ? (
-                        <>
-                          <span className="h-3 w-3 rounded-full border-2 border-[#E8C865] border-t-transparent animate-spin" />
-                          <span>Mengunggah...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>+</span>
-                          <span>Tambah Foto Produk</span>
-                        </>
-                      )}
-                    </label>
-                  </div>
-                )}
-              </div>
-
-              {/* Photo Grid */}
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
-                {activePhotos.map((photo, idx) => (
-                  <div
-                    key={photo.id}
-                    className="group relative aspect-square overflow-hidden rounded-2xl border border-white/10 bg-[#001713] shadow-md"
-                  >
-                    {photo.publicUrl ? (
-                      <Image
-                        src={photo.publicUrl}
-                        alt={photo.file_name}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        sizes="(max-width: 640px) 50vw, 180px"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-xs text-slate-500">
-                        Foto {idx + 1}
-                      </div>
-                    )}
-
-                    {/* Delete overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
-                      <button
-                        type="button"
-                        onClick={() => void handlePhotoDelete(photo)}
-                        disabled={deletingPhotoId === photo.id}
-                        className="inline-flex items-center gap-1 rounded-lg bg-red-600 px-2.5 py-1.5 text-xs font-bold text-white shadow hover:bg-red-700 transition-colors disabled:opacity-50"
-                        aria-label={`Hapus foto ${photo.file_name}`}
-                      >
-                        {deletingPhotoId === photo.id ? (
-                          <span className="h-3 w-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                        ) : (
-                          <>
-                            <span>🗑️</span>
-                            <span>Hapus</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    <span className="absolute bottom-1.5 left-1.5 rounded-md bg-black/60 px-1.5 py-0.5 text-[9px] font-bold text-white backdrop-blur-sm">
-                      #{idx + 1}
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#003D34]">
+                      EDITOR LAPAK LENGKAP
                     </span>
+                    <h3 className="text-lg font-black text-[#1A1A1A]">Edit & Perbarui Informasi Lapak</h3>
                   </div>
-                ))}
-
-                {/* Empty Slots */}
-                {Array.from({ length: Math.max(0, 5 - activePhotos.length) }).map((_, idx) => (
-                  <label
-                    key={idx}
-                    htmlFor={idx === 0 ? "portal-lapak-photo-input" : undefined}
-                    className={`flex aspect-square flex-col items-center justify-center rounded-2xl border-2 border-dashed border-white/10 bg-white/[0.02] p-3 text-center transition-all ${
-                      idx === 0
-                        ? "cursor-pointer hover:border-[#D4AF37]/50 hover:bg-[#D4AF37]/5"
-                        : "opacity-40"
-                    }`}
-                  >
-                    <span className="text-xl text-slate-500">{idx === 0 ? "➕" : "📷"}</span>
-                    <span className="mt-1 text-[10px] font-bold text-slate-400">
-                      {idx === 0 ? "Unggah Foto" : `Slot ${activePhotos.length + idx + 1}`}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </section>
-
-            {/* ── SECTION 4: INFORMASI DETAIL LAPAK ── */}
-            <section className="rounded-3xl border border-white/10 bg-[#00241b] p-5 sm:p-6 shadow-xl space-y-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">DATA INFORMASI</p>
-                  <h3 className="text-base font-black text-white">Detail & Deskripsi Lapak</h3>
-                </div>
-
-                {!isEditing && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setEditForm({
-                        name: selected.name,
-                        price_label: selected.price_label,
-                        contact_method: selected.contact_method,
-                        availability_note: selected.availability_note,
-                        description: selected.description,
-                      });
-                      setIsEditing(true);
-                    }}
+                    onClick={() => setIsEditing(false)}
+                    className="rounded-xl border border-stone-300 bg-white px-3.5 py-1.5 text-xs font-bold text-stone-600 hover:bg-stone-100"
+                  >
+                    ✕ Tutup Edit
+                  </button>
+                </div>
+
+                <PalugadaEditorForm
+                  mode="edit"
+                  initialData={structuredSelected}
+                  existingPhotos={{
+                    logoUrl: structuredSelected.logoUrl,
+                    coverUrl: structuredSelected.coverUrl,
+                    menuPhotoUrl: structuredSelected.menuPhotoUrl,
+                    galleryUrls: structuredSelected.galleryUrls,
+                  }}
+                  onSave={handleStructuredSave}
+                  isSaving={isSavingEdit}
+                  saveMessage={editSaveMessage}
+                  cancelHref="#tutup-edit"
+                />
+              </section>
+            ) : (
+              /* View Summary Mode */
+              <section className="rounded-3xl border border-white/10 bg-[#00241b] p-5 sm:p-6 shadow-xl space-y-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">RINGKASAN DATA LAPAK</p>
+                    <h3 className="text-base font-black text-white">Informasi & Kontak Publik</h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(true)}
                     className="inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-3.5 text-xs font-black text-[#E8C865] hover:bg-[#D4AF37]/20 transition-all"
                   >
-                    <span>✏️</span>
-                    <span>Edit Informasi</span>
+                    <span>✏️ Edit Seluruh Data</span>
                   </button>
-                )}
-              </div>
+                </div>
 
-              {!isEditing ? (
-                /* View Mode */
-                <div className="space-y-4">
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-2xl border border-white/8 bg-[#001713] p-3.5">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Nama Lapak</p>
-                      <p className="mt-1 text-sm font-black text-white">{selected.name}</p>
-                    </div>
-
-                    <div className="rounded-2xl border border-white/8 bg-[#001713] p-3.5">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Harga / Tarif</p>
-                      <p className="mt-1 text-sm font-black text-[#E8C865]">{selected.price_label || "–"}</p>
-                    </div>
-
-                    <div className="rounded-2xl border border-white/8 bg-[#001713] p-3.5">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Nomor WhatsApp</p>
-                      <p className="mt-1 text-sm font-bold text-slate-200">{selected.contact_method || "–"}</p>
-                    </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-white/8 bg-[#001713] p-3.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Nama Lapak</p>
+                    <p className="mt-1 text-sm font-black text-white">{selected.name}</p>
                   </div>
 
                   <div className="rounded-2xl border border-white/8 bg-[#001713] p-3.5">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Ketersediaan</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Harga / Tarif</p>
+                    <p className="mt-1 text-sm font-black text-[#E8C865]">{selected.price_label || "–"}</p>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/8 bg-[#001713] p-3.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Nomor WhatsApp Usaha</p>
+                    <p className="mt-1 text-sm font-bold text-slate-200">{selected.contact_method || "–"}</p>
+                  </div>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-white/8 bg-[#001713] p-3.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Cluster / Alamat</p>
+                    <p className="mt-1 text-xs font-semibold text-slate-200">{selected.cluster || "–"}</p>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/8 bg-[#001713] p-3.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Ketersediaan / Catatan</p>
                     <p className="mt-1 text-xs font-semibold text-slate-200">{selected.availability_note || "–"}</p>
                   </div>
+                </div>
 
-                  <div className="rounded-2xl border border-white/8 bg-[#001713] p-4">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Deskripsi Lengkap</p>
-                    <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed whitespace-pre-line">
-                      {selected.description}
-                    </p>
-                  </div>
-
-                  <p className="text-[10px] text-slate-500">
-                    Tayang di katalog sejak {formatDate(selected.published_at || selected.created_at)}
+                <div className="rounded-2xl border border-white/8 bg-[#001713] p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Deskripsi Publik Bersih</p>
+                  <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed whitespace-pre-line">
+                    {structuredSelected?.description || selected.description}
                   </p>
                 </div>
-              ) : (
-                /* Edit Mode */
-                <div className="space-y-4 rounded-2xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-4 sm:p-5">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                    <p className="text-xs font-black uppercase tracking-wider text-[#E8C865]">Formulir Edit Data Lapak</p>
-                    <button
-                      type="button"
-                      onClick={() => { setIsEditing(false); setEditForm({}); }}
-                      className="text-xs text-slate-400 hover:text-white"
-                    >
-                      Batal
-                    </button>
-                  </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300">Nama Lapak / Usaha</label>
-                    <input
-                      type="text"
-                      value={editForm.name ?? ""}
-                      onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
-                      maxLength={120}
-                      className="mt-1.5 w-full rounded-xl border border-white/15 bg-[#001713] px-3.5 py-2.5 text-sm font-semibold text-white placeholder:text-slate-600 focus:border-[#D4AF37]/60 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30"
-                    />
-                  </div>
+                <p className="text-[10px] text-slate-500">
+                  Tayang di katalog sejak {formatDate(selected.published_at || selected.created_at)}
+                </p>
+              </section>
+            )}
 
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-300">Harga / Label Tarif</label>
-                      <input
-                        type="text"
-                        value={editForm.price_label ?? ""}
-                        onChange={(e) => setEditForm((p) => ({ ...p, price_label: e.target.value }))}
-                        placeholder="Contoh: 5.300.000 atau Mulai Rp 20.000"
-                        maxLength={120}
-                        className="mt-1.5 w-full rounded-xl border border-white/15 bg-[#001713] px-3.5 py-2.5 text-sm font-semibold text-white placeholder:text-slate-600 focus:border-[#D4AF37]/60 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-300">Nomor WhatsApp Aktif</label>
-                      <input
-                        type="tel"
-                        value={editForm.contact_method ?? ""}
-                        onChange={(e) => setEditForm((p) => ({ ...p, contact_method: e.target.value }))}
-                        placeholder="Contoh: 081291254064"
-                        maxLength={20}
-                        className="mt-1.5 w-full rounded-xl border border-white/15 bg-[#001713] px-3.5 py-2.5 text-sm font-semibold text-white placeholder:text-slate-600 focus:border-[#D4AF37]/60 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300">Catatan Ketersediaan / Stok</label>
-                    <input
-                      type="text"
-                      value={editForm.availability_note ?? ""}
-                      onChange={(e) => setEditForm((p) => ({ ...p, availability_note: e.target.value }))}
-                      placeholder="Contoh: Stok ready, pengiriman setiap sore"
-                      maxLength={300}
-                      className="mt-1.5 w-full rounded-xl border border-white/15 bg-[#001713] px-3.5 py-2.5 text-sm font-semibold text-white placeholder:text-slate-600 focus:border-[#D4AF37]/60 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300">Deskripsi Lengkap</label>
-                    <textarea
-                      rows={5}
-                      value={editForm.description ?? ""}
-                      onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))}
-                      maxLength={3000}
-                      placeholder="Tuliskan spesifikasi produk, keunggulan, atau ketentuan pemesanan..."
-                      className="mt-1.5 w-full rounded-xl border border-white/15 bg-[#001713] px-3.5 py-2.5 text-xs font-medium leading-relaxed text-white placeholder:text-slate-600 focus:border-[#D4AF37]/60 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30"
-                    />
-                  </div>
-
-                  <div className="flex gap-2.5 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => { setIsEditing(false); setEditForm({}); }}
-                      className="flex-1 min-h-11 rounded-xl border border-white/15 bg-white/[0.05] text-xs font-bold text-slate-300 hover:text-white transition-all"
-                    >
-                      Batal
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void saveEdit()}
-                      disabled={state === "saving"}
-                      className="flex-1 min-h-11 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#E8C865] text-xs font-black text-[#15140b] hover:brightness-110 transition-all disabled:opacity-60 shadow-md"
-                    >
-                      {state === "saving" ? "Menyimpan Perubahan..." : "Simpan Perubahan"}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </section>
-
-            {/* ── SECTION 5: DANGER ZONE (HAPUS LAPAK) ── */}
+            {/* ── SECTION 4: DANGER ZONE (HAPUS LAPAK) ── */}
             <section className="rounded-3xl border border-red-500/20 bg-red-950/20 p-5 sm:p-6 space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
@@ -1122,3 +1034,4 @@ export function PortalLapakClient() {
     </main>
   );
 }
+

@@ -25,6 +25,7 @@ const primaryItems: MobileNavItem[] = [
 const secondaryItems: MobileNavItem[] = [
   { id: "palugada", label: "PALUGADA", href: "/admin/palugada/", icon: "store" },
   { id: "portal-posts", label: "Portal Posts", href: "/admin/portal-posts/", icon: "file" },
+  { id: "buku-tamu", label: "Buku Tamu", href: "/admin/buku-tamu/", icon: "shield" },
   { id: "pengaturan", label: "Pengaturan", href: "/admin/pengaturan/", icon: "users" },
   { id: "debug", label: "Debug", href: "/admin/debug/", icon: "building", superAdminOnly: true },
 ];

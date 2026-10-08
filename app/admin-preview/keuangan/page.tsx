@@ -52,7 +52,13 @@ export default function AdminFinancePage() {
           </>
         }
         text="Halaman ini menjadi tempat bendahara mencocokkan konfirmasi iuran, menambah transaksi, mengelola kategori, menyiapkan ringkasan publik, dan menahan data sensitif sebelum tampil di Portal Warga."
-        side={<ActionButton primary href="#tambah-transaksi">Tambah Transaksi</ActionButton>}
+        side={
+          <div className="flex flex-wrap items-center gap-2">
+            <ActionButton href="/keuangan/" primary>
+              Lihat di Portal Publik
+            </ActionButton>
+          </div>
+        }
       />
 
       <section className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">

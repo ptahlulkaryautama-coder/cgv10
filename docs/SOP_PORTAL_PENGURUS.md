@@ -39,10 +39,11 @@ Role yang digunakan:
 
 | Jabatan | Role sistem | Akses utama |
 | --- | --- | --- |
-| Super Admin | `super_admin` | Semua modul, termasuk user, role, audit, pengaturan, konten, layanan, iuran, dan PALUGADA |
-| Ketua RT | `ketua_rt` | Monitoring warga, layanan, approval konten, PALUGADA, baca iuran, verifikasi iuran |
-| Sekretaris | `sekretaris` | Data warga, layanan, konten, baca iuran |
+| Super Admin | `super_admin` | Semua modul, termasuk user, role, audit, buku tamu, pengaturan, konten, layanan, iuran, dan PALUGADA |
+| Ketua RT | `ketua_rt` | Monitoring warga, buku tamu security, layanan, approval konten, PALUGADA, baca iuran, verifikasi iuran |
+| Sekretaris | `sekretaris` | Data warga, buku tamu security, layanan, konten, baca iuran |
 | Bendahara | `bendahara` | Iuran, pembayaran, keuangan, baca data warga dan layanan |
+| Petugas Satpam | `security_guard` | POS Terminal Keamanan (`/security`), buku tamu, check-in/out, optical capture wajah & KTP |
 | Reviewer PALUGADA | `palugada_reviewer` | Review dan moderasi PALUGADA |
 | Warga | `warga` | Akses warga setelah login dan verifikasi |
 
@@ -276,9 +277,22 @@ Katalog PALUGADA boleh terbuka umum, tetapi pendaftaran lapak wajib login.
 5. Setelah tayang, cek tampilan di desktop dan mobile.
 6. Jika ada koreksi, update konten lalu verifikasi ulang.
 
-Konten yang menyangkut keuangan, data warga, atau keputusan resmi sebaiknya tidak diterbitkan tanpa review pengurus inti.
+## 9. SOP Buku Tamu & Pos Keamanan (Security POS)
 
-## 9. SOP Upload Gambar dan Video
+1. **Operasional Pos Jaga (`/security`)**:
+   - Petugas satpam membuka terminal `/security` pada smartphone/tablet pos.
+   - Setiap tamu/kendaraan asing wajib dicatat: kategori (Tamu/Kurir/Ojol/Teknisi), blok & nomor rumah tujuan, nama, dan nomor plat kendaraan.
+   - Ambil foto bukti menggunakan **Optical Facial Capture** dan/atau **Optical Document Scan** (foto KTP/SIM).
+   - Terbitkan pass kunjungan digital.
+   - Saat tamu meninggalkan kawasan, petugas melakukan pencarian dan menekan tombol **"Catat Keluar"** untuk merekam timestamp checkout dan durasi kunjungan.
+
+2. **Audit Pengurus RT (`/admin/buku-tamu`)**:
+   - Ketua RT, Seksi Keamanan, dan Sekretaris memantau lalu lintas tamu secara real-time.
+   - Meninjau tamu aktif yang melebihi batas waktu berkunjung normal (> 3 jam).
+   - Melakukan checkout manual bila satpam terlewat mencatat kepulangan tamu.
+   - Menginspeksi arsip foto identitas jika terjadi insiden keamanan di lingkungan.
+
+## 10. SOP Upload Gambar dan Video
 
 Untuk saat ini, file besar masih berisiko membebani portal. Rekomendasi operasional:
 
@@ -288,8 +302,9 @@ Untuk saat ini, file besar masih berisiko membebani portal. Rekomendasi operasio
 
 Target fitur berikutnya adalah kompres otomatis saat upload, terutama untuk admin yang tidak familiar dengan tools teknis.
 
-## 10. Checklist Harian Pengurus
+## 11. Checklist Harian Pengurus
 
+- Cek buku tamu & tamu aktif pos satpam.
 - Cek layanan masuk.
 - Cek konfirmasi iuran pending.
 - Cek pendaftaran/update warga.
@@ -297,7 +312,7 @@ Target fitur berikutnya adalah kompres otomatis saat upload, terutama untuk admi
 - Cek konten yang perlu review.
 - Pastikan tidak ada data sensitif tampil publik.
 
-## 11. Checklist Bulanan
+## 12. Checklist Bulanan
 
 - Buat atau cek periode iuran.
 - Rekonsiliasi pembayaran dengan mutasi rekening/kas.
@@ -307,7 +322,7 @@ Target fitur berikutnya adalah kompres otomatis saat upload, terutama untuk admi
 - Backup/export data penting bila diperlukan.
 - Review akun admin yang masih aktif.
 
-## 12. Catatan Implementasi Lanjutan
+## 13. Catatan Implementasi Lanjutan
 
 Fitur yang sebaiknya diprioritaskan berikutnya:
 

@@ -225,6 +225,77 @@ export function PersonalDuesRecap() {
               </div>
             </div>
 
+            {/* 12-Month Payment Status Timeline */}
+            <div className="mt-6 rounded-xl border border-border bg-background p-4 sm:p-5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">
+                    Timeline Iuran Rumah (Tahun 2026)
+                  </p>
+                  <p className="mt-1 text-xs text-muted">
+                    Status pelunasan iuran bulanan rumah Anda sepanjang tahun berjalan.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 text-xs font-semibold">
+                  <span className="flex items-center gap-1.5 text-emerald-800">
+                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-600" />
+                    Lunas
+                  </span>
+                  <span className="flex items-center gap-1.5 text-amber-800">
+                    <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+                    Pending
+                  </span>
+                  <span className="flex items-center gap-1.5 text-muted">
+                    <span className="h-2.5 w-2.5 rounded-full bg-stone-300" />
+                    Belum
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-12">
+                {[
+                  "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+                  "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
+                ].map((name, idx) => {
+                  const mNum = idx + 1;
+                  const isVerified = verifiedRows.some((row) => {
+                    if (!row.due_period_month || !row.due_period_year) return false;
+                    const startM = row.due_period_year * 12 + row.due_period_month;
+                    const curM = 2026 * 12 + mNum;
+                    const endM = startM + (row.period_count - 1);
+                    return curM >= startM && curM <= endM;
+                  });
+                  const isPending = !isVerified && pendingRows.some((row) => {
+                    if (!row.due_period_month || !row.due_period_year) return false;
+                    const startM = row.due_period_year * 12 + row.due_period_month;
+                    const curM = 2026 * 12 + mNum;
+                    const endM = startM + (row.period_count - 1);
+                    return curM >= startM && curM <= endM;
+                  });
+
+                  return (
+                    <div
+                      key={name}
+                      className={`flex flex-col items-center justify-center rounded-lg border p-2 text-center transition-all ${
+                        isVerified
+                          ? "border-emerald-500/30 bg-emerald-50/80 text-emerald-900 shadow-sm"
+                          : isPending
+                          ? "border-amber-500/30 bg-amber-50 text-amber-900"
+                          : "border-border bg-surface/50 text-muted"
+                      }`}
+                    >
+                      <span className="text-xs font-bold">{name}</span>
+                      <span
+                        className={`mt-1 h-1.5 w-1.5 rounded-full ${
+                          isVerified ? "bg-emerald-600" : isPending ? "bg-amber-500" : "bg-stone-300"
+                        }`}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="mt-6 overflow-hidden rounded-xl border border-border">
               <div className="grid grid-cols-[1fr_auto] gap-3 bg-background px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-muted">
                 <span>Riwayat pembayaran</span>

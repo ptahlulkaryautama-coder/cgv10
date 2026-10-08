@@ -1,4 +1,3 @@
-import { AdminAuthGate } from "../admin-auth-gate";
 import { WargaAdminClient } from "./warga-admin-client";
 
 export const metadata = {
@@ -6,9 +5,5 @@ export const metadata = {
 };
 
 export default function WargaAdminPage() {
-  return (
-    <AdminAuthGate>
-      <WargaAdminClient />
-    </AdminAuthGate>
-  );
+  return <WargaAdminClient />;
 }

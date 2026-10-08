@@ -11,6 +11,7 @@ const adminRoles = new Set([
   "ketua_rt",
   "sekretaris",
   "bendahara",
+  "security",
   "palugada_reviewer",
   "admin_support_1",
   "admin_support_2",
@@ -112,17 +113,18 @@ export function AdminDashboardShortcut() {
         </div>
         <div className="grid gap-2 sm:min-w-44">
           <Link
-            href="/admin/?source=portal-admin-shortcut"
-            className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-white transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            href="/security/"
+            className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-accent shadow-sm transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
-            <span>Buka Admin</span>
+            <span>🛡️ Buku Tamu</span>
             <span aria-hidden="true">→</span>
           </Link>
           <Link
-            href="/admin/?source=portal-install-admin"
-            className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-primary/20 bg-background px-4 text-sm font-semibold text-primary transition-colors duration-200 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            href="/admin/?source=portal-admin-shortcut"
+            className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-primary/20 bg-background px-4 text-sm font-bold text-primary transition-colors duration-200 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
-            Install di HP
+            <span>Buka Admin</span>
+            <span aria-hidden="true">→</span>
           </Link>
         </div>
       </div>

@@ -1,9 +1,14 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ImagePreview } from "@/app/components/image-preview";
+import {
+  buildGoogleMapsLink,
+  buildWhatsappUrl,
+  extractStoreDetails,
+  formatDisplayPrice,
+  getJakartaOperatingStatus,
+} from "@/lib/palugada-storefront-utils";
 
 export type StorefrontSeller = {
   slug: string;
@@ -12,8 +17,9 @@ export type StorefrontSeller = {
   cluster: string;
   description: string;
   imageSrc: string;
+  coverImageSrc?: string;
   imageAlt: string;
-  galleryImages: Array<{ src: string; alt: string }>;
+  galleryImages: Array<{ src: string; alt: string; isMenu?: boolean }>;
   whatsappHref?: string;
   whatsappLabel?: string;
   whatsappDisplayNumber?: string;
@@ -24,193 +30,338 @@ export type StorefrontSeller = {
   priceNote?: string;
   isOwner?: boolean;
   highlights?: string[];
+  structuredProducts?: Array<{
+    id: string;
+    name: string;
+    variant?: string;
+    description: string;
+    price?: number | string;
+    imageSrc?: string;
+    imageAlt?: string;
+    availability?: string;
+  }>;
 };
 
-type Product = {
-  id: string;
-  name: string;
-  variant: string;
-  description: string;
-  price: number;
-  imageSrc: string;
-  imageAlt: string;
-  availability: string;
+const categoryLabels: Record<string, { title: string; sectionTitle: string; icon: string }> = {
+  kuliner: { title: "Kuliner", sectionTitle: "Menu & Sajian Unggulan", icon: "🍽️" },
+  jasa: { title: "Jasa & Layanan", sectionTitle: "Layanan Tersedia", icon: "🛠️" },
+  barang: { title: "Barang & Toko", sectionTitle: "Produk Pilihan", icon: "📦" },
+  properti: { title: "Properti", sectionTitle: "Informasi Unit & Hunian", icon: "🏠" },
+  lainnya: { title: "Usaha Warga", sectionTitle: "Katalog Penawaran", icon: "🏪" },
 };
 
-type CartLine = Product & { quantity: number };
-
-const rupiah = new Intl.NumberFormat("id-ID", {
-  style: "currency",
-  currency: "IDR",
-  maximumFractionDigits: 0,
-});
-
-function pilotProducts(seller: StorefrontSeller): Product[] {
-  if (seller.slug !== "donat-kentang-warga" && seller.slug !== "maniez-donut") return [];
-
-  return [
-    {
-      id: "maniez-coklat",
-      name: "Donat Kentang Coklat",
-      variant: "Box 6 pcs",
-      description: "Donat lembut dengan taburan meses coklat.",
-      price: 20000,
-      imageSrc: seller.galleryImages[0]?.src ?? seller.imageSrc,
-      imageAlt: "Donat kentang coklat Ma'niez Donut",
-      availability: "Tersedia hari ini",
-    },
-    {
-      id: "maniez-keju",
-      name: "Donat Kentang Keju",
-      variant: "Box 6 pcs",
-      description: "Donat lembut dengan taburan keju pilihan.",
-      price: 22000,
-      imageSrc: seller.galleryImages[1]?.src ?? seller.imageSrc,
-      imageAlt: "Donat kentang keju Ma'niez Donut",
-      availability: "Tersedia hari ini",
-    },
-    {
-      id: "maniez-red-velvet",
-      name: "Donat Red Velvet",
-      variant: "Box 6 pcs",
-      description: "Pilihan red velvet untuk teman berkumpul.",
-      price: 24000,
-      imageSrc: seller.galleryImages[2]?.src ?? seller.imageSrc,
-      imageAlt: "Donat red velvet Ma'niez Donut",
-      availability: "Pre-order H+1",
-    },
-    {
-      id: "maniez-keluarga",
-      name: "Box Keluarga Mix",
-      variant: "12 pcs, pilih 2 varian",
-      description: "Pilihan box untuk kumpul keluarga atau tetangga.",
-      price: 42000,
-      imageSrc: seller.imageSrc,
-      imageAlt: "Box keluarga Ma'niez Donut",
-      availability: "Tersedia hari ini",
-    },
-  ];
-}
-
-function Icon({ name, className = "h-5 w-5" }: { name: "cart" | "plus" | "minus" | "close" | "check" | "whatsapp"; className?: string }) {
-  const paths = {
-    cart: <path d="M3 3h2l2.3 10.1a2 2 0 0 0 2 1.56h7.9a2 2 0 0 0 1.93-1.48L20.5 7H6.1M10 20a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm8 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z" />,
-    plus: <path d="M12 5v14M5 12h14" />,
-    minus: <path d="M5 12h14" />,
-    close: <path d="m6 6 12 12M18 6 6 18" />,
-    check: <path d="m5 12 4 4L19 6" />,
-    whatsapp: <path d="M20.5 11.8a8.2 8.2 0 0 1-12.1 7.2L4 20l1-4.1a8.2 8.2 0 1 1 15.5-4.1Zm-11.6-3c.2-.4.4-.4.7-.4h.5c.2 0 .3 0 .4.4l.7 1.7c.1.2.1.4 0 .5l-.4.6c-.1.1-.2.3-.1.4.4.8 1.1 1.5 1.9 2 .2.1.3.1.5 0l.6-.7c.2-.2.3-.2.5-.1l1.7.8c.2.1.3.2.3.4 0 .5-.3 1.2-.7 1.4-.4.2-.9.3-1.5.1-1-.3-2.3-1-3.7-2.4-1.1-1.1-1.8-2.3-2.1-3.2-.3-.9 0-1.7.3-2.1Z" />,
-  };
-  return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={className}>{paths[name]}</svg>;
-}
-
-const categoryEmoji: Record<string, string> = {
-  Kuliner: "🍽️",
-  Jasa: "💼",
-  Barang: "📦",
-  Properti: "🏠",
-  Lainnya: "🏪",
-};
-
-function StoreImage({
-  src,
-  alt,
-  sizes,
-  priority = false,
-  className,
-  category = "Lainnya",
+/* ── Accessible Lightbox Component ── */
+function AccessibleLightbox({
+  images,
+  initialIndex,
+  onClose,
+  title,
 }: {
-  src: string;
-  alt: string;
-  sizes: string;
-  priority?: boolean;
-  className: string;
-  category?: string;
+  images: Array<{ src: string; alt: string }>;
+  initialIndex: number;
+  onClose: () => void;
+  title: string;
 }) {
-  if (!src) {
-    const icon = categoryEmoji[category] || "🏪";
-    return (
-      <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-[#0c2217] via-[#003d34] to-[#194b34] text-white">
-        <span className="text-3xl sm:text-4xl">{icon}</span>
-      </div>
-    );
-  }
-  if (src.startsWith("http")) {
-    // Signed Supabase URLs are temporary and are intentionally not routed through Next's static optimizer.
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={src} alt={alt} className={className} />;
-  }
-  return <Image src={src} alt={alt} fill sizes={sizes} priority={priority} className={className} />;
-}
-
-export function SellerStorefront({ seller }: { seller: StorefrontSeller }) {
-  const products = useMemo(() => pilotProducts(seller), [seller]);
-  const storageKey = `cgv10:palugada-cart:${seller.slug}`;
-  const [cart, setCart] = useState<CartLine[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const saved = window.sessionStorage.getItem(`cgv10:palugada-cart:${seller.slug}`);
-      return saved ? (JSON.parse(saved) as CartLine[]) : [];
-    } catch {
-      return [];
-    }
-  });
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [customer, setCustomer] = useState({ name: "", cluster: seller.cluster, unit: "", whatsapp: "", notes: "" });
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [isZoomed, setIsZoomed] = useState(false);
 
   useEffect(() => {
-    try { sessionStorage.setItem(storageKey, JSON.stringify(cart)); } catch { /* no-op */ }
-  }, [cart, storageKey]);
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        onClose();
+      } else if (e.key === "ArrowRight") {
+        setCurrentIndex((prev) => (prev + 1) % images.length);
+        setIsZoomed(false);
+      } else if (e.key === "ArrowLeft") {
+        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+        setIsZoomed(false);
+      }
+    }
 
-  const itemCount = cart.reduce((sum, line) => sum + line.quantity, 0);
-  const total = cart.reduce((sum, line) => sum + line.price * line.quantity, 0);
-  const updateQuantity = (product: Product, quantity: number) => {
-    setCart((current) => {
-      if (quantity <= 0) return current.filter((line) => line.id !== product.id);
-      const existing = current.find((line) => line.id === product.id);
-      return existing ? current.map((line) => line.id === product.id ? { ...line, quantity } : line) : [...current, { ...product, quantity }];
-    });
-  };
-  const getQuantity = (id: string) => cart.find((line) => line.id === id)?.quantity ?? 0;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = "auto";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [images.length, onClose]);
 
-  function sendOrder() {
-    if (!seller.whatsappHref || cart.length === 0) return;
-    const lines = cart.map((line) => `• ${line.name} (${line.variant}) x${line.quantity} — ${rupiah.format(line.price * line.quantity)}`);
-    const message = [
-      "*PALUGADA CGV — Pesanan Warga*",
-      `Penjual: ${seller.name}`,
-      "",
-      "*Pesanan*",
-      ...lines,
-      "",
-      `*Total: ${rupiah.format(total)}*`,
-      "",
-      "*Data pemesan*",
-      `Nama: ${customer.name || "-"}`,
-      `Cluster: ${customer.cluster || "-"}`,
-      `Blok / nomor rumah: ${customer.unit || "-"}`,
-      `WhatsApp: ${customer.whatsapp || "-"}`,
-      `Catatan: ${customer.notes || "-"}`,
-      "",
-      "Mohon konfirmasi ketersediaan dan langkah berikutnya. Terima kasih.",
-    ].join("\n");
-    window.open(`${seller.whatsappHref}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+  const currentImage = images[currentIndex];
+  if (!currentImage) return null;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Galeri foto ${title}`}
+      className="fixed inset-0 z-50 flex flex-col items-center justify-between bg-black/95 p-3 sm:p-6 backdrop-blur-md"
+      onClick={onClose}
+    >
+      {/* Top Controls Bar */}
+      <div
+        className="flex w-full max-w-6xl items-center justify-between text-white"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-3">
+          <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90">
+            Foto {currentIndex + 1} dari {images.length}
+          </span>
+          <p className="hidden text-xs font-medium text-white/70 sm:inline">
+            Gunakan panah keyboard ◀ ▶ untuk navigasi
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsZoomed((z) => !z)}
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 text-xs font-bold text-white hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]"
+            aria-label={isZoomed ? "Kecilkan ukuran gambar" : "Perbesar ukuran gambar"}
+          >
+            <span>{isZoomed ? "🔍 Normal" : "🔍 Zoom Baca"}</span>
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex min-h-9 items-center justify-center rounded-xl bg-white/15 px-4 text-xs font-bold text-white transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]"
+            aria-label="Tutup penampil foto"
+            autoFocus
+          >
+            ✕ Tutup (Esc)
+          </button>
+        </div>
+      </div>
+
+      {/* Main Image Stage */}
+      <div
+        className={`relative my-auto flex w-full max-w-6xl items-center justify-center overflow-auto py-2 transition-all ${
+          isZoomed ? "cursor-zoom-out" : "cursor-zoom-in"
+        }`}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsZoomed((z) => !z);
+        }}
+      >
+        <div
+          className={`relative transition-transform duration-200 ${
+            isZoomed
+              ? "min-h-[85vh] min-w-[95vw] sm:min-w-[80vw]"
+              : "max-h-[78vh] w-full max-w-4xl"
+          }`}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={currentImage.src}
+            alt={currentImage.alt || `Foto ${title}`}
+            className={`mx-auto rounded-xl object-contain shadow-2xl transition-all ${
+              isZoomed ? "max-h-none w-full" : "max-h-[76vh] w-auto max-w-full"
+            }`}
+          />
+        </div>
+      </div>
+
+      {/* Bottom Navigation Controls & Caption */}
+      <div
+        className="flex w-full max-w-6xl items-center justify-between gap-4 text-white"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+            setIsZoomed(false);
+          }}
+          className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 text-xs font-bold text-white hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]"
+          aria-label="Foto sebelumnya"
+        >
+          <span>◀</span>
+          <span className="hidden sm:inline">Sebelumnya</span>
+        </button>
+
+        <p className="line-clamp-1 max-w-md text-center text-xs text-white/80">
+          {currentImage.alt || title}
+        </p>
+
+        <button
+          type="button"
+          onClick={() => {
+            setCurrentIndex((prev) => (prev + 1) % images.length);
+            setIsZoomed(false);
+          }}
+          className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 text-xs font-bold text-white hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]"
+          aria-label="Foto berikutnya"
+        >
+          <span className="hidden sm:inline">Berikutnya</span>
+          <span>▶</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ── Share Lapak Button Component ── */
+function ShareLapakButton({ sellerName, cluster }: { sellerName: string; cluster: string }) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleShare() {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    const shareData = {
+      title: `${sellerName} · PALUGADA CGV`,
+      text: `Lihat lapak ${sellerName} (${cluster}) di Portal Warga CGV:`,
+      url,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch {
+        /* fallback to copy */
+      }
+    }
+
+    if (navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2600);
+      } catch {
+        /* no-op */
+      }
+    }
   }
 
   return (
-    <main className="pb-24 lg:pb-12">
+    <div className="relative inline-flex items-center">
+      <button
+        type="button"
+        onClick={() => void handleShare()}
+        className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-white/20 bg-black/40 px-3.5 text-xs font-bold text-white/95 backdrop-blur-md transition-all hover:bg-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]"
+        aria-label={`Bagikan tautan lapak ${sellerName}`}
+      >
+        <span>📤</span>
+        <span>{copied ? "Tautan Disalin!" : "Bagikan Lapak"}</span>
+      </button>
+
+      {/* Toast popup */}
+      {copied && (
+        <div
+          role="status"
+          className="absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-[#003d34] px-3 py-1.5 text-xs font-bold text-white shadow-lg border border-[#D4AF37]/50 animate-fade-in"
+        >
+          ✓ Tautan berhasil disalin ke clipboard!
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Main Seller Storefront Component ── */
+export function SellerStorefront({ seller }: { seller: StorefrontSeller }) {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const rawCat = (seller.category || "lainnya").toLowerCase();
+  const catConfig = categoryLabels[rawCat] || categoryLabels.lainnya;
+
+  // Extract cleaned details, highlights, and operating status
+  const storeDetails = useMemo(() => {
+    return extractStoreDetails(
+      seller.description,
+      seller.name,
+      seller.category,
+      seller.cluster,
+      seller.availabilityNote
+    );
+  }, [seller.description, seller.name, seller.category, seller.cluster, seller.availabilityNote]);
+
+  const operatingStatus = useMemo(() => {
+    return getJakartaOperatingStatus(
+      storeDetails.operatingHours || seller.sellerStatusNote,
+      seller.sellerStatus
+    );
+  }, [storeDetails.operatingHours, seller.sellerStatusNote, seller.sellerStatus]);
+
+  const displayPrice = useMemo(() => {
+    return formatDisplayPrice(seller.priceNote, seller.category);
+  }, [seller.priceNote, seller.category]);
+
+  const whatsappDisplay =
+    seller.whatsappDisplayNumber ||
+    (seller.whatsappHref ? seller.whatsappHref.replace(/^https:\/\/wa\.me\//, "+") : undefined);
+
+  // Gallery list construction
+  const allImages = useMemo(() => {
+    const list: Array<{ src: string; alt: string; isMenu?: boolean }> = [];
+    if (seller.coverImageSrc) {
+      list.push({
+        src: seller.coverImageSrc,
+        alt: seller.imageAlt || `Foto usaha ${seller.name}`,
+      });
+    } else if (seller.imageSrc && !seller.imageSrc.startsWith("/")) {
+      list.push({
+        src: seller.imageSrc,
+        alt: seller.imageAlt || `Foto usaha ${seller.name}`,
+      });
+    }
+
+    for (const g of seller.galleryImages) {
+      if (!list.some((existing) => existing.src === g.src)) {
+        const isMenu =
+          g.isMenu ||
+          g.src.toLowerCase().includes("142") ||
+          g.alt.toLowerCase().includes("menu");
+        list.push({ ...g, isMenu });
+      }
+    }
+    return list;
+  }, [seller.coverImageSrc, seller.imageSrc, seller.imageAlt, seller.galleryImages, seller.name]);
+
+  // Primary showcase hero visual
+  const heroImageSrc =
+    seller.coverImageSrc ||
+    allImages[0]?.src ||
+    (seller.imageSrc.startsWith("http") ? seller.imageSrc : null);
+
+  // Menu photo if available in attachments
+  const menuImage = allImages.find(
+    (img) => img.isMenu || img.alt.toLowerCase().includes("menu") || img.src.includes("142")
+  );
+
+  // Primary WhatsApp URL with pre-filled greeting message
+  const primaryWhatsappUrl = useMemo(() => {
+    const defaultMsg = `Halo ${seller.name}, saya melihat lapak Anda di PALUGADA CGV. Saya ingin bertanya atau memesan.`;
+    return buildWhatsappUrl(seller.whatsappDisplayNumber || seller.whatsappHref, defaultMsg);
+  }, [seller.name, seller.whatsappDisplayNumber, seller.whatsappHref]);
+
+  // Google Maps link
+  const googleMapsUrl = useMemo(() => {
+    return buildGoogleMapsLink(seller.name, seller.cluster);
+  }, [seller.name, seller.cluster]);
+
+  // Combined genuine highlights (prioritizing explicit seller highlights, falling back to extracted)
+  const finalHighlights = useMemo(() => {
+    if (seller.highlights && seller.highlights.length > 0) {
+      return seller.highlights;
+    }
+    return storeDetails.highlights;
+  }, [seller.highlights, storeDetails.highlights]);
+
+  return (
+    <main className="min-h-screen bg-[#FBF9F5] text-[#1A1A1A] pb-28 lg:pb-16 font-sans selection:bg-[#E8C865]/30">
+      {/* ── Owner Bar (Only for listing owner) ── */}
       {seller.isOwner && (
-        <aside aria-label="Akses pemilik lapak" className="border-b border-[#D4AF37]/30 bg-gradient-to-r from-[#D4AF37] via-[#E8C865] to-[#D4AF37] px-4 py-2.5 text-[#15140b] shadow-sm">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 sm:px-6 lg:px-8 xl:px-10">
+        <aside
+          aria-label="Akses pemilik lapak"
+          className="border-b border-[#D4AF37]/40 bg-gradient-to-r from-[#D4AF37] via-[#F2E5BD] to-[#D4AF37] px-4 py-2 text-[#15140B] shadow-sm"
+        >
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 sm:px-6">
             <div className="flex items-center gap-2">
-              <span className="text-base">👑</span>
-              <p className="text-xs font-bold sm:text-sm">
-                Anda adalah pemilik lapak ini.
-              </p>
+              <span className="text-sm">👑</span>
+              <p className="text-xs font-extrabold sm:text-sm">Anda adalah pemilik lapak ini.</p>
             </div>
             <Link
               href="/portal/lapak/"
-              className="inline-flex min-h-8 items-center justify-center rounded-lg bg-[#001713] px-3.5 text-xs font-bold text-white shadow hover:bg-black transition-all"
+              className="inline-flex min-h-7 items-center justify-center rounded-lg bg-[#001D18] px-3 text-xs font-bold text-white shadow hover:bg-black transition-all"
             >
               ✏️ Kelola Lapak
             </Link>
@@ -218,161 +369,523 @@ export function SellerStorefront({ seller }: { seller: StorefrontSeller }) {
         </aside>
       )}
 
-      <section className="border-b border-primary/15 bg-primary text-white">
-        <div className="mx-auto max-w-7xl px-4 pb-7 pt-5 sm:px-6 lg:px-8 xl:px-10">
-          <div className="flex items-center justify-between gap-2">
-            <Link href="/palugada/" className="inline-flex min-h-10 items-center text-sm font-semibold text-white/78 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft">← Kembali ke PALUGADA</Link>
-          </div>
-          <div className="mt-5 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-center gap-4">
-              <div className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-2xl border border-white/20 bg-cream shadow-lg sm:h-[5.5rem] sm:w-[5.5rem]">
-                <StoreImage src={seller.imageSrc} alt={seller.imageAlt} sizes="88px" className="object-cover" priority category={seller.category} />
-              </div>
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-accent-soft px-2.5 py-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-primary">{seller.category}</span><span className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/85"><span className={`h-2 w-2 rounded-full ${seller.sellerStatus === "online" ? "bg-emerald-400" : "bg-stone-300"}`} />{seller.sellerStatusLabel}</span></div>
-                <h1 className="mt-2 truncate text-2xl font-semibold tracking-tight sm:text-3xl">{seller.name}</h1>
-                <p className="mt-1 text-sm text-white/75">{seller.cluster} <span className="mx-1.5 text-white/35">•</span> Lapak warga terverifikasi</p>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {seller.isOwner && (
-                <Link
-                  href="/portal/lapak/"
-                  className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#E8C865] px-4 text-sm font-black text-[#15140b] shadow-md transition-all hover:brightness-110"
-                >
-                  ✏️ Kelola Lapak
-                </Link>
-              )}
-              {seller.whatsappHref ? <a href={seller.whatsappHref} target="_blank" rel="noreferrer" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-accent px-4 text-sm font-bold text-foreground transition-colors hover:bg-accent/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"><Icon name="whatsapp" className="h-5 w-5" />{seller.whatsappLabel ?? "Hubungi penjual"}</a> : null}
-            </div>
+      {/* ── A. Top Compact Navigation ── */}
+      <nav
+        aria-label="Navigasi PALUGADA"
+        className="sticky top-0 z-30 border-b border-[#002D27]/10 bg-[#002D27] text-white backdrop-blur-md"
+      >
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+          <Link
+            href="/palugada/"
+            className="inline-flex items-center gap-2 text-xs font-bold text-white/90 hover:text-white transition-colors"
+          >
+            <span>←</span>
+            <span>Kembali ke PALUGADA</span>
+          </Link>
+
+          <div className="flex items-center gap-2.5">
+            <span className="hidden text-xs font-semibold text-white/60 sm:inline">
+              Portal Warga CGV
+            </span>
+            <ShareLapakButton sellerName={seller.name} cluster={seller.cluster} />
           </div>
         </div>
-      </section>
-
-      <nav aria-label="Navigasi toko" className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl gap-6 px-4 sm:px-6 lg:px-8 xl:px-10"><a href="#katalog" className="border-b-2 border-primary py-4 text-sm font-bold text-primary">Katalog</a><a href="#tentang" className="border-b-2 border-transparent py-4 text-sm font-semibold text-muted transition-colors hover:text-primary">Tentang</a><a href="#kontak" className="border-b-2 border-transparent py-4 text-sm font-semibold text-muted transition-colors hover:text-primary">Kontak</a></div>
       </nav>
 
-      <section id="katalog" className="mx-auto max-w-7xl scroll-mt-24 px-4 py-7 sm:px-6 lg:px-8 lg:py-10 xl:px-10">
-        <div className="mb-6 flex items-end justify-between gap-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">{products.length ? "Katalog pilihan" : "Ringkasan lapak"}</p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{products.length ? "Pesan untuk dinikmati di rumah." : "Informasi jelas sebelum menghubungi penjual."}</h2>
+      {/* ── B. Hero Section (Warm Forest Green Editorial Hero) ── */}
+      <section className="relative overflow-hidden bg-[#002D27] text-white">
+        {/* Soft background ambient depth */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#003D34] via-[#002D27] to-[#001D18]" />
+
+        <div className="relative mx-auto max-w-6xl px-4 pt-8 pb-12 sm:px-6 sm:pt-10 sm:pb-16 lg:pt-12 lg:pb-20">
+          <div className="grid items-center gap-8 lg:grid-cols-12 lg:gap-10">
+            {/* Left Column: Editorial Information & Direct Action (7 Cols on desktop) */}
+            <div className="space-y-4 lg:col-span-7">
+              {/* Category Pill & Status Badge */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#D4AF37] px-3 py-0.5 text-xs font-extrabold uppercase tracking-wider text-[#15140B] shadow-sm">
+                  <span>{catConfig.icon}</span>
+                  <span>{catConfig.title}</span>
+                </span>
+
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-0.5 text-xs font-bold backdrop-blur-sm ${
+                    operatingStatus.isOpenNow
+                      ? "border-emerald-400/40 bg-emerald-950/70 text-emerald-200"
+                      : "border-stone-400/30 bg-stone-900/70 text-stone-300"
+                  }`}
+                >
+                  <span
+                    className={`h-2 w-2 rounded-full ${
+                      operatingStatus.isOpenNow ? "bg-emerald-400 animate-pulse" : "bg-stone-400"
+                    }`}
+                  />
+                  <span>{operatingStatus.timeBadge || operatingStatus.statusText}</span>
+                </span>
+              </div>
+
+              {/* Business Name */}
+              <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl lg:leading-[1.15]">
+                {seller.name}
+              </h1>
+
+              {/* Tagline / Brief Description */}
+              <p className="text-base font-normal leading-relaxed text-white/90 sm:text-lg">
+                {storeDetails.tagline}
+              </p>
+
+              {/* Location & Pricing Badges */}
+              <div className="flex flex-wrap items-center gap-3 pt-1 text-xs sm:text-sm">
+                <div className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 font-medium text-white/95">
+                  <span>📍</span>
+                  <span>{seller.cluster}</span>
+                </div>
+
+                <div className="inline-flex items-center gap-1.5 rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/10 px-3 py-1.5 font-extrabold text-[#E8C865]">
+                  <span>🏷️</span>
+                  <span>{displayPrice}</span>
+                </div>
+
+                {storeDetails.operatingHours && (
+                  <div className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 font-medium text-white/90">
+                    <span>⏰</span>
+                    <span>{storeDetails.operatingHours}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-3 pt-3">
+                {primaryWhatsappUrl && (
+                  <a
+                    href={primaryWhatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#D4AF37] via-[#E5C158] to-[#D4AF37] px-6 text-sm font-black text-[#15140B] shadow-[0_8px_20px_rgba(212,175,55,0.35)] transition-all hover:scale-[1.02] hover:brightness-110 active:scale-95"
+                  >
+                    <span>💬</span>
+                    <span>{seller.category?.toLowerCase() === "kuliner" ? "Pesan via WhatsApp" : "Hubungi via WhatsApp"}</span>
+                  </a>
+                )}
+
+                <a
+                  href="#penawaran"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 text-sm font-bold text-white transition-all hover:bg-white/20 active:scale-95"
+                >
+                  <span>Lihat Menu & Info</span>
+                  <span>↓</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Right Column: Main Showcase Visual (5 Cols on desktop) */}
+            <div className="lg:col-span-5">
+              <div
+                className="group relative aspect-[4/3] sm:aspect-[4/3] overflow-hidden rounded-3xl border-2 border-white/15 bg-[#001D18] shadow-2xl transition-all hover:border-[#D4AF37]/50 cursor-pointer"
+                onClick={() => {
+                  if (allImages.length > 0) setLightboxIndex(0);
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    if (allImages.length > 0) setLightboxIndex(0);
+                  }
+                }}
+                aria-label={`Lihat foto utama ${seller.name}`}
+              >
+                {heroImageSrc ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={heroImageSrc}
+                    alt={seller.imageAlt || `Foto ${seller.name}`}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-[#003D34] to-[#001D18] p-6 text-center text-white">
+                    <span className="text-6xl">{catConfig.icon}</span>
+                    <p className="mt-3 font-bold text-white/80">{seller.name}</p>
+                    <p className="text-xs text-white/50">{seller.cluster}</p>
+                  </div>
+                )}
+
+                {/* Badge Overlay */}
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2">
+                  <span className="rounded-xl border border-white/20 bg-black/60 px-3 py-1 text-xs font-bold text-white backdrop-blur-md">
+                    🔍 Klik untuk perbesar
+                  </span>
+                  {allImages.length > 1 && (
+                    <span className="rounded-xl border border-white/20 bg-black/60 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-md">
+                      {allImages.length} Foto
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
-          <p className="hidden text-sm text-muted sm:block">{products.length ? `${products.length} pilihan tersedia` : seller.sellerStatusLabel}</p>
-        </div>
-        <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem]">
-          <div>{products.length ? <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 xl:grid-cols-4">{products.map((product) => <ProductCard key={product.id} product={product} quantity={getQuantity(product.id)} onChange={updateQuantity} />)}</div> : <ListingSummary seller={seller} />}</div>
-          <aside className="hidden lg:block">{products.length ? <CartSummary cart={cart} total={total} customer={customer} setCustomer={setCustomer} onSend={sendOrder} seller={seller} /> : <StorefrontContactCard seller={seller} />}</aside>
         </div>
       </section>
 
-      <section id="tentang" className="scroll-mt-24 border-y border-border bg-cream/55"><div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 md:grid-cols-[1.25fr_.75fr] lg:px-8 xl:px-10"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Tentang {seller.name}</p><h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">Usaha lokal, lebih dekat dengan warga.</h2><p className="mt-4 max-w-2xl text-sm leading-7 text-muted sm:text-base">{seller.description}</p></div><div className="rounded-2xl border border-accent/45 bg-surface p-5"><p className="text-sm font-bold text-foreground">Status operasional</p><p className="mt-2 inline-flex items-center gap-2 text-sm text-primary"><span className={`h-2.5 w-2.5 rounded-full ${seller.sellerStatus === "online" ? "bg-emerald-600" : "bg-stone-400"}`} />{seller.sellerStatusNote}</p><p className="mt-4 border-t border-border pt-4 text-sm leading-6 text-muted">{seller.availabilityNote ?? "Ketersediaan dapat dikonfirmasi langsung kepada penjual."}</p></div></div></section>
-
-      <section id="kontak" className="mx-auto max-w-7xl scroll-mt-24 px-4 py-8 sm:px-6 lg:px-8 xl:px-10"><div className="flex flex-col justify-between gap-4 rounded-2xl border border-border bg-surface p-5 shadow-sm sm:flex-row sm:items-center sm:p-6"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Kontak penjual</p><h2 className="mt-2 text-xl font-semibold text-foreground">Perlu tanya sebelum memesan?</h2><p className="mt-1 text-sm text-muted">{seller.whatsappDisplayNumber ?? "Gunakan kanal kontak yang tersedia."}</p></div>{seller.whatsappHref ? <a href={seller.whatsappHref} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-white transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Icon name="whatsapp" />WhatsApp {seller.name}</a> : null}</div></section>
-
-      {itemCount > 0 ? <button type="button" onClick={() => setIsCartOpen(true)} className="fixed bottom-3 left-3 right-3 z-30 flex min-h-14 items-center justify-between rounded-2xl bg-primary px-4 text-left text-white shadow-[0_12px_32px_rgba(0,61,52,.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent lg:hidden"><span className="inline-flex items-center gap-2 text-sm font-bold"><span className="grid h-7 w-7 place-items-center rounded-full bg-accent text-xs text-foreground">{itemCount}</span><Icon name="cart" />Lihat pesanan</span><span className="text-sm font-bold">{rupiah.format(total)}</span></button> : null}
-      {isCartOpen ? <div role="dialog" aria-modal="true" aria-label="Ringkasan pesanan" className="fixed inset-0 z-40 flex items-end bg-foreground/45 lg:hidden"><div className="max-h-[88vh] w-full overflow-y-auto rounded-t-3xl bg-background p-4 shadow-2xl"><div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-semibold text-foreground">Ringkasan pesanan</h2><button type="button" onClick={() => setIsCartOpen(false)} aria-label="Tutup ringkasan pesanan" className="grid h-10 w-10 place-items-center rounded-full text-muted hover:bg-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Icon name="close" /></button></div><CartSummary cart={cart} total={total} customer={customer} setCustomer={setCustomer} onSend={sendOrder} seller={seller} /></div></div> : null}
-    </main>
-  );
-}
-
-function ProductCard({ product, quantity, onChange }: { product: Product; quantity: number; onChange: (product: Product, quantity: number) => void }) {
-  return <article className="group overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-colors hover:border-primary/35"><div className="relative aspect-square overflow-hidden bg-cream"><StoreImage src={product.imageSrc} alt={product.imageAlt} sizes="(min-width: 1280px) 220px, (min-width: 640px) 30vw, 48vw" className="object-cover transition-transform duration-300 group-hover:scale-[1.03]" /><span className="absolute bottom-2 left-2 rounded-full bg-surface/94 px-2 py-1 text-[.63rem] font-bold text-primary shadow-sm">{product.availability}</span></div><div className="p-3 sm:p-4"><h3 className="line-clamp-2 text-sm font-semibold leading-5 text-foreground sm:text-base">{product.name}</h3><p className="mt-1 text-xs text-muted">{product.variant}</p><p className="mt-3 text-sm font-bold text-primary">{rupiah.format(product.price)}</p>{quantity ? <div className="mt-3 flex min-h-10 items-center justify-between rounded-xl border border-primary/20 bg-primary-soft px-1"><button type="button" onClick={() => onChange(product, quantity - 1)} aria-label={`Kurangi ${product.name}`} className="grid h-8 w-8 place-items-center rounded-lg text-primary hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Icon name="minus" className="h-4 w-4" /></button><span aria-live="polite" className="text-sm font-bold text-primary">{quantity}</span><button type="button" onClick={() => onChange(product, quantity + 1)} aria-label={`Tambah ${product.name}`} className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-white hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Icon name="plus" className="h-4 w-4" /></button></div> : <button type="button" onClick={() => onChange(product, 1)} className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-2 text-xs font-bold text-white transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Icon name="plus" className="h-4 w-4" />Tambah</button>}</div></article>;
-}
-
-function ListingSummary({ seller }: { seller: StorefrontSeller }) {
-  const images =
-    seller.galleryImages.length > 0
-      ? seller.galleryImages
-      : seller.imageSrc && !seller.imageSrc.startsWith("/")
-        ? [{ src: seller.imageSrc, alt: seller.imageAlt }]
-        : [];
-
-  return (
-    <div className="space-y-6">
-      {/* ── Galeri Foto Produk / Menu Lapak ── */}
-      {images.length > 0 && (
-        <section aria-label="Galeri Foto Produk" className="rounded-3xl border border-border bg-surface p-5 sm:p-6 shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-primary">
-                GALERI PRODUK ({images.length} FOTO)
-              </p>
-              <h3 className="text-base sm:text-lg font-black text-foreground">
-                Foto Produk & Menu Lapak
-              </h3>
-            </div>
-            <span className="text-xs font-semibold text-muted">Klik foto untuk perbesar</span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
-            {images.map((img, idx) => (
+      {/* ── C. Keunggulan Usaha (Highlights Strip) ── */}
+      {finalHighlights.length > 0 && (
+        <section aria-label="Keunggulan Usaha" className="relative z-10 mx-auto -mt-6 max-w-5xl px-4 sm:px-6">
+          <div className="grid grid-cols-2 gap-3 rounded-2xl border border-[#DED4C4] bg-white p-3.5 sm:p-4 shadow-sm sm:grid-cols-4">
+            {finalHighlights.map((item: string, idx: number) => (
               <div
                 key={idx}
-                className="group relative aspect-square overflow-hidden rounded-2xl border border-border/80 bg-stone-100 shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
+                className="flex items-center gap-2.5 rounded-xl bg-[#F8F5F0] p-2.5 sm:p-3"
               >
-                <ImagePreview
-                  src={img.src}
-                  alt={img.alt || `Foto ${idx + 1} ${seller.name}`}
-                  title={seller.name}
-                  caption={`Foto produk #${idx + 1} • ${seller.name}`}
-                  className="h-full w-full"
-                >
-                  <img
-                    src={img.src}
-                    alt={img.alt || `Foto ${idx + 1} ${seller.name}`}
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                </ImagePreview>
-                <span className="absolute bottom-2 left-2 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm pointer-events-none">
-                  #{idx + 1}
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#003D34] text-xs font-black text-[#D4AF37]">
+                  ✓
                 </span>
+                <p className="text-xs font-bold text-[#003D34] leading-snug">{item}</p>
               </div>
             ))}
           </div>
         </section>
       )}
 
-      {/* ── Informasi Detail Lapak ── */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">Harga / ketentuan</p>
-          <p className="mt-3 text-lg font-semibold text-foreground">{seller.priceNote ?? "Sesuai konfirmasi penjual"}</p>
-          <p className="mt-2 text-sm leading-6 text-muted">Harga akhir, jadwal, dan cara pemenuhan mengikuti informasi terbaru dari penyedia.</p>
-        </article>
-        <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">Ketersediaan</p>
-          <p className="mt-3 text-lg font-semibold text-foreground">{seller.sellerStatusLabel}</p>
-          <p className="mt-2 text-sm leading-6 text-muted">{seller.availabilityNote ?? "Konfirmasi langsung diperlukan sebelum membuat pesanan."}</p>
-        </article>
-        {seller.highlights?.length ? (
-          <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:col-span-2">
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">Cakupan layanan</p>
-            <ul className="mt-3 space-y-2 text-sm leading-6 text-muted">
-              {seller.highlights.map((highlight) => (
-                <li key={highlight} className="flex gap-3">
-                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                  {highlight}
-                </li>
+      {/* ── Main Content Body ── */}
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 pt-10 space-y-12">
+        {/* ── D. Penawaran Utama / Menu / Layanan ── */}
+        <section id="penawaran" className="scroll-mt-20 space-y-6">
+          <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[#DED4C4] pb-4">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-widest text-[#003D34]">
+                PENAWARAN & KATALOG
+              </p>
+              <h2 className="mt-1 text-2xl font-extrabold text-[#1A1A1A] sm:text-3xl">
+                {catConfig.sectionTitle}
+              </h2>
+            </div>
+            <span className="rounded-full bg-[#E4F0ED] px-3 py-1 text-xs font-extrabold text-[#003D34]">
+              {displayPrice}
+            </span>
+          </div>
+
+          {/* Special Menu Photo Showcase (e.g. for Kafe Kak Ayu) */}
+          {menuImage && (
+            <div className="overflow-hidden rounded-3xl border border-[#DED4C4] bg-white p-5 sm:p-6 shadow-sm">
+              <div className="grid gap-6 md:grid-cols-12 md:items-center">
+                <div className="md:col-span-5">
+                  <div
+                    className="group relative aspect-[3/4] sm:aspect-[4/3] md:aspect-[3/4] overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 cursor-pointer"
+                    onClick={() => {
+                      const idx = allImages.findIndex((img) => img.src === menuImage.src);
+                      setLightboxIndex(idx >= 0 ? idx : 0);
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Perbesar foto daftar menu"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={menuImage.src}
+                      alt="Daftar Menu Kafe Kak Ayu"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="rounded-xl bg-black/75 px-3.5 py-2 text-xs font-bold text-white shadow">
+                        🔍 Klik untuk Baca Menu Lengkap
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 md:col-span-7">
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-[#E4F0ED] px-3 py-1 text-xs font-bold text-[#003D34]">
+                    <span>📋</span>
+                    <span>Daftar Menu & Harga Resmi</span>
+                  </div>
+
+                  <h3 className="text-xl font-extrabold text-[#1A1A1A] sm:text-2xl">
+                    Pilihan Makanan, Minuman, & Camilan
+                  </h3>
+
+                  <p className="text-sm leading-relaxed text-stone-600">
+                    Foto menu resmi tersedia langsung dari pengelola. Anda dapat memperbesar gambar untuk melihat rincian minuman segar, kopi, makanan berat, dan aneka camilan dengan kisaran harga <strong>{displayPrice}</strong>.
+                  </p>
+
+                  <div className="rounded-2xl border border-stone-200 bg-[#FBF9F5] p-4 text-xs text-stone-600 space-y-1.5">
+                    <p className="font-bold text-[#003D34]">💡 Cara Memesan:</p>
+                    <p>1. Klik foto menu di samping untuk melihat pilihan menu lengkap.</p>
+                    <p>2. Hubungi WhatsApp pengelola untuk memastikan menu yang tersedia hari ini.</p>
+                  </div>
+
+                  {primaryWhatsappUrl && (
+                    <a
+                      href={primaryWhatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#003D34] px-5 text-xs font-bold text-white hover:bg-[#002D27] transition-all"
+                    >
+                      <span>💬</span>
+                      <span>Tanya Menu Hari Ini via WhatsApp</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Structured Products (If available) */}
+          {seller.structuredProducts && seller.structuredProducts.length > 0 && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {seller.structuredProducts.map((product) => {
+                const itemWaUrl = buildWhatsappUrl(
+                  seller.whatsappDisplayNumber || seller.whatsappHref,
+                  `Halo ${seller.name}, saya melihat lapak Anda di PALUGADA CGV. Saya ingin bertanya tentang ${product.name}.`
+                );
+
+                return (
+                  <article
+                    key={product.id}
+                    className="flex flex-col justify-between overflow-hidden rounded-2xl border border-[#DED4C4] bg-white p-4 shadow-sm transition-all hover:border-[#003D34]/40 hover:shadow-md"
+                  >
+                    {product.imageSrc && (
+                      <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-stone-100 mb-3">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={product.imageSrc}
+                          alt={product.imageAlt || product.name}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="text-base font-bold text-[#1A1A1A]">{product.name}</h3>
+                        {product.price && (
+                          <span className="shrink-0 text-sm font-extrabold text-[#003D34]">
+                            {typeof product.price === "number"
+                              ? new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(product.price)
+                              : product.price}
+                          </span>
+                        )}
+                      </div>
+                      {product.variant && (
+                        <p className="mt-0.5 text-xs text-stone-500">{product.variant}</p>
+                      )}
+                      <p className="mt-2 text-xs leading-relaxed text-stone-600">
+                        {product.description}
+                      </p>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-stone-100 flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-semibold text-stone-500">
+                        {product.availability || "Tersedia"}
+                      </span>
+                      {itemWaUrl && (
+                        <a
+                          href={itemWaUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex min-h-8 items-center gap-1.5 rounded-lg bg-[#003D34] px-3 text-xs font-bold text-white hover:bg-[#002D27] transition-all"
+                        >
+                          <span>Pesan</span>
+                          <span>↗</span>
+                        </a>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* ── E. Tentang Usaha ── */}
+        <section aria-labelledby="heading-tentang" className="space-y-4">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-[#003D34]">
+            PROFIL & DESKRIPSI
+          </p>
+          <div className="rounded-3xl border border-[#DED4C4] bg-white p-6 sm:p-8 shadow-sm">
+            <h2 id="heading-tentang" className="text-xl font-extrabold text-[#1A1A1A] sm:text-2xl">
+              Tentang {seller.name}
+            </h2>
+            <div className="mt-4 whitespace-pre-line text-sm sm:text-base leading-relaxed text-stone-700">
+              {storeDetails.cleanDescription}
+            </div>
+          </div>
+        </section>
+
+        {/* ── F. Galeri Foto & Lightbox ── */}
+        {allImages.length > 0 && (
+          <section aria-labelledby="heading-galeri" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-widest text-[#003D34]">
+                  DOKUMENTASI FOTO
+                </p>
+                <h2 id="heading-galeri" className="text-xl font-extrabold text-[#1A1A1A] sm:text-2xl">
+                  Galeri Tempat, Suasana, & Produk
+                </h2>
+              </div>
+              <span className="text-xs font-semibold text-stone-500">
+                🔍 Klik foto untuk perbesar
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 sm:gap-4">
+              {allImages.map((img, idx) => (
+                <div
+                  key={idx}
+                  className="group relative aspect-square overflow-hidden rounded-2xl border border-[#DED4C4] bg-stone-100 shadow-sm transition-all hover:border-[#003D34]/60 hover:shadow-md cursor-pointer"
+                  onClick={() => setLightboxIndex(idx)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") setLightboxIndex(idx);
+                  }}
+                  aria-label={`Buka foto ke-${idx + 1} ${seller.name}`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={img.src}
+                    alt={img.alt || `Foto ke-${idx + 1}`}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/60 via-transparent to-transparent p-2.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="rounded-md bg-black/70 px-2 py-0.5 text-[10px] font-bold text-white">
+                      #{idx + 1} Perbesar
+                    </span>
+                  </div>
+                </div>
               ))}
-            </ul>
-          </article>
-        ) : null}
+            </div>
+          </section>
+        )}
+
+        {/* ── G. Lokasi dan Jam Layanan ── */}
+        <section aria-labelledby="heading-lokasi" className="space-y-4">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-[#003D34]">
+            INFORMASI LOKASI & WAKTU
+          </p>
+          <div className="rounded-3xl border border-[#DED4C4] bg-white p-6 sm:p-8 shadow-sm">
+            <h2 id="heading-lokasi" className="text-xl font-extrabold text-[#1A1A1A] sm:text-2xl">
+              Lokasi & Jam Layanan
+            </h2>
+
+            <div className="mt-6 grid gap-6 sm:grid-cols-3">
+              <div className="space-y-1">
+                <p className="text-xs font-bold uppercase tracking-wider text-stone-500">
+                  📍 Alamat / Lokasi
+                </p>
+                <p className="text-sm font-bold text-[#003D34]">{seller.cluster}</p>
+                <p className="text-xs text-stone-500">Perumahan Cipta Green Ville, Batam</p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-xs font-bold uppercase tracking-wider text-stone-500">
+                  ⏰ Jam Operasional
+                </p>
+                <p className="text-sm font-bold text-[#1A1A1A]">
+                  {storeDetails.operatingHours || seller.sellerStatusNote || "Sesuai konfirmasi via WA"}
+                </p>
+                <p className="text-xs text-emerald-700 font-semibold">{operatingStatus.statusText}</p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-xs font-bold uppercase tracking-wider text-stone-500">
+                  🛵 Pengantaran & Layanan
+                </p>
+                <p className="text-sm font-bold text-[#1A1A1A]">
+                  {seller.availabilityNote || "Konfirmasi pengantaran via WhatsApp"}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 pt-5 border-t border-stone-100 flex flex-wrap items-center justify-between gap-3">
+              <span className="text-xs text-stone-500">
+                Lapak usaha warga resmi di lingkungan Cipta Green Ville.
+              </span>
+              <a
+                href={googleMapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-stone-300 bg-[#FBF9F5] px-4 text-xs font-bold text-[#003D34] hover:bg-[#E4F0ED] transition-colors"
+              >
+                <span>🗺️</span>
+                <span>Buka di Google Maps ↗</span>
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* ── H. Kontak Akhir & Call to Action ── */}
+        <section aria-label="Kontak Penjual" className="rounded-3xl border border-[#D4AF37]/40 bg-gradient-to-br from-[#003D34] to-[#001D18] p-6 sm:p-10 text-white shadow-xl">
+          <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+            <div className="max-w-xl space-y-2">
+              <span className="rounded-full bg-[#D4AF37] px-3 py-1 text-xs font-black uppercase tracking-wider text-[#15140B]">
+                Hubungi Langsung
+              </span>
+              <h2 className="text-2xl font-extrabold text-white sm:text-3xl">
+                Ingin bertanya atau memesan dari {seller.name}?
+              </h2>
+              <p className="text-sm text-white/80 leading-relaxed">
+                Hubungi pengelola langsung melalui WhatsApp. Transaksi dilakukan langsung antarwarga dengan cepat dan praktis.
+              </p>
+              {whatsappDisplay && (
+                <p className="text-xs font-mono font-semibold text-[#E8C865]">
+                  Nomor WhatsApp: {whatsappDisplay}
+                </p>
+              )}
+            </div>
+
+            {primaryWhatsappUrl && (
+              <a
+                href={primaryWhatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-13 shrink-0 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#D4AF37] via-[#E5C158] to-[#D4AF37] px-8 text-sm font-black text-[#15140B] shadow-[0_8px_24px_rgba(212,175,55,0.4)] transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+              >
+                <span className="text-lg">💬</span>
+                <span>Hubungi Penjual via WA</span>
+              </a>
+            )}
+          </div>
+          <div className="mt-6 border-t border-white/10 pt-4 text-xs text-white/50 flex flex-wrap items-center justify-between gap-2">
+            <span>✓ Transaksi langsung dengan penjual</span>
+            <span>✓ Tanpa potongan atau biaya perantara</span>
+          </div>
+        </section>
       </div>
-    </div>
+
+      {/* ── Sticky Mobile WhatsApp Bottom Bar ── */}
+      {primaryWhatsappUrl && (
+        <aside
+          aria-label="Aksi Cepat WhatsApp"
+          className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#003D34]/20 bg-[#001D18]/95 p-3 backdrop-blur-xl lg:hidden"
+        >
+          <div className="mx-auto flex max-w-md items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-bold text-white">{seller.name}</p>
+              <p className="text-[11px] font-semibold text-[#E8C865]">{displayPrice}</p>
+            </div>
+
+            <a
+              href={primaryWhatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#E8C865] px-5 text-xs font-black text-[#15140B] shadow-md active:scale-95"
+            >
+              <span>💬</span>
+              <span>Hubungi WA</span>
+            </a>
+          </div>
+        </aside>
+      )}
+
+      {/* ── Fullscreen Accessible Lightbox ── */}
+      {lightboxIndex !== null && (
+        <AccessibleLightbox
+          images={allImages}
+          initialIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          title={seller.name}
+        />
+      )}
+    </main>
   );
-}
-
-function StorefrontContactCard({ seller }: { seller: StorefrontSeller }) {
-  return <div className="rounded-2xl border border-accent/45 bg-surface p-5 shadow-sm"><p className="text-sm font-bold text-foreground">Status operasional</p><p className="mt-2 inline-flex items-center gap-2 text-sm text-primary"><span className={`h-2.5 w-2.5 rounded-full ${seller.sellerStatus === "online" ? "bg-emerald-600" : "bg-stone-400"}`} />{seller.sellerStatusNote}</p><p className="mt-4 border-t border-border pt-4 text-sm leading-6 text-muted">{seller.whatsappDisplayNumber ?? "Kontak akan aktif setelah informasi penjual dikonfirmasi."}</p>{seller.whatsappHref ? <a href={seller.whatsappHref} target="_blank" rel="noreferrer" className="mt-5 inline-flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-white transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"><Icon name="whatsapp" />Hubungi penjual</a> : null}</div>;
-}
-
-function CartSummary({ cart, total, customer, setCustomer, onSend, seller }: { cart: CartLine[]; total: number; customer: { name: string; cluster: string; unit: string; whatsapp: string; notes: string }; setCustomer: React.Dispatch<React.SetStateAction<{ name: string; cluster: string; unit: string; whatsapp: string; notes: string }>>; onSend: () => void; seller: StorefrontSeller }) {
-  const update = (key: keyof typeof customer, value: string) => setCustomer((current) => ({ ...current, [key]: value }));
-  return <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm sm:p-5 lg:sticky lg:top-20"><div className="flex items-center justify-between"><h2 className="text-lg font-semibold text-foreground">Pesanan Anda</h2><span className="rounded-full bg-primary-soft px-2.5 py-1 text-xs font-bold text-primary">{cart.reduce((sum, line) => sum + line.quantity, 0)} item</span></div>{cart.length ? <><ul className="mt-4 divide-y divide-border border-y border-border">{cart.map((line) => <li key={line.id} className="flex justify-between gap-3 py-3 text-sm"><div><p className="font-semibold text-foreground">{line.name}</p><p className="mt-0.5 text-xs text-muted">{line.variant} × {line.quantity}</p></div><span className="shrink-0 font-semibold text-foreground">{rupiah.format(line.price * line.quantity)}</span></li>)}</ul><div className="mt-4 flex items-center justify-between text-base font-bold text-foreground"><span>Total</span><span>{rupiah.format(total)}</span></div><fieldset className="mt-5 space-y-3 border-t border-border pt-5"><legend className="text-sm font-bold text-foreground">Data pengantaran</legend><Field label="Nama" value={customer.name} onChange={(value) => update("name", value)} autoComplete="name" /><Field label="Cluster" value={customer.cluster} onChange={(value) => update("cluster", value)} /><Field label="Blok / nomor rumah" value={customer.unit} onChange={(value) => update("unit", value)} /><Field label="WhatsApp" value={customer.whatsapp} onChange={(value) => update("whatsapp", value)} type="tel" autoComplete="tel" /><label className="block text-sm font-semibold text-foreground">Catatan pesanan<textarea value={customer.notes} onChange={(event) => update("notes", event.target.value)} rows={2} className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-normal text-foreground outline-none transition-colors placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/15" placeholder="Contoh: titip di pos satpam" /></label></fieldset><button type="button" onClick={onSend} disabled={!seller.whatsappHref} className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 text-sm font-bold text-foreground transition-colors hover:bg-accent/85 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Icon name="whatsapp" />Kirim Pesanan</button><p className="mt-2 text-center text-xs leading-5 text-muted">Pesanan akan dikirim ke WhatsApp penjual untuk dikonfirmasi.</p></> : <p className="mt-4 rounded-xl bg-cream px-3 py-4 text-sm leading-6 text-muted">Belum ada produk di pesanan. Tambahkan pilihan dari katalog.</p>}</div>;
-}
-
-function Field({ label, value, onChange, type = "text", autoComplete }: { label: string; value: string; onChange: (value: string) => void; type?: string; autoComplete?: string }) {
-  return <label className="block text-sm font-semibold text-foreground">{label}<input type={type} value={value} onChange={(event) => onChange(event.target.value)} autoComplete={autoComplete} className="mt-1.5 min-h-10 w-full rounded-xl border border-border bg-background px-3 text-sm font-normal text-foreground outline-none transition-colors placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/15" /></label>;
 }

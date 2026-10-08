@@ -7,6 +7,13 @@ import { AuthAwareAction } from "../components/auth-aware-action";
 import { ImagePreview } from "../components/image-preview";
 import { Icon } from "../components/portal";
 import { type MarketplaceItem } from "@/lib/portal-data";
+import {
+  buildWhatsappUrl,
+  cleanCorruptChars,
+  extractStoreDetails,
+  formatDisplayPrice,
+  getJakartaOperatingStatus,
+} from "@/lib/palugada-storefront-utils";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type PalugadaFilterDetail = {
@@ -75,35 +82,37 @@ function matchesSearch(item: MarketplaceItem, query: string, category: string) {
   return categoryMatch && (!query || content.includes(query));
 }
 
-function buildWhatsappHref(contactMethod: string) {
-  const digits = contactMethod.replace(/\D/g, "");
-
-  if (!digits) {
-    return undefined;
-  }
-
-  const normalized = digits.startsWith("0") ? `62${digits.slice(1)}` : digits;
-  return `https://wa.me/${normalized}`;
-}
-
 function mapLiveListing(
   row: LivePalugadaRow,
   cover?: LivePalugadaAttachment & { signedUrl: string },
   currentUserId?: string | null,
 ): MarketplaceItem {
   const category = palugadaCategoryLabel[row.category] || "Lainnya";
-  const whatsappHref = buildWhatsappHref(row.contact_method);
+  const defaultMsg = `Halo ${row.name}, saya melihat lapak Anda di PALUGADA CGV. Saya ingin bertanya atau memesan.`;
+  const whatsappHref = buildWhatsappUrl(row.contact_method, defaultMsg) || undefined;
   const isOwner = Boolean(currentUserId && row.seller_user_id === currentUserId);
+
+  const storeDetails = extractStoreDetails(
+    row.description,
+    row.name,
+    row.category,
+    row.cluster,
+    row.availability_note
+  );
+
+  const formattedPrice = formatDisplayPrice(row.price_label, row.category);
+  const cleanNote = cleanCorruptChars(row.seller_status_note);
+  const opStatus = getJakartaOperatingStatus(storeDetails.operatingHours || cleanNote, row.seller_status);
 
   return {
     name: row.name,
     category,
     cluster: row.cluster || "Warga CGV10",
-    price: row.price_label || "Hubungi penjual",
+    price: formattedPrice,
     status: "Tayang",
     sellerStatus: row.seller_status,
-    sellerStatusLabel: row.seller_status === "online" ? "Online" : "Offline",
-    sellerStatusNote: row.seller_status_note || "Lapak aktif warga CGV10.",
+    sellerStatusLabel: opStatus.timeBadge || (row.seller_status === "online" ? "Online" : "Offline"),
+    sellerStatusNote: cleanNote || (row.seller_status === "online" ? "Buka · Lapak aktif" : "Tutup sementara"),
     sellerUserId: row.seller_user_id,
     isOwner,
     icon: palugadaCategoryIcon[row.category] || "store",
@@ -114,7 +123,7 @@ function mapLiveListing(
     detailSlug: row.id,
     detailHref: `/palugada/detail/?id=${encodeURIComponent(row.id)}`,
     detailDescription:
-      row.description ||
+      storeDetails.cleanDescription ||
       "Lapak usaha warga resmi lingkungan Cipta Greenville.",
     availabilityNote: row.availability_note,
     contactBadge: whatsappHref ? "WhatsApp" : "Kontak via pengurus",
@@ -222,7 +231,7 @@ function ListingCard({ item }: { item: MarketplaceItem }) {
           {item.name}
         </h2>
 
-        {/* Description */}
+        {/* Description (Cleaned summary) */}
         <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted sm:text-sm">
           {item.detailDescription ?? "Lapak warga resmi Cipta Greenville."}
         </p>
@@ -271,7 +280,7 @@ function ListingCard({ item }: { item: MarketplaceItem }) {
               </Link>
 
               {item.whatsappHref ? (
-                <Link
+                <a
                   href={item.whatsappHref}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -279,7 +288,7 @@ function ListingCard({ item }: { item: MarketplaceItem }) {
                   aria-label={`${item.whatsappLabel ?? "Hubungi WhatsApp"} untuk ${item.name}`}
                 >
                   Hubungi WA
-                </Link>
+                </a>
               ) : (
                 <Link
                   href="/kontak/"

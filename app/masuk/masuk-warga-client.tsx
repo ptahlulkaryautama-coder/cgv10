@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { SearchableClusterSelect } from "@/app/components/searchable-cluster-select";
 
 type LoginState = "checking" | "ready" | "submitting" | "signed-in" | "error";
 type RoleRow = { role: string };
@@ -566,13 +567,12 @@ export function MasukWargaClient() {
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="grid gap-2 text-sm font-semibold text-white">
                 Blok / cluster
-                <input
+                <SearchableClusterSelect
                   value={registerForm.cluster}
-                  onChange={(event) => setRegisterForm((previous) => ({ ...previous, cluster: event.target.value }))}
+                  onChange={(val) => setRegisterForm((previous) => ({ ...previous, cluster: val }))}
                   disabled={isBusy}
                   required
-                  placeholder="Contoh: Colosseum"
-                  className="min-h-12 rounded-xl border border-white/16 bg-white px-4 text-base font-medium text-foreground outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/25 disabled:opacity-70"
+                  placeholder="Ketik nama cluster (mis: C)"
                 />
               </label>
               <label className="grid gap-2 text-sm font-semibold text-white">
@@ -582,7 +582,7 @@ export function MasukWargaClient() {
                   onChange={(event) => setRegisterForm((previous) => ({ ...previous, blockOrUnit: event.target.value }))}
                   disabled={isBusy}
                   required
-                  placeholder="Contoh: 12"
+                  placeholder="Contoh: 12 atau A-12"
                   className="min-h-12 rounded-xl border border-white/16 bg-white px-4 text-base font-medium text-foreground outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/25 disabled:opacity-70"
                 />
               </label>

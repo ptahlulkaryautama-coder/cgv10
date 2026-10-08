@@ -1,60 +1,20 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import { useState } from "react";
 import {
-  FileCaptureField,
-  type CaptureAttachment,
-} from "@/app/components/file-capture-field";
-import { palugadaCategories } from "@/lib/portal-data";
+  PalugadaEditorForm,
+  type PalugadaEditorFiles,
+} from "@/app/components/palugada-editor-form";
+import {
+  type StructuredPalugadaListing,
+  serializeStructuredListing,
+} from "@/lib/palugada-storefront-utils";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
-type SubmissionState = {
-  businessName: string;
-  ownerName: string;
-  category: string;
-  cluster: string;
-  whatsapp: string;
-  price: string;
-  description: string;
-  availability: string;
-  photoNote: string;
-};
-
-const initialState: SubmissionState = {
-  businessName: "",
-  ownerName: "",
-  category: palugadaCategories[0]?.title ?? "Barang",
-  cluster: "",
-  whatsapp: "",
-  price: "",
-  description: "",
-  availability: "",
-  photoNote: "",
-};
-
-const palugadaCategoryValue: Record<string, string> = {
-  Barang: "barang",
-  Kuliner: "kuliner",
-  Jasa: "jasa",
-  Properti: "properti",
-  Lainnya: "lainnya",
-};
-
-type UploadSession = {
-  listing_id: string;
-  upload_token: string;
-};
-
 const palugadaPublicMediaBucket = "portal-post-media";
-const maxAttachmentSize = 10 * 1024 * 1024;
 
 function getFileExtension(fileName: string) {
   return fileName.split(".").pop()?.toLowerCase() ?? "";
-}
-
-function isAcceptedAttachment(file: File) {
-  return file.type.startsWith("image/") && file.type !== "image/svg+xml";
 }
 
 function getUploadContentType(file: File) {
@@ -82,106 +42,21 @@ function getSafeFileName(fileName: string) {
   return `${base}.${extension || "jpg"}`;
 }
 
-function buildMessage(
-  form: SubmissionState,
-  coverCount: number,
-  attachments: CaptureAttachment[],
-  reference: string,
-) {
-  return [
-    "Halo Pengurus CGV10, saya ingin mendaftarkan lapak PALUGADA.",
-    "",
-    `Nama lapak: ${form.businessName || "-"}`,
-    `Nama pemilik: ${form.ownerName || "-"}`,
-    `Kategori: ${form.category || "-"}`,
-    `Cluster/blok: ${form.cluster || "-"}`,
-    `WhatsApp: ${form.whatsapp || "-"}`,
-    `Harga/status: ${form.price || "-"}`,
-    `Deskripsi: ${form.description || "-"}`,
-    `Ketersediaan: ${form.availability || "-"}`,
-    `Catatan foto: ${form.photoNote || "-"}`,
-    `Foto cover: ${coverCount > 0 ? "1 foto cover siap tayang" : "Belum diunggah"}`,
-    `Foto produk: ${
-      attachments.length > 0
-        ? `${attachments.length} foto produk`
-        : "-"
-    }`,
-    reference ? `Nomor pendaftaran: ${reference}` : "",
-    "",
-    "Mohon dibantu cek sebelum ditampilkan di katalog PALUGADA CGV.",
-  ].join("\n");
-}
-
-function isReady(form: SubmissionState) {
-  return Boolean(
-    form.businessName.trim() &&
-      form.ownerName.trim() &&
-      form.cluster.trim() &&
-      form.whatsapp.trim() &&
-      form.description.trim(),
-  );
-}
+type UploadSession = {
+  listing_id: string;
+  upload_token: string;
+};
 
 export function PalugadaSubmissionForm() {
-  const [form, setForm] = useState<SubmissionState>(initialState);
-  const [coverAttachments, setCoverAttachments] = useState<CaptureAttachment[]>([]);
-  const [attachments, setAttachments] = useState<CaptureAttachment[]>([]);
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
-  const [submissionReference, setSubmissionReference] = useState("");
-  const uploadSessionRef = useRef<UploadSession | null>(null);
-  const uploadedPathsRef = useRef<Record<string, string>>({});
-  const registeredAttachmentIdsRef = useRef(new Set<string>());
-  const message = useMemo(
-    () => buildMessage(form, coverAttachments.length, attachments, submissionReference),
-    [attachments, coverAttachments.length, form, submissionReference],
-  );
-  const ready = isReady(form);
-  const completedFields = [
-    form.businessName.trim(),
-    form.ownerName.trim(),
-    form.cluster.trim(),
-    form.whatsapp.trim(),
-    form.description.trim(),
-  ].filter(Boolean).length;
 
-  function updateField<Key extends keyof SubmissionState>(
-    key: Key,
-    value: SubmissionState[Key],
-  ) {
-    setForm((current) => ({ ...current, [key]: value }));
-    setSaveState("idle");
-    setSaveMessage("");
-    setSubmissionReference("");
-    uploadSessionRef.current = null;
-    uploadedPathsRef.current = {};
-    registeredAttachmentIdsRef.current.clear();
-  }
-
-  async function submitToSupabase() {
-    if (!ready) {
-      setSaveState("error");
-      setSaveMessage("Ada bagian wajib yang belum diisi. Cek nama lapak, pemilik, cluster, WhatsApp, dan deskripsi.");
-      return;
-    }
-
-    const allFiles = [...coverAttachments, ...attachments];
-    const oversizedFile = allFiles.find((attachment) => attachment.file.size > maxAttachmentSize);
-    if (oversizedFile) {
-      setSaveState("error");
-      setSaveMessage(`${oversizedFile.file.name} melebihi batas 10 MB.`);
-      return;
-    }
-
-    const unsupportedFile = allFiles.find((attachment) => !isAcceptedAttachment(attachment.file));
-    if (unsupportedFile) {
-      setSaveState("error");
-      setSaveMessage(`${unsupportedFile.file.name} bukan format gambar yang didukung.`);
-      return;
-    }
-
-    setSaveState("saving");
-    setSaveMessage("Mendaftarkan lapak ke katalog PALUGADA...");
+  async function handleSave(
+    data: StructuredPalugadaListing,
+    files: PalugadaEditorFiles
+  ): Promise<{ success: boolean; listingId?: string; error?: string }> {
+    setIsSaving(true);
+    setSaveMessage("Menyiapkan pendaftaran lapak...");
 
     try {
       const supabase = getSupabaseBrowserClient();
@@ -189,421 +64,228 @@ export function PalugadaSubmissionForm() {
       const userId = userData.user?.id;
 
       if (userError || !userId) {
-        throw new Error("Masuk dulu supaya lapak nyambung ke akun warga.");
+        throw new Error("Masuk terlebih dahulu supaya lapak terhubung dengan akun warga Anda.");
       }
 
-      let uploadSession = uploadSessionRef.current;
+      // 1. Initial serialization
+      const serialized = serializeStructuredListing(data);
 
-      if (!uploadSession) {
-        const { data, error } = await supabase.rpc("submit_palugada_listing", {
-          p_name: form.businessName.trim(),
-          p_category: palugadaCategoryValue[form.category] ?? "lainnya",
-          p_cluster: form.cluster.trim(),
-          p_price_label: form.price.trim(),
-          p_description: [
-            `Pemilik: ${form.ownerName.trim()}`,
-            `WhatsApp: ${form.whatsapp.trim()}`,
-            "",
-            form.description.trim(),
-            "",
-            `Catatan foto: ${form.photoNote.trim() || "-"}`,
-          ].join("\n"),
-          p_availability_note: form.availability.trim(),
-          p_contact_method: form.whatsapp.trim(),
-        });
+      setSaveMessage("Mendaftarkan lapak ke sistem...");
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
+        "submit_palugada_listing",
+        {
+          p_name: serialized.name,
+          p_category: serialized.category,
+          p_cluster: serialized.cluster,
+          p_price_label: serialized.price_label,
+          p_description: serialized.description,
+          p_availability_note: serialized.availability_note,
+          p_contact_method: serialized.contact_method,
+        }
+      );
 
-        if (error) throw error;
-        uploadSession = ((data ?? []) as UploadSession[])[0] ?? null;
-        if (!uploadSession) throw new Error("Sesi upload PALUGADA belum berhasil dibuat.");
-        uploadSessionRef.current = uploadSession;
+      if (rpcError) throw rpcError;
+      const session = ((rpcData ?? []) as UploadSession[])[0];
+      if (!session || !session.listing_id) {
+        throw new Error("Gagal membuat pendaftaran lapak. Coba beberapa saat lagi.");
       }
 
-      const listingId = uploadSession.listing_id;
+      const listingId = session.listing_id;
+      let finalCoverUrl: string | null = null;
+      let finalLogoUrl: string | null = null;
+      let finalMenuUrl: string | null = null;
+      const finalGalleryUrls: string[] = [];
 
-      // 1. Upload Cover Photo if present
-      if (coverAttachments.length > 0) {
-        const coverAttachment = coverAttachments[0];
-        setSaveMessage("Mengunggah foto cover lapak...");
-        const safeName = getSafeFileName(coverAttachment.file.name);
-        const coverStoragePath = `palugada/${listingId}/cover/${Date.now()}-${safeName}`;
+      // 2. Upload Logo if provided
+      if (files.logoFile) {
+        setSaveMessage("Mengunggah logo usaha...");
+        const safeName = getSafeFileName(files.logoFile.name);
+        const storagePath = `palugada/${listingId}/logo/${Date.now()}-${safeName}`;
 
-        const { error: coverUploadErr } = await supabase.storage
+        const { error: logoUploadErr } = await supabase.storage
           .from(palugadaPublicMediaBucket)
-          .upload(coverStoragePath, coverAttachment.file, {
+          .upload(storagePath, files.logoFile, {
             cacheControl: "31536000",
-            contentType: getUploadContentType(coverAttachment.file),
+            contentType: getUploadContentType(files.logoFile),
             upsert: true,
           });
 
-        if (coverUploadErr) throw coverUploadErr;
-
-        const { data: coverUrlData } = supabase.storage
-          .from(palugadaPublicMediaBucket)
-          .getPublicUrl(coverStoragePath);
-
-        const coverPublicUrl = coverUrlData.publicUrl;
-
-        // Update listing cover image
-        const { error: coverUpdateErr } = await supabase
-          .from("palugada_listings")
-          .update({
-            cover_image_url: coverPublicUrl,
-            cover_image_alt: `Cover ${form.businessName.trim()}`,
-          })
-          .eq("id", listingId);
-
-        if (coverUpdateErr) throw coverUpdateErr;
-      }
-
-      // 2. Upload Product Photos (attachments) if present
-      for (const [index, attachment] of attachments.entries()) {
-        setSaveMessage(`Mengunggah foto produk ${index + 1} dari ${attachments.length}...`);
-        let storagePath = uploadedPathsRef.current[attachment.id];
-
-        if (!storagePath) {
-          const safeName = getSafeFileName(attachment.file.name);
-          storagePath = `palugada/${listingId}/photos/${Date.now()}-${safeName}`;
-          const { error: uploadError } = await supabase.storage
-            .from(palugadaPublicMediaBucket)
-            .upload(storagePath, attachment.file, {
-              cacheControl: "31536000",
-              contentType: getUploadContentType(attachment.file),
-              upsert: true,
-            });
-          if (uploadError) throw uploadError;
-          uploadedPathsRef.current[attachment.id] = storagePath;
-        }
-
-        // If no dedicated cover photo was uploaded, set the first product photo as cover_image_url
-        if (coverAttachments.length === 0 && index === 0) {
-          const { data: firstPhotoUrlData } = supabase.storage
+        if (!logoUploadErr) {
+          const { data: urlData } = supabase.storage
             .from(palugadaPublicMediaBucket)
             .getPublicUrl(storagePath);
+          finalLogoUrl = urlData.publicUrl;
 
-          if (firstPhotoUrlData?.publicUrl) {
-            await supabase
-              .from("palugada_listings")
-              .update({
-                cover_image_url: firstPhotoUrlData.publicUrl,
-                cover_image_alt: `Cover ${form.businessName.trim()}`,
-              })
-              .eq("id", listingId);
-          }
-        }
-
-        if (!registeredAttachmentIdsRef.current.has(attachment.id)) {
-          const { error: metadataError } = await supabase.from("attachments").insert({
+          await supabase.from("attachments").insert({
             owner_user_id: userId,
             linked_type: "palugada_listing",
             linked_id: listingId,
-            file_name: attachment.file.name,
-            file_type: getUploadContentType(attachment.file),
-            file_size: attachment.file.size,
+            file_name: files.logoFile.name,
+            file_type: getUploadContentType(files.logoFile),
+            file_size: files.logoFile.size,
             storage_path: storagePath,
-            thumbnail_path: null,
             visibility: "public_after_approval",
             moderation_status: "approved",
           });
-          if (metadataError) throw metadataError;
-          registeredAttachmentIdsRef.current.add(attachment.id);
         }
       }
 
-      setSaveState("saved");
-      const reference = `PLG-${listingId.slice(0, 8).toUpperCase()}`;
-      setSubmissionReference(reference);
-      const totalPhotos = (coverAttachments.length > 0 ? 1 : 0) + attachments.length;
-      setSaveMessage(
-        totalPhotos > 0
-          ? `🎉 Lapak berhasil tayang di katalog PALUGADA CGV bersama ${totalPhotos} foto! Nomor: ${reference}`
-          : `🎉 Lapak Anda langsung tayang di katalog PALUGADA CGV! Nomor: ${reference}`,
-      );
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Pendaftaran lapak belum berhasil dikirim. Coba ulangi sebentar lagi.";
-      setSaveState("error");
-      setSaveMessage(message);
+      // 3. Upload Dedicated Cover Photo if provided
+      if (files.coverFile) {
+        setSaveMessage("Mengunggah foto utama lapak...");
+        const safeName = getSafeFileName(files.coverFile.name);
+        const storagePath = `palugada/${listingId}/cover/${Date.now()}-${safeName}`;
+
+        const { error: coverUploadErr } = await supabase.storage
+          .from(palugadaPublicMediaBucket)
+          .upload(storagePath, files.coverFile, {
+            cacheControl: "31536000",
+            contentType: getUploadContentType(files.coverFile),
+            upsert: true,
+          });
+
+        if (!coverUploadErr) {
+          const { data: urlData } = supabase.storage
+            .from(palugadaPublicMediaBucket)
+            .getPublicUrl(storagePath);
+          finalCoverUrl = urlData.publicUrl;
+
+          await supabase.from("attachments").insert({
+            owner_user_id: userId,
+            linked_type: "palugada_listing",
+            linked_id: listingId,
+            file_name: files.coverFile.name,
+            file_type: getUploadContentType(files.coverFile),
+            file_size: files.coverFile.size,
+            storage_path: storagePath,
+            visibility: "public_after_approval",
+            moderation_status: "approved",
+          });
+        }
+      }
+
+      // 4. Upload Menu Photo if provided
+      if (files.menuFile) {
+        setSaveMessage("Mengunggah foto menu / brosur...");
+        const safeName = getSafeFileName(files.menuFile.name);
+        const storagePath = `palugada/${listingId}/menu/${Date.now()}-${safeName}`;
+
+        const { error: menuUploadErr } = await supabase.storage
+          .from(palugadaPublicMediaBucket)
+          .upload(storagePath, files.menuFile, {
+            cacheControl: "31536000",
+            contentType: getUploadContentType(files.menuFile),
+            upsert: true,
+          });
+
+        if (!menuUploadErr) {
+          const { data: urlData } = supabase.storage
+            .from(palugadaPublicMediaBucket)
+            .getPublicUrl(storagePath);
+          finalMenuUrl = urlData.publicUrl;
+
+          await supabase.from("attachments").insert({
+            owner_user_id: userId,
+            linked_type: "palugada_listing",
+            linked_id: listingId,
+            file_name: files.menuFile.name,
+            file_type: getUploadContentType(files.menuFile),
+            file_size: files.menuFile.size,
+            storage_path: storagePath,
+            visibility: "public_after_approval",
+            moderation_status: "approved",
+          });
+        }
+      }
+
+      // 5. Upload Gallery Photos if provided
+      for (const [idx, item] of files.galleryFiles.entries()) {
+        if (item.file) {
+          setSaveMessage(`Mengunggah galeri ${idx + 1} dari ${files.galleryFiles.length}...`);
+          const safeName = getSafeFileName(item.file.name);
+          const storagePath = `palugada/${listingId}/photos/${Date.now()}-${safeName}`;
+
+          const { error: galleryUploadErr } = await supabase.storage
+            .from(palugadaPublicMediaBucket)
+            .upload(storagePath, item.file, {
+              cacheControl: "31536000",
+              contentType: getUploadContentType(item.file),
+              upsert: true,
+            });
+
+          if (!galleryUploadErr) {
+            const { data: urlData } = supabase.storage
+              .from(palugadaPublicMediaBucket)
+              .getPublicUrl(storagePath);
+            const pubUrl = urlData.publicUrl;
+            finalGalleryUrls.push(pubUrl);
+
+            await supabase.from("attachments").insert({
+              owner_user_id: userId,
+              linked_type: "palugada_listing",
+              linked_id: listingId,
+              file_name: item.file.name,
+              file_type: getUploadContentType(item.file),
+              file_size: item.file.size,
+              storage_path: storagePath,
+              visibility: "public_after_approval",
+              moderation_status: "approved",
+            });
+
+            // If no dedicated cover was given, first gallery image serves as cover
+            if (!finalCoverUrl && idx === 0) {
+              finalCoverUrl = pubUrl;
+            }
+          }
+        } else if (item.existingUrl) {
+          finalGalleryUrls.push(item.existingUrl);
+        }
+      }
+
+      // 6. Update listing record with final URLs and complete re-serialized metadata
+      const updatedListingData: StructuredPalugadaListing = {
+        ...data,
+        id: listingId,
+        logoUrl: finalLogoUrl || data.logoUrl,
+        coverUrl: finalCoverUrl || data.coverUrl,
+        menuPhotoUrl: finalMenuUrl || data.menuPhotoUrl,
+        galleryUrls: finalGalleryUrls.length ? finalGalleryUrls : data.galleryUrls,
+      };
+
+      const finalSerialized = serializeStructuredListing(updatedListingData);
+
+      await supabase
+        .from("palugada_listings")
+        .update({
+          cover_image_url: finalCoverUrl || data.coverUrl || null,
+          cover_image_alt: `Cover ${data.name.trim()}`,
+          description: finalSerialized.description,
+          price_label: finalSerialized.price_label,
+          seller_status: finalSerialized.seller_status,
+          seller_status_note: finalSerialized.seller_status_note,
+        })
+        .eq("id", listingId);
+
+      setSaveMessage("Lapak berhasil didaftarkan dan langsung tayang di katalog!");
+      return { success: true, listingId };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Pendaftaran lapak belum berhasil dikirim.";
+      setSaveMessage("");
+      return { success: false, error: msg };
+    } finally {
+      setIsSaving(false);
     }
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[0.62fr_0.38fr] lg:items-start">
-      <form className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
-        <div className="grid gap-5 sm:grid-cols-2">
-          <label className="grid gap-2 text-sm font-semibold text-foreground">
-            Nama lapak
-            <input
-              value={form.businessName}
-              autoComplete="organization"
-              maxLength={120}
-              onChange={(event) =>
-                updateField("businessName", event.target.value)
-              }
-              onInput={(event) =>
-                updateField("businessName", event.currentTarget.value)
-              }
-              placeholder="Contoh: Ma'niez Donut"
-              className="min-h-12 rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground outline-none transition-colors placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/18"
-            />
-          </label>
-
-          <label className="grid gap-2 text-sm font-semibold text-foreground">
-            Nama pemilik
-            <input
-              value={form.ownerName}
-              autoComplete="name"
-              maxLength={100}
-              onChange={(event) => updateField("ownerName", event.target.value)}
-              onInput={(event) =>
-                updateField("ownerName", event.currentTarget.value)
-              }
-              placeholder="Nama warga / penanggung jawab"
-              className="min-h-12 rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground outline-none transition-colors placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/18"
-            />
-          </label>
-
-          <label className="grid gap-2 text-sm font-semibold text-foreground">
-            Kategori
-            <select
-              value={form.category}
-              onChange={(event) => updateField("category", event.target.value)}
-              className="min-h-12 cursor-pointer rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/18"
-            >
-              {palugadaCategories.map((category) => (
-                <option key={category.title} value={category.title}>
-                  {category.title}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="grid gap-2 text-sm font-semibold text-foreground">
-            Cluster / blok
-            <input
-              value={form.cluster}
-              autoComplete="address-level3"
-              maxLength={120}
-              onChange={(event) => updateField("cluster", event.target.value)}
-              onInput={(event) => updateField("cluster", event.currentTarget.value)}
-              placeholder="Contoh: Cluster Colloseum"
-              className="min-h-12 rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground outline-none transition-colors placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/18"
-            />
-          </label>
-
-          <label className="grid gap-2 text-sm font-semibold text-foreground">
-            Nomor WhatsApp
-            <input
-              value={form.whatsapp}
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              maxLength={20}
-              onChange={(event) => updateField("whatsapp", event.target.value)}
-              onInput={(event) =>
-                updateField("whatsapp", event.currentTarget.value)
-              }
-              placeholder="Contoh: 0812xxxx"
-              className="min-h-12 rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground outline-none transition-colors placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/18"
-            />
-          </label>
-
-          <label className="grid gap-2 text-sm font-semibold text-foreground">
-            Harga / status
-            <input
-              value={form.price}
-              maxLength={120}
-              onChange={(event) => updateField("price", event.target.value)}
-              onInput={(event) => updateField("price", event.currentTarget.value)}
-              placeholder="Contoh: Mulai Rp 20.000"
-              className="min-h-12 rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground outline-none transition-colors placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/18"
-            />
-          </label>
-
-          <label className="grid gap-2 text-sm font-semibold text-foreground sm:col-span-2">
-            Deskripsi singkat
-            <textarea
-              value={form.description}
-              maxLength={3000}
-              onChange={(event) =>
-                updateField("description", event.target.value)
-              }
-              onInput={(event) =>
-                updateField("description", event.currentTarget.value)
-              }
-              placeholder="Ceritakan produknya, area layanan, cara pesan, atau hal penting lain yang perlu warga tahu."
-              rows={5}
-              className="rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium leading-6 text-foreground outline-none transition-colors placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/18"
-            />
-          </label>
-
-          <label className="grid gap-2 text-sm font-semibold text-foreground">
-            Ketersediaan
-            <input
-              value={form.availability}
-              maxLength={300}
-              onChange={(event) =>
-                updateField("availability", event.target.value)
-              }
-              onInput={(event) =>
-                updateField("availability", event.currentTarget.value)
-              }
-              placeholder="Contoh: PO H-1, Sabtu-Minggu"
-              className="min-h-12 rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground outline-none transition-colors placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/18"
-            />
-          </label>
-
-          <label className="grid gap-2 text-sm font-semibold text-foreground">
-            Catatan foto
-            <input
-              value={form.photoNote}
-              maxLength={300}
-              onChange={(event) => updateField("photoNote", event.target.value)}
-              onInput={(event) =>
-                updateField("photoNote", event.currentTarget.value)
-              }
-              placeholder="Contoh: Foto menu dan kemasan sudah ada"
-              className="min-h-12 rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground outline-none transition-colors placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/18"
-            />
-          </label>
-
-          <div className="sm:col-span-2 space-y-5">
-            {/* Foto Cover Utama */}
-            <div className="rounded-xl border border-primary/20 bg-primary-soft/30 p-3 sm:p-4">
-              <FileCaptureField
-                id="palugada-cover-foto"
-                label="Foto Cover Lapak (Utama)"
-                description="Foto utama yang tampil di kartu katalog PALUGADA & header etalase lapak. Maksimal 1 foto (10 MB)."
-                maxFiles={1}
-                attachments={coverAttachments}
-                onChange={(nextCover) => {
-                  setCoverAttachments(nextCover);
-                  setSaveState("idle");
-                  setSaveMessage("");
-                  setSubmissionReference("");
-                  uploadSessionRef.current = null;
-                  uploadedPathsRef.current = {};
-                  registeredAttachmentIdsRef.current.clear();
-                }}
-              />
-            </div>
-
-            {/* Foto Produk / Menu Tambahan */}
-            <FileCaptureField
-              id="palugada-foto"
-              label="Foto Produk atau Menu Tambahan (Opsional)"
-              description="Maksimal 4 foto tambahan produk, kemasan, atau suasana lapak. Foto langsung tampil di etalase lapak Anda."
-              maxFiles={4}
-              attachments={attachments}
-              onChange={(nextAttachments) => {
-                setAttachments(nextAttachments);
-                setSaveState("idle");
-                setSaveMessage("");
-                setSubmissionReference("");
-                uploadSessionRef.current = null;
-                uploadedPathsRef.current = {};
-                registeredAttachmentIdsRef.current.clear();
-              }}
-            />
-          </div>
-        </div>
-      </form>
-
-      <aside className="space-y-5 lg:sticky lg:top-32">
-        <div className="rounded-2xl border border-accent/45 bg-accent-soft/65 p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-            Ringkasan pendaftaran
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <span className="rounded-full bg-surface px-3 py-1 text-xs font-semibold text-primary">
-              {completedFields}/5 wajib
-            </span>
-            <span className="rounded-full bg-surface px-3 py-1 text-xs font-semibold text-foreground">
-              Siap diperiksa
-            </span>
-          </div>
-          <pre className="mt-4 max-h-[420px] overflow-auto whitespace-pre-wrap rounded-xl border border-accent/35 bg-surface/82 p-4 text-sm leading-6 text-foreground">
-            {message}
-          </pre>
-          <button
-            type="button"
-            onClick={submitToSupabase}
-            disabled={!ready || saveState === "saving" || saveState === "saved"}
-            className={`mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-semibold shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-accent-soft disabled:cursor-not-allowed disabled:opacity-60 ${
-              ready
-                ? "cursor-pointer bg-primary text-white hover:bg-primary-hover"
-                : "cursor-not-allowed bg-primary-soft text-primary/60"
-            }`}
-          >
-            {saveState === "saving" ? "Mendaftarkan lapak ke katalog..." : saveState === "saved" ? "✓ Lapak Tayang di Katalog" : "Daftarkan Lapak Sekarang"}
-          </button>
-          {saveMessage ? (
-            <div
-              role={saveState === "error" ? "alert" : "status"}
-              aria-live="polite"
-              className={`mt-4 rounded-xl border p-4 ${
-                saveState === "error"
-                  ? "border-red-200 bg-red-50 text-red-700"
-                  : "border-primary/20 bg-surface text-primary"
-              }`}
-            >
-              <p className="text-sm font-semibold">{saveMessage}</p>
-            </div>
-          ) : null}
-          <p className="mt-3 text-xs leading-5 text-foreground/70">
-            Tombol aktif setelah nama lapak, pemilik, cluster, WhatsApp, dan
-            deskripsi terisi.
-          </p>
-          {saveState === "saved" ? (
-            <div className="mt-4 space-y-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-              <div className="flex items-start gap-2">
-                <span className="text-lg leading-none">🏪</span>
-                <div>
-                  <p className="text-sm font-bold text-emerald-800">
-                    Lapak Anda langsung tayang!
-                  </p>
-                  <p className="mt-1 text-xs leading-5 text-emerald-700">
-                    Lapak sudah tampil di katalog PALUGADA CGV. Anda bisa kelola lapak kapan saja dari Portal Warga.
-                  </p>
-                </div>
-              </div>
-              <p className="text-[10px] font-semibold text-emerald-600 border-t border-emerald-200 pt-2">
-                Nomor referensi: {submissionReference}
-              </p>
-              <div className="flex flex-col gap-2 pt-1">
-                <Link
-                  href="/palugada/"
-                  className="inline-flex min-h-10 w-full cursor-pointer items-center justify-center rounded-xl bg-emerald-700 px-4 text-sm font-bold text-white transition-colors hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700"
-                >
-                  Lihat Lapak di Katalog →
-                </Link>
-                <Link
-                  href="/portal/lapak/"
-                  className="inline-flex min-h-10 w-full cursor-pointer items-center justify-center rounded-xl border border-emerald-300 bg-white px-4 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
-                >
-                  Kelola Lapak Saya
-                </Link>
-              </div>
-            </div>
-          ) : null}
-        </div>
-
-        <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-            Lapak Mandiri Warga
-          </p>
-          <div className="mt-4 space-y-3 text-sm leading-6 text-muted">
-            <p>✅ Lapak langsung tayang setelah formulir dikirim.</p>
-            <p>✏️ Anda bisa edit harga, deskripsi, dan status buka/tutup kapan saja.</p>
-            <p>📷 Ganti foto cover langsung dari Portal Warga.</p>
-            <p>🛡️ Pengurus RT tetap memantau dan dapat menonaktifkan lapak jika diperlukan.</p>
-          </div>
-          <Link
-            href="/palugada/"
-            className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-border bg-background px-4 text-sm font-semibold text-primary transition-colors hover:border-primary/35 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-          >
-            Lihat Katalog PALUGADA
-          </Link>
-        </div>
-      </aside>
+    <div className="py-2">
+      <PalugadaEditorForm
+        mode="create"
+        onSave={handleSave}
+        isSaving={isSaving}
+        saveMessage={saveMessage}
+        cancelHref="/palugada/"
+      />
     </div>
   );
 }

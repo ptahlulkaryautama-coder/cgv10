@@ -82,13 +82,22 @@ export function ImagePreview({
             </div>
             <div className="bg-background p-3 sm:p-5">
               <div className="relative mx-auto aspect-[4/3] max-h-[72vh] w-full overflow-hidden rounded-xl border border-border bg-cream">
-                <Image
-                  src={src}
-                  alt={alt}
-                  fill
-                  sizes="(min-width: 1024px) 900px, 94vw"
-                  className="object-contain"
-                />
+                {src.startsWith("http") ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={src}
+                    alt={alt}
+                    className="h-full w-full object-contain"
+                  />
+                ) : (
+                  <Image
+                    src={src}
+                    alt={alt}
+                    fill
+                    sizes="(min-width: 1024px) 900px, 94vw"
+                    className="object-contain"
+                  />
+                )}
               </div>
             </div>
           </div>
