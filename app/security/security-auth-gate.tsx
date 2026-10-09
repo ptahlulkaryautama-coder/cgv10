@@ -111,15 +111,15 @@ export function SecurityAuthGate({ children }: { children: React.ReactNode }) {
 
   if (state === "checking") {
     return (
-      <main className="grid min-h-screen place-items-center bg-[#f3efe6] px-4 text-foreground">
-        <section className="w-full max-w-md rounded-3xl border border-black/10 bg-[#fdfcf9] p-8 text-center shadow-xl">
+      <main className="grid min-h-screen place-items-center bg-[#f8f5f0] px-4 text-foreground font-sans">
+        <section className="w-full max-w-md rounded-3xl border border-[#ded4c4] bg-[#fdfcf9] p-8 text-center shadow-xl">
           <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-primary text-accent shadow-md">
             <span className="text-2xl">🛡️</span>
           </div>
-          <h1 className="mt-5 text-xl font-black text-primary">Buku Tamu Security</h1>
-          <p className="mt-2 text-sm font-semibold text-slate-600 leading-relaxed">{message}</p>
-          <div className="mx-auto mt-6 h-1.5 w-32 overflow-hidden rounded-full bg-emerald-100">
-            <div className="h-full w-1/2 animate-pulse rounded-full bg-emerald-700" />
+          <h1 className="mt-5 text-xl font-black text-primary font-mono">Buku Tamu Security</h1>
+          <p className="mt-2 text-sm font-semibold text-muted leading-relaxed">{message}</p>
+          <div className="mx-auto mt-6 h-1.5 w-32 overflow-hidden rounded-full bg-primary-soft">
+            <div className="h-full w-1/2 animate-pulse rounded-full bg-primary" />
           </div>
         </section>
       </main>
@@ -128,26 +128,26 @@ export function SecurityAuthGate({ children }: { children: React.ReactNode }) {
 
   if (state === "denied") {
     return (
-      <main className="grid min-h-screen place-items-center bg-[#f3efe6] px-4 text-foreground">
-        <section className="w-full max-w-md rounded-3xl border border-red-200 bg-white p-8 text-center shadow-xl">
-          <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-red-100 text-red-600 shadow-sm">
+      <main className="grid min-h-screen place-items-center bg-[#f8f5f0] px-4 text-foreground font-sans">
+        <section className="w-full max-w-md rounded-3xl border border-rose-200 bg-[#fdfcf9] p-8 text-center shadow-xl">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 shadow-sm">
             <span className="text-2xl">🚫</span>
           </div>
-          <h1 className="mt-5 text-xl font-black text-slate-900">Akses Terbatas Pos Security</h1>
-          <p className="mt-3 text-sm leading-relaxed text-slate-600" aria-live="polite">
+          <h1 className="mt-5 text-xl font-black text-foreground font-mono">Akses Terbatas Pos Security</h1>
+          <p className="mt-3 text-sm leading-relaxed text-muted" aria-live="polite">
             {message}
           </p>
-          <div className="mt-8 flex flex-col gap-3">
+          <div className="mt-8 flex flex-col gap-3 font-mono">
             <button
               type="button"
               onClick={handleReLogin}
-              className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl bg-primary px-5 text-sm font-bold text-accent shadow-md transition-colors hover:bg-primary/90"
+              className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl bg-primary px-5 text-sm font-bold text-accent shadow-md transition-colors hover:bg-primary-hover"
             >
               Masuk dengan Akun Petugas / Pengurus
             </button>
             <Link
               href="/portal/"
-              className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-100"
+              className="inline-flex min-h-12 items-center justify-center rounded-xl border border-[#ded4c4] bg-[#f1eadf] px-5 text-sm font-bold text-primary transition-colors hover:bg-[#e6dccf]"
             >
               Kembali ke Portal Warga
             </Link>

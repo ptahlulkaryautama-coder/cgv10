@@ -628,7 +628,7 @@ export function SecurityDashboardClient() {
   }, [logs, activeTab, categoryFilter, searchQuery]);
 
   return (
-    <main className="min-h-screen bg-[#070b12] text-slate-100 pb-28 md:pb-16 font-sans antialiased selection:bg-emerald-500 selection:text-slate-950">
+    <main className="min-h-screen bg-[#f8f5f0] text-foreground pb-28 md:pb-16 font-sans antialiased selection:bg-primary-soft selection:text-primary">
       {/* Toast Notification */}
       {notification && (
         <div
@@ -636,55 +636,55 @@ export function SecurityDashboardClient() {
           aria-live="polite"
           className={`fixed top-4 inset-x-4 max-w-md mx-auto z-50 rounded-2xl p-4 text-xs font-mono font-bold shadow-2xl flex items-center justify-between transition-all ${
             notification.tone === "success"
-              ? "bg-slate-900 text-emerald-400 border border-emerald-500/50 shadow-[0_12px_36px_rgba(16,185,129,0.25)]"
-              : "bg-slate-900 text-rose-400 border border-rose-500/50 shadow-[0_12px_36px_rgba(244,63,94,0.25)]"
+              ? "bg-primary text-white border border-accent/40 shadow-[0_12px_36px_rgba(0,61,52,0.3)]"
+              : "bg-rose-950 text-rose-100 border border-rose-500/50 shadow-[0_12px_36px_rgba(244,63,94,0.3)]"
           }`}
         >
           <div className="flex items-center gap-2.5">
-            {notification.tone === "success" ? <IconCheck size={18} className="text-emerald-400" /> : <IconAlertTriangle size={18} className="text-rose-400" />}
+            {notification.tone === "success" ? <IconCheck size={18} className="text-accent" /> : <IconAlertTriangle size={18} className="text-rose-400" />}
             <span>{notification.message}</span>
           </div>
           <button
             type="button"
             onClick={() => setNotification(null)}
-            className="text-slate-400 hover:text-white ml-3 cursor-pointer"
+            className="text-white/70 hover:text-white ml-3 cursor-pointer"
           >
             <IconX size={16} />
           </button>
         </div>
       )}
 
-      {/* Bespoke Tactical Command Header */}
-      <header className="sticky top-0 z-30 border-b border-slate-800/80 bg-slate-950/90 text-white shadow-xl backdrop-blur-md">
+      {/* Bespoke Header - Live Web Brand Alignment (Deep Emerald Green + Gold Accent) */}
+      <header className="sticky top-0 z-30 border-b border-accent/15 bg-primary text-white shadow-lg backdrop-blur-md">
         <div className="mx-auto max-w-5xl px-4 py-3 sm:py-3.5 flex items-center justify-between gap-3">
           {/* Pos Satpam Insignia & Live Status */}
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="grid h-11 w-11 place-items-center rounded-xl bg-slate-900 border border-emerald-500/40 text-emerald-400 shadow-[0_0_16px_rgba(16,185,129,0.2)]">
+              <div className="grid h-11 w-11 place-items-center rounded-xl bg-white/10 border border-white/15 text-accent shadow-sm">
                 <IconShieldCheck size={22} />
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-slate-950 bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+              <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-primary bg-emerald-400 shadow-[0_0_8px_#34d399]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-sm sm:text-base font-bold tracking-wider uppercase font-mono text-white">
-                  GATEWAY SOC // POS UTAMA
+                  GATEWAY POS UTAMA
                 </h1>
-                <span className="rounded bg-emerald-500/10 px-2 py-0.5 text-[9px] font-mono font-bold text-emerald-400 uppercase tracking-widest border border-emerald-500/30">
+                <span className="rounded bg-accent/20 px-2 py-0.5 text-[9px] font-mono font-bold text-accent uppercase tracking-widest border border-accent/40">
                   RT 010
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-slate-400 font-medium mt-0.5">
-                <span className="inline-flex items-center gap-1.5 text-emerald-400 font-mono text-[10px] font-bold">
+              <div className="flex items-center gap-2 text-xs text-white/80 font-medium mt-0.5">
+                <span className="inline-flex items-center gap-1.5 text-accent font-mono text-[10px] font-bold">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   ONLINE SEC-OPS
                 </span>
-                <span className="text-slate-700">•</span>
-                <span className="font-mono text-slate-200 text-[11px] font-bold tracking-wider" suppressHydrationWarning>
+                <span className="text-white/30">•</span>
+                <span className="font-mono text-accent font-bold text-[11px] tracking-wider" suppressHydrationWarning>
                   {currentTime || "WIB"}
                 </span>
-                <span className="hidden sm:inline text-slate-700">•</span>
-                <span className="hidden sm:inline text-slate-400 text-[10px] font-mono">
+                <span className="hidden sm:inline text-white/30">•</span>
+                <span className="hidden sm:inline text-white/70 text-[10px] font-mono">
                   {currentDate}
                 </span>
               </div>
@@ -699,10 +699,10 @@ export function SecurityDashboardClient() {
                 triggerHaptic();
                 refreshLogs();
               }}
-              className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900 px-2.5 text-xs font-mono font-bold text-slate-300 hover:text-white transition-all hover:bg-slate-850 active:scale-95 shadow-sm"
+              className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/10 px-2.5 text-xs font-mono font-bold text-white hover:bg-white/20 transition-all active:scale-95 shadow-sm cursor-pointer"
               title="Sinkronisasi data pos dari server"
             >
-              <IconRefresh size={13} className="text-emerald-400" />
+              <IconRefresh size={13} className="text-accent" />
               <span className="hidden md:inline">Sync</span>
             </button>
             <button
@@ -711,15 +711,15 @@ export function SecurityDashboardClient() {
                 triggerHaptic();
                 setIsResetModalOpen(true);
               }}
-              className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900 px-3 text-xs font-mono font-bold text-slate-300 hover:text-white transition-all hover:bg-slate-850 active:scale-95 shadow-sm"
+              className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/10 px-3 text-xs font-mono font-bold text-white hover:bg-white/20 transition-all active:scale-95 shadow-sm cursor-pointer"
               title="Kelola data demo buku tamu"
             >
-              <IconSliders size={13} className="text-emerald-400" />
+              <IconSliders size={13} className="text-accent" />
               <span className="hidden sm:inline">Kelola Demo</span>
             </button>
             <Link
               href="/admin/buku-tamu/"
-              className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 text-xs font-mono font-bold text-emerald-300 transition-all hover:bg-emerald-500 hover:text-slate-950 active:scale-95 shadow-sm"
+              className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-xl border border-accent/40 bg-accent px-3.5 text-xs font-mono font-bold text-primary transition-all hover:bg-accent-soft active:scale-95 shadow-sm"
               title="Buka interface monitor pengurus"
             >
               <span>Audit Pengurus</span>
@@ -734,11 +734,11 @@ export function SecurityDashboardClient() {
         {/* Tactical Quick Action Dock */}
         <section aria-label="Aksi Cepat Pos" className="space-y-2">
           <div className="flex items-center justify-between px-1">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
-              <IconRadioTower size={12} className="text-emerald-400" />
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary flex items-center gap-1.5">
+              <IconRadioTower size={12} className="text-primary" />
               <span>TEMPLATES // REGISTRASI CEPAT:</span>
             </span>
-            <span className="text-[10px] font-mono text-slate-500">1-Tap Fast Logging</span>
+            <span className="text-[10px] font-mono text-muted">1-Tap Fast Logging</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
@@ -757,10 +757,10 @@ export function SecurityDashboardClient() {
                   setIsFormOpen(true);
                   triggerHaptic();
                 }}
-                className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-900/80 p-2.5 text-left shadow-sm transition-all hover:border-emerald-500/50 hover:bg-slate-900 active:scale-95"
+                className="group relative cursor-pointer overflow-hidden rounded-xl border border-[#ded4c4] bg-white p-2.5 text-left shadow-sm transition-all hover:border-primary/50 hover:bg-[#fdfbf7] active:scale-95"
               >
                 <div className="flex items-center justify-between">
-                  <span className="grid h-7 w-7 place-items-center rounded-lg bg-slate-800 text-emerald-400 border border-slate-700/60 group-hover:border-emerald-500/40">
+                  <span className="grid h-7 w-7 place-items-center rounded-lg bg-primary-soft text-primary border border-primary/20 group-hover:border-primary/50">
                     {preset.iconKey === "package" ? (
                       <IconPackage size={14} />
                     ) : preset.iconKey === "wrench" ? (
@@ -769,14 +769,14 @@ export function SecurityDashboardClient() {
                       <IconUsers size={14} />
                     )}
                   </span>
-                  <span className="text-[9px] font-mono font-bold text-slate-500 group-hover:text-emerald-400 transition-colors">
+                  <span className="text-[9px] font-mono font-bold text-muted group-hover:text-primary transition-colors">
                     + PASS
                   </span>
                 </div>
-                <div className="mt-2 font-bold text-xs text-slate-200 line-clamp-1 group-hover:text-white">
+                <div className="mt-2 font-bold text-xs text-foreground line-clamp-1 group-hover:text-primary">
                   {preset.label}
                 </div>
-                <div className="text-[10px] font-mono text-slate-400 truncate">
+                <div className="text-[10px] font-mono text-muted truncate">
                   {preset.institution || preset.purpose}
                 </div>
               </button>
@@ -794,23 +794,23 @@ export function SecurityDashboardClient() {
               setIsFormOpen(true);
               triggerHaptic();
             }}
-            className="group relative w-full min-h-16 cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-950 via-slate-900 to-emerald-950 p-1 shadow-[0_8px_30px_rgba(0,0,0,0.5)] transition-all hover:border-emerald-400/50 active:scale-[0.99] border border-emerald-500/30"
+            className="group relative w-full min-h-16 cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-r from-primary via-[#004d42] to-primary p-1 shadow-[0_10px_25px_rgba(0,61,52,0.22)] transition-all hover:shadow-[0_14px_32px_rgba(0,61,52,0.3)] active:scale-[0.99] border border-accent/30"
           >
-            <div className="flex h-full w-full items-center justify-between rounded-[14px] bg-slate-950/60 px-4 sm:px-6 py-3.5">
+            <div className="flex h-full w-full items-center justify-between rounded-[14px] bg-primary/80 px-4 sm:px-6 py-3.5">
               <div className="flex items-center gap-3.5">
-                <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-500 text-slate-950 shadow-md transition-transform group-hover:scale-105 duration-200">
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-accent text-primary shadow-md transition-transform group-hover:scale-105 duration-200">
                   <IconPlus size={24} />
                 </span>
                 <div className="text-left">
                   <h2 className="text-sm sm:text-base font-bold text-white tracking-wide uppercase font-mono">
                     TERBITKAN IZIN MASUK BARU
                   </h2>
-                  <p className="text-xs text-slate-400 font-medium">
+                  <p className="text-xs text-accent-soft/85 font-medium">
                     Rekam foto wajah, verifikasi identitas, dan catat kendaraan pengunjung
                   </p>
                 </div>
               </div>
-              <span className="hidden sm:inline-flex items-center gap-1.5 justify-center rounded-xl bg-slate-900 border border-emerald-500/40 px-4 py-2 text-xs font-mono font-bold text-emerald-400 shadow-md group-hover:bg-emerald-500 group-hover:text-slate-950 transition-colors">
+              <span className="hidden sm:inline-flex items-center gap-1.5 justify-center rounded-xl bg-accent px-4 py-2 text-xs font-mono font-bold text-primary shadow-md group-hover:bg-accent-soft transition-colors">
                 <span>AKTIFKAN KAMERA</span>
                 <IconArrowRight size={13} />
               </span>
@@ -821,77 +821,77 @@ export function SecurityDashboardClient() {
         {/* Tactical Command Matrix (KPI HUD) */}
         <section aria-label="Ringkasan pos keamanan" className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* Card 1: Di Lingkungan (FOCAL POINT) */}
-          <div className="relative overflow-hidden rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/40 p-4 sm:p-5 text-white shadow-lg">
+          <div className="relative overflow-hidden rounded-2xl border border-accent/30 bg-gradient-to-br from-primary via-primary to-[#002d27] p-4 sm:p-5 text-white shadow-md">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400 border border-emerald-500/30">
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-accent/20 px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-accent border border-accent/40">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 ACTIVE IN-PERIMETER
               </span>
-              <span className="text-[10px] font-mono text-slate-400">LIVE SENSORS</span>
+              <span className="text-[10px] font-mono text-accent-soft/70">LIVE SENSORS</span>
             </div>
 
             <div className="mt-3 flex items-baseline justify-between">
               <p className="text-4xl sm:text-5xl font-mono font-black tracking-tight text-white drop-shadow-sm">
                 {stats.activeTotal}
               </p>
-              <div className="text-right text-xs font-mono font-medium text-slate-300 leading-tight space-y-1">
+              <div className="text-right text-xs font-mono font-medium text-white/90 leading-tight space-y-1">
                 <div className="flex items-center justify-end gap-1.5">
-                  <IconPackage size={12} className="text-sky-400" />
+                  <IconPackage size={12} className="text-sky-300" />
                   <span>{stats.kurirActive} Kurir</span>
                 </div>
                 <div className="flex items-center justify-end gap-1.5">
-                  <IconUsers size={12} className="text-emerald-400" />
+                  <IconUsers size={12} className="text-accent" />
                   <span>{stats.tamuActive} Tamu</span>
-                  <span className="text-slate-600">•</span>
-                  <IconWrench size={12} className="text-amber-400" />
+                  <span className="text-white/40">•</span>
+                  <IconWrench size={12} className="text-amber-300" />
                   <span>{stats.teknisiActive} Teknisi</span>
                 </div>
               </div>
             </div>
 
             {stats.longVisits > 0 && (
-              <div className="mt-3 flex items-center gap-2 rounded-xl bg-amber-500/10 px-3 py-1.5 text-xs font-mono font-bold text-amber-300 border border-amber-500/30">
-                <IconAlertTriangle size={14} className="text-amber-400" />
+              <div className="mt-3 flex items-center gap-2 rounded-xl bg-amber-500/20 px-3 py-1.5 text-xs font-mono font-bold text-amber-200 border border-amber-400/40">
+                <IconAlertTriangle size={14} className="text-amber-300" />
                 <span>{stats.longVisits} subjek berada di dalam &gt; 3 jam</span>
               </div>
             )}
           </div>
 
           {/* Card 2: Kedatangan Hari Ini */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-4 sm:p-5 shadow-sm flex flex-col justify-between">
+          <div className="rounded-2xl border border-[#ded4c4] bg-white p-4 sm:p-5 shadow-sm flex flex-col justify-between">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted">
                 THROUGHPUT HARI INI
               </span>
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-slate-850 text-emerald-400 border border-slate-700">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary-soft text-primary border border-primary/20">
                 <IconCheck size={16} />
               </span>
             </div>
             <div className="mt-2">
-              <p className="text-3xl sm:text-4xl font-mono font-black text-slate-100">
+              <p className="text-3xl sm:text-4xl font-mono font-black text-primary">
                 {stats.totalToday}
               </p>
-              <p className="mt-0.5 text-xs text-slate-400 font-medium">
+              <p className="mt-0.5 text-xs text-muted font-medium">
                 Total entri akses pos gerbang utama
               </p>
             </div>
           </div>
 
           {/* Card 3: Sudah Keluar */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-4 sm:p-5 shadow-sm flex flex-col justify-between">
+          <div className="rounded-2xl border border-[#ded4c4] bg-white p-4 sm:p-5 shadow-sm flex flex-col justify-between">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted">
                 DEPARTED // KELUAR
               </span>
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-slate-850 text-slate-400 border border-slate-700">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#f1eadf] text-muted border border-[#ded4c4]">
                 <IconLogOut size={16} />
               </span>
             </div>
             <div className="mt-2">
-              <p className="text-3xl sm:text-4xl font-mono font-black text-slate-300">
+              <p className="text-3xl sm:text-4xl font-mono font-black text-muted">
                 {stats.checkedOutToday}
               </p>
-              <p className="mt-0.5 text-xs text-slate-400 font-medium">
+              <p className="mt-0.5 text-xs text-muted font-medium">
                 Subjek telah terverifikasi keluar
               </p>
             </div>
@@ -907,16 +907,16 @@ export function SecurityDashboardClient() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari nama tamu, blok (mis: Aurora 12), plat nomor, instansi..."
-              className="w-full min-h-12 rounded-xl border border-slate-800 bg-slate-900 px-4 pl-11 text-xs font-mono font-medium text-slate-100 placeholder:text-slate-500 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-sm"
+              className="w-full min-h-12 rounded-xl border border-[#ded4c4] bg-white px-4 pl-11 text-xs font-mono font-medium text-foreground placeholder:text-muted outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-sm"
             />
-            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted">
               <IconSearch size={18} />
             </div>
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 rounded-md bg-slate-800 px-2 py-1 text-[10px] font-mono font-bold text-slate-400 hover:text-white"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 rounded-md bg-[#f1eadf] px-2 py-1 text-[10px] font-mono font-bold text-muted hover:text-foreground cursor-pointer"
               >
                 CLEAR
               </button>
@@ -933,13 +933,13 @@ export function SecurityDashboardClient() {
               }}
               className={`min-h-10 flex-1 min-w-[140px] rounded-xl px-4 text-xs font-mono font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 activeTab === "active"
-                  ? "bg-slate-800 text-emerald-400 shadow-md border border-emerald-500/40"
-                  : "bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200"
+                  ? "bg-primary text-white shadow-md border border-primary"
+                  : "bg-white text-muted border border-[#ded4c4] hover:text-foreground hover:bg-[#f1eadf]"
               }`}
             >
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>Di Lingkungan</span>
-              <span className={`rounded px-1.5 py-0.2 text-[10px] ${activeTab === "active" ? "bg-emerald-500/20 text-emerald-300" : "bg-slate-800 text-slate-400"}`}>
+              <span className={`rounded px-1.5 py-0.2 text-[10px] ${activeTab === "active" ? "bg-white/20 text-white font-bold" : "bg-[#f1eadf] text-muted"}`}>
                 {stats.activeTotal}
               </span>
             </button>
@@ -951,12 +951,12 @@ export function SecurityDashboardClient() {
               }}
               className={`min-h-10 flex-1 min-w-[110px] rounded-xl px-3 text-xs font-mono font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 activeTab === "today"
-                  ? "bg-slate-800 text-emerald-400 shadow-md border border-emerald-500/40"
-                  : "bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200"
+                  ? "bg-primary text-white shadow-md border border-primary"
+                  : "bg-white text-muted border border-[#ded4c4] hover:text-foreground hover:bg-[#f1eadf]"
               }`}
             >
               <span>Hari Ini</span>
-              <span className={`rounded px-1.5 py-0.2 text-[10px] ${activeTab === "today" ? "bg-emerald-500/20 text-emerald-300" : "bg-slate-800 text-slate-400"}`}>
+              <span className={`rounded px-1.5 py-0.2 text-[10px] ${activeTab === "today" ? "bg-white/20 text-white font-bold" : "bg-[#f1eadf] text-muted"}`}>
                 {stats.totalToday}
               </span>
             </button>
@@ -968,8 +968,8 @@ export function SecurityDashboardClient() {
               }}
               className={`min-h-10 flex-1 min-w-[110px] rounded-xl px-3 text-xs font-mono font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 activeTab === "checked_out"
-                  ? "bg-slate-800 text-emerald-400 shadow-md border border-emerald-500/40"
-                  : "bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200"
+                  ? "bg-primary text-white shadow-md border border-primary"
+                  : "bg-white text-muted border border-[#ded4c4] hover:text-foreground hover:bg-[#f1eadf]"
               }`}
             >
               <span>Sudah Keluar</span>
@@ -982,8 +982,8 @@ export function SecurityDashboardClient() {
               }}
               className={`min-h-10 flex-1 min-w-[80px] rounded-xl px-3 text-xs font-mono font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 activeTab === "all"
-                  ? "bg-slate-800 text-emerald-400 shadow-md border border-emerald-500/40"
-                  : "bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200"
+                  ? "bg-primary text-white shadow-md border border-primary"
+                  : "bg-white text-muted border border-[#ded4c4] hover:text-foreground hover:bg-[#f1eadf]"
               }`}
             >
               <span>Semua</span>
@@ -992,7 +992,7 @@ export function SecurityDashboardClient() {
 
           {/* Subcategory Chips */}
           <div className="flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
-            <span className="text-[10px] font-mono text-slate-500 self-center mr-1">TYPE:</span>
+            <span className="text-[10px] font-mono text-muted self-center mr-1">TYPE:</span>
             {[
               { key: "all", label: "Semua", icon: null },
               { key: "kurir", label: "Kurir & Paket", icon: <IconPackage size={12} /> },
@@ -1009,8 +1009,8 @@ export function SecurityDashboardClient() {
                 }}
                 className={`min-h-7 shrink-0 rounded-lg px-2.5 text-[11px] font-mono font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                   categoryFilter === cat.key
-                    ? "bg-emerald-500 text-slate-950 font-bold shadow-sm"
-                    : "bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200"
+                    ? "bg-primary text-white font-bold shadow-sm"
+                    : "bg-white text-muted border border-[#ded4c4] hover:text-foreground hover:bg-[#f1eadf]"
                 }`}
               >
                 {cat.icon}
@@ -1023,14 +1023,14 @@ export function SecurityDashboardClient() {
         {/* Enhanced Visitor Tactical Cards */}
         <section className="space-y-3" aria-label="Daftar Pengunjung">
           {filteredLogs.length === 0 ? (
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-10 text-center shadow-sm">
-              <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-slate-800 text-slate-500 border border-slate-700">
+            <div className="rounded-2xl border border-[#ded4c4] bg-white p-10 text-center shadow-sm">
+              <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-primary-soft text-primary border border-primary/20">
                 <IconFileText size={22} />
               </div>
-              <h2 className="mt-3 text-sm font-mono font-bold text-slate-200 uppercase tracking-wider">
+              <h2 className="mt-3 text-sm font-mono font-bold text-foreground uppercase tracking-wider">
                 TIDAK ADA DATA KUNJUNGAN
               </h2>
-              <p className="mt-1 text-xs text-slate-400 max-w-sm mx-auto font-sans">
+              <p className="mt-1 text-xs text-muted max-w-sm mx-auto font-sans">
                 {activeTab === "active"
                   ? "Semua pengunjung saat ini sudah keluar dari lingkungan atau belum ada kunjungan baru."
                   : "Coba ubah kata kunci pencarian atau parameter filter."}
@@ -1039,7 +1039,7 @@ export function SecurityDashboardClient() {
                 <button
                   type="button"
                   onClick={() => setIsFormOpen(true)}
-                  className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-emerald-500 px-4 text-xs font-mono font-bold text-slate-950 shadow-md hover:bg-emerald-400 transition-all cursor-pointer"
+                  className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-primary px-4 text-xs font-mono font-bold text-accent shadow-md hover:bg-primary-hover transition-all cursor-pointer"
                 >
                   <IconPlus size={14} />
                   <span>CATAT PENGUNJUNG</span>
@@ -1047,7 +1047,7 @@ export function SecurityDashboardClient() {
                 <button
                   type="button"
                   onClick={handleRestoreMockLogs}
-                  className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-4 text-xs font-mono font-bold text-slate-300 shadow-sm hover:bg-slate-750 transition-all cursor-pointer"
+                  className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-[#ded4c4] bg-[#f1eadf] px-4 text-xs font-mono font-bold text-primary shadow-sm hover:bg-[#e6dccf] transition-all cursor-pointer"
                 >
                   <IconRefresh size={13} />
                   <span>MUAT ULANG DATA DEMO</span>
@@ -1068,10 +1068,10 @@ export function SecurityDashboardClient() {
                 <article
                   key={log.id}
                   onClick={() => openDetailModal(log)}
-                  className={`group relative cursor-pointer rounded-2xl border bg-slate-900/90 p-4 transition-all hover:border-emerald-500/50 hover:bg-slate-900 active:scale-[0.99] shadow-md ${
+                  className={`group relative cursor-pointer rounded-2xl border bg-white p-4 transition-all hover:border-primary/50 hover:shadow-md active:scale-[0.99] shadow-sm ${
                     isOverstay
-                      ? "border-amber-500/60 bg-slate-900 ring-1 ring-amber-500/40"
-                      : "border-slate-800"
+                      ? "border-amber-400 bg-[#fffdfa] ring-1 ring-amber-300"
+                      : "border-[#ded4c4]"
                   }`}
                 >
                   {/* Top Row: Destination Hero Tag & Status Badge */}
@@ -1079,13 +1079,13 @@ export function SecurityDashboardClient() {
                     <div className="flex flex-wrap items-center gap-2">
                       {/* Destination Hero Tag */}
                       {log.destination_type === "house" ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-950 border border-slate-700 px-2.5 py-1 text-xs font-mono font-bold text-emerald-400 tracking-wide">
-                          <IconHome size={13} className="text-emerald-400" />
+                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-primary-soft border border-primary/20 px-2.5 py-1 text-xs font-mono font-bold text-primary tracking-wide">
+                          <IconHome size={13} className="text-primary" />
                           <span>CLUSTER {log.cluster.toUpperCase()} NO. {log.unit_number}</span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-950 border border-slate-700 px-2.5 py-1 text-xs font-mono font-bold text-slate-300 tracking-wide">
-                          <IconBuilding size={13} className="text-slate-400" />
+                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#f1eadf] border border-[#ded4c4] px-2.5 py-1 text-xs font-mono font-bold text-foreground tracking-wide">
+                          <IconBuilding size={13} className="text-muted" />
                           <span>{log.facility_name.toUpperCase()}</span>
                         </span>
                       )}
@@ -1104,7 +1104,7 @@ export function SecurityDashboardClient() {
 
                       {/* Multi-day Alert */}
                       {isPastDay && isActive && (
-                        <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-mono font-bold text-amber-400 border border-amber-500/30">
+                        <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-mono font-bold text-amber-900 border border-amber-300">
                           OVERNIGHT
                         </span>
                       )}
@@ -1112,12 +1112,12 @@ export function SecurityDashboardClient() {
 
                     {/* Status Pill */}
                     {isActive ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/40 px-2.5 py-0.5 text-[10px] font-mono font-bold text-emerald-400 shadow-sm">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 text-[10px] font-mono font-bold text-emerald-800 shadow-sm">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse" />
                         ACTIVE
                       </span>
                     ) : (
-                      <span className="rounded-full bg-slate-800 border border-slate-700 px-2.5 py-0.5 text-[10px] font-mono font-bold text-slate-400">
+                      <span className="rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[10px] font-mono font-bold text-slate-600">
                         DEPARTED
                       </span>
                     )}
@@ -1125,8 +1125,8 @@ export function SecurityDashboardClient() {
 
                   {/* Middle Row: Visitor Identity, Purpose & Plate */}
                   <div className="flex items-start gap-3.5">
-                    {/* Visitor Photo Avatar with tactical corners */}
-                    <div className="relative shrink-0 overflow-hidden rounded-xl border border-slate-700 bg-slate-950 h-14 w-14 shadow-sm">
+                    {/* Visitor Photo Avatar with clean frame */}
+                    <div className="relative shrink-0 overflow-hidden rounded-xl border border-[#ded4c4] bg-[#f8f5f0] h-14 w-14 shadow-sm">
                       {log.visitor_photo_url || log.visitor_photo_path ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
                         <img
@@ -1135,40 +1135,40 @@ export function SecurityDashboardClient() {
                           className="h-full w-full object-cover object-center"
                         />
                       ) : (
-                        <div className="grid h-full w-full place-items-center text-slate-600">
+                        <div className="grid h-full w-full place-items-center text-muted">
                           <IconUser size={22} />
                         </div>
                       )}
-                      <div className="pointer-events-none absolute inset-1 border border-dashed border-emerald-400/20 rounded-lg" />
+                      <div className="pointer-events-none absolute inset-0.5 border border-dashed border-primary/20 rounded-lg" />
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline gap-2">
-                        <h3 className="text-sm sm:text-base font-bold text-white truncate leading-snug">
+                        <h3 className="text-sm sm:text-base font-bold text-foreground truncate leading-snug">
                           {log.visitor_name}
                         </h3>
                         {log.institution && (
-                          <span className="rounded bg-sky-500/10 px-1.5 py-0.2 text-[10px] font-mono font-bold text-sky-400 border border-sky-500/20 shrink-0">
+                          <span className="rounded bg-sky-50 px-1.5 py-0.2 text-[10px] font-mono font-bold text-sky-800 border border-sky-200 shrink-0">
                             {log.institution}
                           </span>
                         )}
                       </div>
 
-                      <p className="mt-0.5 text-xs text-slate-300 line-clamp-1">
-                        <strong className="font-semibold text-slate-400">Keperluan:</strong> {log.purpose}
+                      <p className="mt-0.5 text-xs text-muted line-clamp-1">
+                        <strong className="font-semibold text-foreground">Keperluan:</strong> {log.purpose}
                       </p>
 
                       {/* License Plate & Timestamps */}
                       <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-mono">
                         {log.vehicle_plate && (
-                          <span className="inline-flex items-center gap-1 rounded bg-black px-2 py-0.5 text-[10px] font-bold text-slate-200 border border-slate-700">
-                            <IconCar size={11} className="text-slate-400" />
+                          <span className="inline-flex items-center gap-1 rounded bg-primary-soft px-2 py-0.5 text-[10px] font-bold text-primary border border-primary/20">
+                            <IconCar size={11} className="text-primary" />
                             <span className="tracking-wider">{log.vehicle_plate}</span>
                           </span>
                         )}
 
-                        <span className="text-slate-400 flex items-center gap-1">
-                          <IconClock size={11} className="text-slate-500" />
+                        <span className="text-muted flex items-center gap-1">
+                          <IconClock size={11} className="text-muted" />
                           <span>{formatWibTime(log.checked_in_at)}</span>
                           {isPastDay ? ` (${formatWibDateOnly(log.checked_in_at)})` : ""}
                         </span>
@@ -1176,10 +1176,10 @@ export function SecurityDashboardClient() {
                         <span
                           className={`inline-flex items-center gap-1 rounded px-1.5 py-0.2 text-[10px] font-bold ${
                             isOverstay
-                              ? "bg-rose-500/10 text-rose-400 border border-rose-500/30"
+                              ? "bg-rose-100 text-rose-800 border border-rose-200"
                               : isMediumStay
-                                ? "bg-amber-500/10 text-amber-400 border border-amber-500/30"
-                                : "bg-slate-800 text-slate-300"
+                                ? "bg-amber-100 text-amber-800 border border-amber-200"
+                                : "bg-[#f1eadf] text-muted"
                           }`}
                         >
                           <span>{calculateVisitDuration(log.checked_in_at, log.checked_out_at)}</span>
@@ -1189,8 +1189,8 @@ export function SecurityDashboardClient() {
                   </div>
 
                   {/* Bottom Row: Tactile Action Buttons & Delete */}
-                  <div className="mt-3.5 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
-                    <div className="text-[10px] font-mono text-slate-500">
+                  <div className="mt-3.5 pt-3 border-t border-[#ded4c4]/70 flex flex-wrap items-center justify-between gap-2">
+                    <div className="text-[10px] font-mono text-muted">
                       OFFICER: <strong>{log.checked_in_by_name || "POS UTAMA"}</strong>
                     </div>
 
@@ -1200,7 +1200,7 @@ export function SecurityDashboardClient() {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="min-h-8 cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 text-xs font-mono font-bold text-emerald-400 hover:bg-emerald-500 hover:text-slate-950 transition-colors shadow-sm"
+                        className="min-h-8 cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 text-xs font-mono font-bold text-white hover:bg-emerald-700 transition-colors shadow-sm"
                         title="Kirim pemberitahuan via WhatsApp"
                       >
                         <span>WA Warga</span>
@@ -1211,7 +1211,7 @@ export function SecurityDashboardClient() {
                           type="button"
                           onClick={(e) => handleCheckout(log.id, e)}
                           disabled={checkoutLoadingId === log.id}
-                          className="min-h-8 cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-500 px-3 text-xs font-mono font-bold text-slate-950 shadow-sm transition-all hover:bg-emerald-400 active:scale-95 disabled:opacity-50"
+                          className="min-h-8 cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-mono font-bold text-accent shadow-sm transition-all hover:bg-primary-hover active:scale-95 disabled:opacity-50"
                         >
                           <IconLogOut size={13} />
                           <span>{checkoutLoadingId === log.id ? "Memproses..." : "Checkout"}</span>
@@ -1224,7 +1224,7 @@ export function SecurityDashboardClient() {
                           e.stopPropagation();
                           openDetailModal(log);
                         }}
-                        className="min-h-8 cursor-pointer inline-flex items-center justify-center gap-1 rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-xs font-mono font-bold text-slate-300 hover:bg-slate-750 hover:text-white transition-colors shadow-sm"
+                        className="min-h-8 cursor-pointer inline-flex items-center justify-center gap-1 rounded-lg border border-[#ded4c4] bg-[#f1eadf] px-2.5 text-xs font-mono font-bold text-primary hover:bg-[#e6dccf] transition-colors shadow-sm"
                       >
                         <span>Detail</span>
                       </button>
@@ -1235,7 +1235,7 @@ export function SecurityDashboardClient() {
                           e.stopPropagation();
                           setLogToDelete(log);
                         }}
-                        className="min-h-8 w-8 cursor-pointer inline-flex items-center justify-center rounded-lg border border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white transition-colors shadow-sm"
+                        className="min-h-8 w-8 cursor-pointer inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-colors shadow-sm"
                         title="Hapus data kunjungan ini"
                       >
                         <IconTrash size={13} />
@@ -1251,23 +1251,23 @@ export function SecurityDashboardClient() {
 
       {/* Arrival Form Modal ("Formulir Pos Jaga") */}
       {isFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-3 sm:p-6 backdrop-blur-md overflow-y-auto">
-          <div className="relative w-full max-w-xl max-h-[94vh] flex flex-col rounded-3xl bg-slate-950 border border-slate-800 shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3 sm:p-6 backdrop-blur-sm overflow-y-auto">
+          <div className="relative w-full max-w-xl max-h-[94vh] flex flex-col rounded-3xl bg-[#fdfcf9] border border-[#ded4c4] shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200 text-foreground">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900 text-white">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-primary text-white">
               <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 border border-white/20 text-accent">
                   <IconScanFace size={22} />
                 </span>
                 <div>
                   <h2 className="text-sm font-bold font-mono tracking-wider uppercase text-white">FORM REGISTRASI ACCESS PASS</h2>
-                  <p className="text-[10px] font-mono text-emerald-400">GATEWAY SEC-OPS // RT 010</p>
+                  <p className="text-[10px] font-mono text-accent">GATEWAY SEC-OPS // RT 010</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsFormOpen(false)}
-                className="grid h-8 w-8 place-items-center rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="grid h-8 w-8 place-items-center rounded-lg bg-white/10 text-white/70 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
               >
                 <IconX size={16} />
               </button>
@@ -1277,7 +1277,7 @@ export function SecurityDashboardClient() {
             <form onSubmit={handleFormSubmit} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
               {/* Quick Template Presets Bar */}
               <div>
-                <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400 mb-1.5">
+                <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-primary mb-1.5">
                   TEMPLATES // PRESET CEPAT:
                 </label>
                 <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
@@ -1286,7 +1286,7 @@ export function SecurityDashboardClient() {
                       key={preset.label}
                       type="button"
                       onClick={() => applyPreset(preset)}
-                      className="min-h-8 shrink-0 rounded-lg border border-slate-800 bg-slate-900 px-3 text-[11px] font-mono font-medium text-slate-300 shadow-sm hover:border-emerald-500/40 hover:bg-slate-850 hover:text-white transition-colors cursor-pointer"
+                      className="min-h-8 shrink-0 rounded-lg border border-[#ded4c4] bg-white px-3 text-[11px] font-mono font-medium text-foreground shadow-sm hover:border-primary/50 hover:bg-[#f1eadf] transition-colors cursor-pointer"
                     >
                       {preset.label}
                     </button>
@@ -1295,13 +1295,13 @@ export function SecurityDashboardClient() {
               </div>
 
               {/* Security Notice */}
-              <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-[11px] font-mono text-slate-400 leading-relaxed flex items-start gap-2.5">
-                <IconShield size={16} className="text-emerald-400 shrink-0 mt-0.5" />
+              <div className="rounded-xl border border-primary/20 bg-primary-soft p-3 text-[11px] font-mono text-primary leading-relaxed flex items-start gap-2.5">
+                <IconShield size={16} className="text-primary shrink-0 mt-0.5" />
                 <span>Seluruh citra biometrik dan identitas dienkripsi privat dan diaudit secara legal untuk pos pengamanan RT 010.</span>
               </div>
 
               {submitError && (
-                <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 p-3 text-xs font-mono font-bold text-rose-300 flex items-center gap-2">
+                <div className="rounded-xl border border-rose-300 bg-rose-50 p-3 text-xs font-mono font-bold text-rose-800 flex items-center gap-2">
                   <IconAlertTriangle size={15} />
                   <span>{submitError}</span>
                 </div>
@@ -1309,8 +1309,8 @@ export function SecurityDashboardClient() {
 
               {/* Nama Pengunjung */}
               <div>
-                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                  Nama Subjek / Pengunjung <span className="text-rose-400 font-bold">*</span>
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-foreground mb-1.5">
+                  Nama Subjek / Pengunjung <span className="text-rose-600 font-bold">*</span>
                 </label>
                 <input
                   type="text"
@@ -1318,14 +1318,14 @@ export function SecurityDashboardClient() {
                   value={form.visitor_name}
                   onChange={(e) => setForm({ ...form, visitor_name: e.target.value })}
                   placeholder="Contoh: Budi Santoso"
-                  className="w-full min-h-11 rounded-xl border border-slate-800 bg-slate-900 px-4 text-xs font-mono font-bold text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-sm"
+                  className="w-full min-h-11 rounded-xl border border-[#ded4c4] bg-white px-4 text-xs font-mono font-bold text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-sm"
                 />
               </div>
 
               {/* Destination Type Toggle */}
               <div>
-                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                  Tujuan Lokasi <span className="text-rose-400 font-bold">*</span>
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-foreground mb-1.5">
+                  Tujuan Lokasi <span className="text-rose-600 font-bold">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -1336,8 +1336,8 @@ export function SecurityDashboardClient() {
                     }}
                     className={`min-h-11 rounded-xl text-xs font-mono font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                       form.destination_type === "house"
-                        ? "bg-slate-800 text-emerald-400 border border-emerald-500/40 shadow-sm"
-                        : "bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200"
+                        ? "bg-primary text-white border border-primary shadow-sm"
+                        : "bg-white text-muted border border-[#ded4c4] hover:text-foreground hover:bg-[#f1eadf]"
                     }`}
                   >
                     <IconHome size={14} />
@@ -1351,8 +1351,8 @@ export function SecurityDashboardClient() {
                     }}
                     className={`min-h-11 rounded-xl text-xs font-mono font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                       form.destination_type === "facility"
-                        ? "bg-slate-800 text-emerald-400 border border-emerald-500/40 shadow-sm"
-                        : "bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200"
+                        ? "bg-primary text-white border border-primary shadow-sm"
+                        : "bg-white text-muted border border-[#ded4c4] hover:text-foreground hover:bg-[#f1eadf]"
                     }`}
                   >
                     <IconBuilding size={14} />
@@ -1363,9 +1363,9 @@ export function SecurityDashboardClient() {
 
               {/* Destination Fields */}
               {form.destination_type === "house" ? (
-                <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/50 p-3.5">
+                <div className="space-y-3 rounded-xl border border-[#ded4c4] bg-white p-3.5 shadow-sm">
                   <div>
-                    <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                    <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-muted mb-1.5">
                       Pilih Blok / Cluster:
                     </label>
                     <div className="flex flex-wrap gap-1.5">
@@ -1379,8 +1379,8 @@ export function SecurityDashboardClient() {
                           }}
                           className={`rounded-lg px-2.5 py-1 text-xs font-mono font-bold transition-all cursor-pointer ${
                             form.cluster === c
-                              ? "bg-emerald-500 text-slate-950 shadow-sm"
-                              : "bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-750"
+                              ? "bg-primary text-white shadow-sm"
+                              : "bg-[#f1eadf] text-primary border border-[#ded4c4] hover:bg-[#e6dccf]"
                           }`}
                         >
                           {c}
@@ -1391,13 +1391,13 @@ export function SecurityDashboardClient() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[11px] font-mono text-slate-400 mb-1">
+                      <label className="block text-[11px] font-mono text-muted mb-1">
                         Daftar Cluster
                       </label>
                       <select
                         value={form.cluster}
                         onChange={(e) => setForm({ ...form, cluster: e.target.value })}
-                        className="w-full min-h-11 rounded-xl border border-slate-800 bg-slate-900 px-3 text-xs font-mono font-bold text-white outline-none focus:border-emerald-500"
+                        className="w-full min-h-11 rounded-xl border border-[#ded4c4] bg-white px-3 text-xs font-mono font-bold text-foreground outline-none focus:border-primary"
                       >
                         {CGV_CLUSTERS.map((c) => (
                           <option key={c} value={c}>
@@ -1408,8 +1408,8 @@ export function SecurityDashboardClient() {
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-mono text-slate-400 mb-1">
-                        Nomor Rumah / Unit <span className="text-rose-400 font-bold">*</span>
+                      <label className="block text-[11px] font-mono text-muted mb-1">
+                        Nomor Rumah / Unit <span className="text-rose-600 font-bold">*</span>
                       </label>
                       <input
                         type="text"
@@ -1418,15 +1418,15 @@ export function SecurityDashboardClient() {
                         value={form.unit_number}
                         onChange={(e) => setForm({ ...form, unit_number: e.target.value })}
                         placeholder="Contoh: 12"
-                        className="w-full min-h-11 rounded-xl border border-slate-800 bg-slate-900 px-4 text-xs font-mono font-bold text-white outline-none focus:border-emerald-500"
+                        className="w-full min-h-11 rounded-xl border border-[#ded4c4] bg-white px-4 text-xs font-mono font-bold text-foreground outline-none focus:border-primary"
                       />
                     </div>
                   </div>
                 </div>
               ) : (
                 <div>
-                  <label className="block text-xs font-mono text-slate-300 mb-1.5">
-                    Nama Fasilitas / Area Tujuan <span className="text-rose-400 font-bold">*</span>
+                  <label className="block text-xs font-mono text-foreground mb-1.5">
+                    Nama Fasilitas / Area Tujuan <span className="text-rose-600 font-bold">*</span>
                   </label>
                   <input
                     type="text"
@@ -1434,15 +1434,15 @@ export function SecurityDashboardClient() {
                     value={form.facility_name}
                     onChange={(e) => setForm({ ...form, facility_name: e.target.value })}
                     placeholder="Contoh: Balai Warga, Lapangan, Musholla"
-                    className="w-full min-h-11 rounded-xl border border-slate-800 bg-slate-900 px-4 text-xs font-mono font-bold text-white outline-none focus:border-emerald-500"
+                    className="w-full min-h-11 rounded-xl border border-[#ded4c4] bg-white px-4 text-xs font-mono font-bold text-foreground outline-none focus:border-primary"
                   />
                 </div>
               )}
 
               {/* Jenis Kunjungan Buttons */}
               <div>
-                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                  Kategori Akses <span className="text-rose-400 font-bold">*</span>
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-foreground mb-1.5">
+                  Kategori Akses <span className="text-rose-600 font-bold">*</span>
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {(["kurir", "tamu", "teknisi", "lainnya"] as VisitType[]).map((typeKey) => {
@@ -1458,8 +1458,8 @@ export function SecurityDashboardClient() {
                         }}
                         className={`min-h-10 rounded-xl px-2 text-xs font-mono font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                           isSelected
-                            ? "bg-slate-800 text-emerald-400 border border-emerald-500/40 shadow-sm"
-                            : "bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200"
+                            ? "bg-primary text-white border border-primary shadow-sm"
+                            : "bg-white text-muted border border-[#ded4c4] hover:text-foreground hover:bg-[#f1eadf]"
                         }`}
                       >
                         {item.iconKey === "package" ? (
@@ -1478,8 +1478,8 @@ export function SecurityDashboardClient() {
 
               {/* Keperluan */}
               <div>
-                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                  Keperluan / Deskripsi <span className="text-rose-400 font-bold">*</span>
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-foreground mb-1.5">
+                  Keperluan / Deskripsi <span className="text-rose-600 font-bold">*</span>
                 </label>
                 <input
                   type="text"
@@ -1487,14 +1487,14 @@ export function SecurityDashboardClient() {
                   value={form.purpose}
                   onChange={(e) => setForm({ ...form, purpose: e.target.value })}
                   placeholder="Contoh: Pengantaran paket kilat, Kunjungan keluarga"
-                  className="w-full min-h-11 rounded-xl border border-slate-800 bg-slate-900 px-4 text-xs font-mono font-bold text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full min-h-11 rounded-xl border border-[#ded4c4] bg-white px-4 text-xs font-mono font-bold text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </div>
 
               {/* Ekspedisi & Plat Nomor */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-mono text-slate-400 mb-1.5">
+                  <label className="block text-xs font-mono text-muted mb-1.5">
                     Instansi / Ekspedisi (Opsional)
                   </label>
                   <input
@@ -1502,12 +1502,12 @@ export function SecurityDashboardClient() {
                     value={form.institution}
                     onChange={(e) => setForm({ ...form, institution: e.target.value })}
                     placeholder="Contoh: Shopee, Gojek, PLN"
-                    className="w-full min-h-11 rounded-xl border border-slate-800 bg-slate-900 px-4 text-xs font-mono font-medium text-white outline-none focus:border-emerald-500"
+                    className="w-full min-h-11 rounded-xl border border-[#ded4c4] bg-white px-4 text-xs font-mono font-medium text-foreground outline-none focus:border-primary"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono text-slate-400 mb-1.5">
+                  <label className="block text-xs font-mono text-muted mb-1.5">
                     Plat Kendaraan (Opsional)
                   </label>
                   <input
@@ -1515,13 +1515,13 @@ export function SecurityDashboardClient() {
                     value={form.vehicle_plate}
                     onChange={(e) => setForm({ ...form, vehicle_plate: e.target.value.toUpperCase() })}
                     placeholder="Contoh: BP 1234 XY"
-                    className="w-full min-h-11 rounded-xl border border-slate-800 bg-slate-900 px-4 text-xs font-mono font-bold text-white outline-none focus:border-emerald-500 uppercase"
+                    className="w-full min-h-11 rounded-xl border border-[#ded4c4] bg-white px-4 text-xs font-mono font-bold text-foreground outline-none focus:border-primary uppercase"
                   />
                 </div>
               </div>
 
               {/* Camera Capture Section */}
-              <div className="space-y-4 pt-3 border-t border-slate-800">
+              <div className="space-y-4 pt-3 border-t border-[#ded4c4]">
                 <SecurityCameraCapture
                   label="Foto Wajah Pengunjung"
                   type="visitor"
@@ -1567,7 +1567,7 @@ export function SecurityDashboardClient() {
 
               {/* Catatan Petugas */}
               <div>
-                <label className="block text-xs font-mono text-slate-400 mb-1.5">
+                <label className="block text-xs font-mono text-muted mb-1.5">
                   Catatan Tambahan Petugas (Internal POS)
                 </label>
                 <textarea
@@ -1575,23 +1575,23 @@ export function SecurityDashboardClient() {
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   placeholder="Instruksi khusus atau catatan pengamanan..."
-                  className="w-full rounded-xl border border-slate-800 bg-slate-900 p-3 text-xs font-mono text-white outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl border border-[#ded4c4] bg-white p-3 text-xs font-mono text-foreground outline-none focus:border-primary"
                 />
               </div>
 
               {/* Submit Buttons */}
-              <div className="pt-3 border-t border-slate-800 flex gap-3">
+              <div className="pt-3 border-t border-[#ded4c4] flex gap-3">
                 <button
                   type="button"
                   onClick={() => setIsFormOpen(false)}
-                  className="min-h-11 flex-1 cursor-pointer rounded-xl border border-slate-800 bg-slate-900 text-xs font-mono font-bold text-slate-300 hover:bg-slate-800 transition-colors"
+                  className="min-h-11 flex-1 cursor-pointer rounded-xl border border-[#ded4c4] bg-[#f1eadf] text-xs font-mono font-bold text-muted hover:text-foreground transition-colors"
                 >
                   BATAL
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="min-h-11 flex-1 cursor-pointer rounded-xl bg-emerald-500 px-4 text-xs font-mono font-bold text-slate-950 shadow-lg hover:bg-emerald-400 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+                  className="min-h-11 flex-1 cursor-pointer rounded-xl bg-primary px-4 text-xs font-mono font-bold text-accent shadow-lg hover:bg-primary-hover transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
                 >
                   <IconShieldCheck size={16} />
                   <span>{isSubmitting ? "MEMPROSES LOG..." : "TERBITKAN ACCESS PASS"}</span>
@@ -1604,29 +1604,29 @@ export function SecurityDashboardClient() {
 
       {/* Security Detail & Inspection Modal */}
       {selectedLog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-3 sm:p-6 backdrop-blur-md overflow-y-auto">
-          <div className="relative w-full max-w-lg max-h-[94vh] flex flex-col rounded-3xl bg-slate-950 border border-slate-800 shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3 sm:p-6 backdrop-blur-sm overflow-y-auto">
+          <div className="relative w-full max-w-lg max-h-[94vh] flex flex-col rounded-3xl bg-[#fdfcf9] border border-[#ded4c4] shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200 text-foreground">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900 text-white">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-primary text-white">
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm font-bold font-mono tracking-wider uppercase text-white">GATEWAY ACCESS DOSSIER</h2>
                   {selectedLog.status === "active" ? (
-                    <span className="rounded bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 text-[9px] font-mono font-bold text-emerald-300 uppercase">
+                    <span className="rounded bg-accent/20 border border-accent/40 px-2 py-0.5 text-[9px] font-mono font-bold text-accent uppercase">
                       ACTIVE
                     </span>
                   ) : (
-                    <span className="rounded bg-slate-800 border border-slate-700 px-2 py-0.5 text-[9px] font-mono font-bold text-slate-400 uppercase">
+                    <span className="rounded bg-white/10 border border-white/20 px-2 py-0.5 text-[9px] font-mono font-bold text-white/80 uppercase">
                       COMPLETED
                     </span>
                   )}
                 </div>
-                <p className="text-[10px] font-mono text-emerald-400">PASS ID: {selectedLog.id}</p>
+                <p className="text-[10px] font-mono text-accent">PASS ID: {selectedLog.id}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedLog(null)}
-                className="grid h-8 w-8 place-items-center rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="grid h-8 w-8 place-items-center rounded-lg bg-white/10 text-white/70 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
               >
                 <IconX size={16} />
               </button>
@@ -1635,21 +1635,21 @@ export function SecurityDashboardClient() {
             {/* Body */}
             <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
               {/* Destination Hero Banner */}
-              <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-4">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400">
+              <div className="rounded-2xl border border-primary/20 bg-primary-soft p-4">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
                   VERIFIED DESTINATION PERMIT
                 </span>
-                <p className="text-lg font-mono font-black text-white mt-0.5">
+                <p className="text-lg font-mono font-black text-primary mt-0.5">
                   {selectedLog.destination_type === "house"
                     ? `Cluster ${selectedLog.cluster} No. ${selectedLog.unit_number}`
                     : selectedLog.facility_name}
                 </p>
                 <div className="flex items-center gap-2 mt-1.5">
-                  <span className="rounded bg-slate-900 border border-slate-700 px-2 py-0.5 text-[11px] font-mono font-bold text-slate-200">
+                  <span className="rounded bg-white border border-primary/20 px-2 py-0.5 text-[11px] font-mono font-bold text-primary">
                     {VISIT_TYPE_LABELS[selectedLog.visit_type]?.label || "Kunjungan"}
                   </span>
                   {selectedLog.institution && (
-                    <span className="text-xs font-mono text-emerald-400">
+                    <span className="text-xs font-mono text-primary font-bold">
                       • {selectedLog.institution}
                     </span>
                   )}
@@ -1657,56 +1657,56 @@ export function SecurityDashboardClient() {
               </div>
 
               {/* Data Table */}
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 space-y-2.5 text-xs font-mono shadow-sm">
-                <div className="flex justify-between py-1 border-b border-slate-800">
-                  <span className="text-slate-400">Nama Subjek</span>
-                  <span className="font-bold text-white text-sm">{selectedLog.visitor_name}</span>
+              <div className="rounded-2xl border border-[#ded4c4] bg-white p-4 space-y-2.5 text-xs font-mono shadow-sm">
+                <div className="flex justify-between py-1 border-b border-[#ded4c4]/60">
+                  <span className="text-muted">Nama Subjek</span>
+                  <span className="font-bold text-foreground text-sm">{selectedLog.visitor_name}</span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-slate-800">
-                  <span className="text-slate-400">Keperluan</span>
-                  <span className="font-medium text-slate-200 text-right max-w-[220px]">{selectedLog.purpose}</span>
+                <div className="flex justify-between py-1 border-b border-[#ded4c4]/60">
+                  <span className="text-muted">Keperluan</span>
+                  <span className="font-medium text-foreground text-right max-w-[220px]">{selectedLog.purpose}</span>
                 </div>
                 {selectedLog.vehicle_plate && (
-                  <div className="flex justify-between py-1 border-b border-slate-800 items-center">
-                    <span className="text-slate-400">Plat Nomor</span>
-                    <span className="rounded bg-black px-2 py-0.5 font-bold text-white text-[11px] border border-slate-700">
+                  <div className="flex justify-between py-1 border-b border-[#ded4c4]/60 items-center">
+                    <span className="text-muted">Plat Nomor</span>
+                    <span className="rounded bg-primary-soft px-2 py-0.5 font-bold text-primary text-[11px] border border-primary/20">
                       {selectedLog.vehicle_plate}
                     </span>
                   </div>
                 )}
-                <div className="flex justify-between py-1 border-b border-slate-800">
-                  <span className="text-slate-400">Waktu Masuk</span>
-                  <span className="font-medium text-slate-200">{formatWibDateTime(selectedLog.checked_in_at)}</span>
+                <div className="flex justify-between py-1 border-b border-[#ded4c4]/60">
+                  <span className="text-muted">Waktu Masuk</span>
+                  <span className="font-medium text-foreground">{formatWibDateTime(selectedLog.checked_in_at)}</span>
                 </div>
                 {selectedLog.checked_out_at && (
-                  <div className="flex justify-between py-1 border-b border-slate-800">
-                    <span className="text-slate-400">Waktu Keluar</span>
-                    <span className="font-medium text-slate-200">{formatWibDateTime(selectedLog.checked_out_at)}</span>
+                  <div className="flex justify-between py-1 border-b border-[#ded4c4]/60">
+                    <span className="text-muted">Waktu Keluar</span>
+                    <span className="font-medium text-foreground">{formatWibDateTime(selectedLog.checked_out_at)}</span>
                   </div>
                 )}
-                <div className="flex justify-between py-1 border-b border-slate-800">
-                  <span className="text-slate-400">Durasi Akses</span>
-                  <span className="font-bold text-emerald-400">
+                <div className="flex justify-between py-1 border-b border-[#ded4c4]/60">
+                  <span className="text-muted">Durasi Akses</span>
+                  <span className="font-bold text-primary">
                     {calculateVisitDuration(selectedLog.checked_in_at, selectedLog.checked_out_at)}
                   </span>
                 </div>
                 <div className="flex justify-between py-1">
-                  <span className="text-slate-400">Petugas Jaga</span>
-                  <span className="font-medium text-slate-300">{selectedLog.checked_in_by_name || "Pos Utama"}</span>
+                  <span className="text-muted">Petugas Jaga</span>
+                  <span className="font-medium text-foreground">{selectedLog.checked_in_by_name || "Pos Utama"}</span>
                 </div>
               </div>
 
               {/* WhatsApp Notification Dispatcher Action */}
-              <div className="rounded-xl border border-slate-800 bg-slate-900 p-3 flex items-center justify-between gap-3">
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 flex items-center justify-between gap-3">
                 <div className="text-xs">
-                  <span className="font-mono font-bold text-slate-200 block">Notifikasi WhatsApp Penghuni</span>
-                  <span className="text-slate-400 text-[11px]">Kirim berkas kedatangan ke warga</span>
+                  <span className="font-mono font-bold text-emerald-950 block">Notifikasi WhatsApp Penghuni</span>
+                  <span className="text-emerald-800 text-[11px]">Kirim berkas kedatangan ke warga</span>
                 </div>
                 <a
                   href={generateWaUrl(selectedLog)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="min-h-8 inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-xs font-mono font-bold text-white shadow-sm hover:bg-emerald-500 transition-colors"
+                  className="min-h-8 inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-xs font-mono font-bold text-white shadow-sm hover:bg-emerald-700 transition-colors"
                 >
                   <span>KIRIM WA</span>
                 </a>
@@ -1714,23 +1714,23 @@ export function SecurityDashboardClient() {
 
               {/* Notes if any */}
               {selectedLog.notes && (
-                <div className="rounded-xl border border-slate-800 bg-slate-900 p-3 text-xs font-mono">
-                  <span className="font-bold text-slate-400 block mb-1">Catatan Khusus Petugas:</span>
-                  <p className="text-slate-200">{selectedLog.notes}</p>
+                <div className="rounded-xl border border-[#ded4c4] bg-white p-3 text-xs font-mono shadow-sm">
+                  <span className="font-bold text-primary block mb-1">Catatan Khusus Petugas:</span>
+                  <p className="text-foreground">{selectedLog.notes}</p>
                 </div>
               )}
 
               {/* Photo Evidence Section */}
               <div className="space-y-3 pt-2">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary block">
                   BUKTI VERIFIKASI OPTIK POS
                 </span>
 
                 {/* Visitor Photo */}
-                <div className="rounded-xl border border-slate-800 bg-slate-900 p-3 shadow-sm">
-                  <span className="text-xs font-mono font-bold text-slate-300 block mb-2">Citra Wajah Pengunjung</span>
+                <div className="rounded-xl border border-[#ded4c4] bg-white p-3 shadow-sm">
+                  <span className="text-xs font-mono font-bold text-foreground block mb-2">Citra Wajah Pengunjung</span>
                   {selectedLog.visitor_photo_url || selectedLog.visitor_photo_path ? (
-                    <div className="relative rounded-lg overflow-hidden bg-black aspect-video max-h-52 grid place-items-center border border-slate-800">
+                    <div className="relative rounded-lg overflow-hidden bg-slate-950 aspect-video max-h-52 grid place-items-center border border-[#ded4c4]">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={selectedLog.visitor_photo_url || selectedLog.visitor_photo_path}
@@ -1739,23 +1739,23 @@ export function SecurityDashboardClient() {
                       />
                     </div>
                   ) : (
-                    <div className="h-24 rounded-lg bg-slate-950 border border-slate-800 grid place-items-center text-xs font-mono text-slate-500">
+                    <div className="h-24 rounded-lg bg-[#f8f5f0] border border-[#ded4c4] grid place-items-center text-xs font-mono text-muted">
                       Foto wajah tidak terlampir
                     </div>
                   )}
                 </div>
 
                 {/* ID Card Photo (Encrypted & Protected) */}
-                <div className="rounded-xl border border-slate-800 bg-slate-900 p-3 shadow-sm">
+                <div className="rounded-xl border border-[#ded4c4] bg-white p-3 shadow-sm">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-mono font-bold text-slate-300">Dokumen Identitas (KTP / SIM)</span>
-                    <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded">
+                    <span className="text-xs font-mono font-bold text-foreground">Dokumen Identitas (KTP / SIM)</span>
+                    <span className="text-[9px] font-mono font-bold text-primary bg-primary-soft border border-primary/20 px-2 py-0.5 rounded">
                       AES-256 ENCRYPTED
                     </span>
                   </div>
 
                   {idCardSignedUrl ? (
-                    <div className="relative rounded-lg overflow-hidden bg-black aspect-video max-h-52 grid place-items-center border border-slate-800">
+                    <div className="relative rounded-lg overflow-hidden bg-slate-950 aspect-video max-h-52 grid place-items-center border border-[#ded4c4]">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={idCardSignedUrl}
@@ -1764,15 +1764,15 @@ export function SecurityDashboardClient() {
                       />
                     </div>
                   ) : selectedLog.id_card_photo_path ? (
-                    <div className="p-4 rounded-lg bg-slate-950 border border-dashed border-slate-800 text-center">
-                      <p className="text-xs font-mono text-slate-400 mb-3">
+                    <div className="p-4 rounded-lg bg-[#f8f5f0] border border-dashed border-[#ded4c4] text-center">
+                      <p className="text-xs font-mono text-muted mb-3">
                         Dokumen identitas disimpan di vault terenkripsi. Akses memerlukan dekripsi eksplisit.
                       </p>
                       <button
                         type="button"
                         onClick={handleRevealIdCard}
                         disabled={isRevealingIdCard}
-                        className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl bg-slate-850 border border-emerald-500/40 px-4 text-xs font-mono font-bold text-emerald-400 shadow-md hover:bg-emerald-500 hover:text-slate-950 transition-all disabled:opacity-50"
+                        className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-4 text-xs font-mono font-bold text-accent shadow-md hover:bg-primary-hover transition-all disabled:opacity-50"
                       >
                         {isRevealingIdCard ? (
                           <>
@@ -1788,7 +1788,7 @@ export function SecurityDashboardClient() {
                       </button>
                     </div>
                   ) : (
-                    <div className="h-16 rounded-lg bg-slate-950 border border-slate-800 grid place-items-center text-xs font-mono text-slate-500">
+                    <div className="h-16 rounded-lg bg-[#f8f5f0] border border-[#ded4c4] grid place-items-center text-xs font-mono text-muted">
                       Tidak ada foto identitas terlampir (opsional)
                     </div>
                   )}
@@ -1797,19 +1797,19 @@ export function SecurityDashboardClient() {
             </div>
 
             {/* Footer Action with Delete Button */}
-            <div className="p-4 bg-slate-900 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+            <div className="p-4 bg-[#f8f5f0] border-t border-[#ded4c4] flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setSelectedLog(null)}
-                  className="min-h-10 px-4 cursor-pointer rounded-xl border border-slate-800 bg-slate-950 text-xs font-mono font-bold text-slate-300 hover:bg-slate-850"
+                  className="min-h-10 px-4 cursor-pointer rounded-xl border border-[#ded4c4] bg-white text-xs font-mono font-bold text-muted hover:text-foreground shadow-sm"
                 >
                   TUTUP
                 </button>
                 <button
                   type="button"
                   onClick={() => setLogToDelete(selectedLog)}
-                  className="min-h-10 px-3.5 cursor-pointer rounded-xl border border-rose-500/30 bg-rose-500/10 text-xs font-mono font-bold text-rose-400 hover:bg-rose-500 hover:text-white transition-colors flex items-center gap-1.5"
+                  className="min-h-10 px-3.5 cursor-pointer rounded-xl border border-rose-200 bg-rose-50 text-xs font-mono font-bold text-rose-700 hover:bg-rose-600 hover:text-white transition-colors flex items-center gap-1.5 shadow-sm"
                 >
                   <IconTrash size={13} />
                   <span>HAPUS LOG</span>
@@ -1821,7 +1821,7 @@ export function SecurityDashboardClient() {
                   type="button"
                   onClick={() => handleCheckout(selectedLog.id)}
                   disabled={checkoutLoadingId === selectedLog.id}
-                  className="min-h-10 px-5 cursor-pointer rounded-xl bg-emerald-500 text-slate-950 text-xs font-mono font-bold shadow-md hover:bg-emerald-400 transition-all disabled:opacity-50 flex items-center gap-1.5"
+                  className="min-h-10 px-5 cursor-pointer rounded-xl bg-primary text-accent text-xs font-mono font-bold shadow-md hover:bg-primary-hover transition-all disabled:opacity-50 flex items-center gap-1.5"
                 >
                   <IconLogOut size={14} />
                   <span>{checkoutLoadingId === selectedLog.id ? "MENYIMPAN..." : "CATAT KELUAR"}</span>
@@ -1834,23 +1834,23 @@ export function SecurityDashboardClient() {
 
       {/* Confirmation Modal for Individual Log Deletion */}
       {logToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm">
-          <div className="relative w-full max-w-md rounded-2xl bg-slate-950 p-6 shadow-2xl border border-rose-500/40 animate-in fade-in zoom-in-95 duration-200">
-            <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/30">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-md rounded-3xl bg-[#fdfcf9] p-6 shadow-2xl border border-rose-200 animate-in fade-in zoom-in-95 duration-200 text-foreground">
+            <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-rose-50 text-rose-600 border border-rose-200">
               <IconTrash size={22} />
             </div>
-            <h3 className="mt-4 text-center text-sm font-mono font-bold uppercase tracking-wider text-white">
+            <h3 className="mt-4 text-center text-sm font-mono font-bold uppercase tracking-wider text-rose-950">
               HAPUS CATATAN KUNJUNGAN?
             </h3>
-            <p className="mt-2 text-center text-xs text-slate-300 font-sans leading-relaxed">
-              Anda akan menghapus entri log pengunjung atas nama <strong className="text-white font-bold">{logToDelete.visitor_name}</strong> (Tujuan: {logToDelete.destination_type === "house" ? `Cluster ${logToDelete.cluster} No. ${logToDelete.unit_number}` : logToDelete.facility_name}).
+            <p className="mt-2 text-center text-xs text-muted font-sans leading-relaxed">
+              Anda akan menghapus entri log pengunjung atas nama <strong className="text-foreground font-bold">{logToDelete.visitor_name}</strong> (Tujuan: {logToDelete.destination_type === "house" ? `Cluster ${logToDelete.cluster} No. ${logToDelete.unit_number}` : logToDelete.facility_name}).
             </p>
             <div className="mt-6 flex gap-3 font-mono">
               <button
                 type="button"
                 onClick={() => setLogToDelete(null)}
                 disabled={isDeleting}
-                className="min-h-10 flex-1 rounded-xl border border-slate-800 bg-slate-900 text-xs font-bold text-slate-300 hover:bg-slate-850 transition-colors"
+                className="min-h-10 flex-1 rounded-xl border border-[#ded4c4] bg-white text-xs font-bold text-muted hover:text-foreground transition-colors cursor-pointer"
               >
                 BATAL
               </button>
@@ -1858,7 +1858,7 @@ export function SecurityDashboardClient() {
                 type="button"
                 onClick={confirmDeleteVisitor}
                 disabled={isDeleting}
-                className="min-h-10 flex-1 rounded-xl bg-rose-600 text-xs font-bold text-white shadow-lg hover:bg-rose-500 transition-colors disabled:opacity-50"
+                className="min-h-10 flex-1 rounded-xl bg-rose-600 text-xs font-bold text-white shadow-lg hover:bg-rose-700 transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {isDeleting ? "MENGHAPUS..." : "YA, HAPUS LOG"}
               </button>
@@ -1869,25 +1869,25 @@ export function SecurityDashboardClient() {
 
       {/* Manage / Reset Demo Data Modal */}
       {isResetModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm">
-          <div className="relative w-full max-w-md rounded-2xl bg-slate-950 p-6 shadow-2xl border border-slate-800 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-md rounded-3xl bg-[#fdfcf9] p-6 shadow-2xl border border-[#ded4c4] animate-in fade-in zoom-in-95 duration-200 text-foreground">
+            <div className="flex items-center justify-between pb-3 border-b border-[#ded4c4]">
               <div className="flex items-center gap-2">
-                <span className="grid h-7 w-7 place-items-center rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                <span className="grid h-7 w-7 place-items-center rounded-lg bg-primary-soft text-primary border border-primary/20">
                   <IconSliders size={14} />
                 </span>
-                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-white">MANAJEMEN DATASET DEMO</h3>
+                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-primary">MANAJEMEN DATASET DEMO</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsResetModalOpen(false)}
-                className="grid h-7 w-7 place-items-center rounded-lg bg-slate-900 text-slate-400 hover:text-white"
+                className="grid h-7 w-7 place-items-center rounded-lg bg-[#f1eadf] text-muted hover:text-foreground cursor-pointer"
               >
                 <IconX size={15} />
               </button>
             </div>
 
-            <p className="mt-3 text-xs text-slate-400 font-sans leading-relaxed">
+            <p className="mt-3 text-xs text-muted font-sans leading-relaxed">
               Konfigurasi dataset simulasi untuk pengujian fungsionalitas formulir dan monitoring pos keamanan.
             </p>
 
@@ -1895,43 +1895,43 @@ export function SecurityDashboardClient() {
               <button
                 type="button"
                 onClick={handleRestoreMockLogs}
-                className="w-full min-h-12 flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900 p-3 text-xs font-mono text-left hover:border-emerald-500/40 hover:bg-slate-850 transition-colors cursor-pointer"
+                className="w-full min-h-12 flex items-center justify-between rounded-xl border border-primary/20 bg-primary-soft p-3 text-xs font-mono text-left hover:bg-emerald-100 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shrink-0">
+                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-white text-primary border border-primary/20 shrink-0">
                     <IconRefresh size={15} />
                   </span>
                   <div>
-                    <span className="block font-bold text-slate-200">Muat Ulang Dataset Awal</span>
-                    <span className="text-[10px] text-slate-500 font-sans">Pulihkan entri sampel kurir & tamu default</span>
+                    <span className="block font-bold text-primary">Muat Ulang Dataset Awal</span>
+                    <span className="text-[10px] text-muted font-sans">Pulihkan entri sampel kurir & tamu default</span>
                   </div>
                 </div>
-                <IconArrowRight size={14} className="text-slate-500" />
+                <IconArrowRight size={14} className="text-primary" />
               </button>
 
               <button
                 type="button"
                 onClick={handleClearAllLogs}
-                className="w-full min-h-12 flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900 p-3 text-xs font-mono text-left hover:border-rose-500/40 hover:bg-slate-850 transition-colors cursor-pointer"
+                className="w-full min-h-12 flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-mono text-left hover:bg-rose-100 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/30 shrink-0">
+                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-white text-rose-600 border border-rose-200 shrink-0">
                     <IconTrash size={15} />
                   </span>
                   <div>
-                    <span className="block font-bold text-rose-300">Kosongkan Seluruh Data</span>
-                    <span className="text-[10px] text-slate-500 font-sans">Bersihkan semua entri untuk pengujian dari 0</span>
+                    <span className="block font-bold text-rose-700">Kosongkan Seluruh Data</span>
+                    <span className="text-[10px] text-rose-600/80 font-sans">Bersihkan semua entri untuk pengujian dari 0</span>
                   </div>
                 </div>
-                <IconArrowRight size={14} className="text-slate-500" />
+                <IconArrowRight size={14} className="text-rose-600" />
               </button>
             </div>
 
-            <div className="mt-5 pt-3 border-t border-slate-800 text-right">
+            <div className="mt-5 pt-3 border-t border-[#ded4c4] text-right">
               <button
                 type="button"
                 onClick={() => setIsResetModalOpen(false)}
-                className="min-h-9 px-4 rounded-xl border border-slate-800 bg-slate-900 text-xs font-mono font-bold text-slate-400 hover:text-white"
+                className="min-h-9 px-4 rounded-xl border border-[#ded4c4] bg-white text-xs font-mono font-bold text-muted hover:text-foreground cursor-pointer"
               >
                 TUTUP
               </button>

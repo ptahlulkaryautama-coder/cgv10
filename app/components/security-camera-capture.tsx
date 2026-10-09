@@ -273,15 +273,15 @@ export function SecurityCameraCapture({
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-1.5">
-        <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 inline-block" />
+        <label className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary inline-block" />
           <span>{label}</span>
           {required ? (
-            <span className="rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1.5 py-0.2 text-[10px] font-mono font-bold tracking-tight">
+            <span className="rounded bg-rose-50 text-rose-700 border border-rose-200 px-1.5 py-0.2 text-[10px] font-mono font-bold tracking-tight">
               REQUIRED
             </span>
           ) : (
-            <span className="rounded bg-slate-800 text-slate-400 border border-slate-700 px-1.5 py-0.2 text-[10px] font-mono font-bold tracking-tight">
+            <span className="rounded bg-[#f1eadf] text-muted border border-[#ded4c4] px-1.5 py-0.2 text-[10px] font-mono font-bold tracking-tight">
               OPTIONAL
             </span>
           )}
@@ -290,7 +290,7 @@ export function SecurityCameraCapture({
           <button
             type="button"
             onClick={handleClear}
-            className="text-xs font-bold text-rose-400 hover:text-rose-300 transition-colors cursor-pointer flex items-center gap-1"
+            className="text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors cursor-pointer flex items-center gap-1"
           >
             <IconTrash size={12} />
             <span>Hapus Foto</span>
@@ -299,24 +299,24 @@ export function SecurityCameraCapture({
       </div>
 
       {previewUrl ? (
-        <div className="group relative rounded-2xl overflow-hidden border border-emerald-500/40 bg-slate-950 shadow-lg">
+        <div className="group relative rounded-2xl overflow-hidden border border-primary/30 bg-slate-950 shadow-md">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={previewUrl}
             alt={label}
             className="w-full h-48 sm:h-52 object-cover object-center transition-transform duration-300 group-hover:scale-105"
           />
-          {/* Tactical Overlay Reticle */}
-          <div className="pointer-events-none absolute inset-3 border border-dashed border-emerald-400/30 rounded-xl" />
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent p-3.5 flex items-center justify-between">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-950/90 border border-emerald-500/40 px-3 py-1 text-xs font-mono font-bold text-emerald-300 backdrop-blur shadow-sm">
+          {/* Reticle frame */}
+          <div className="pointer-events-none absolute inset-3 border border-dashed border-emerald-400/40 rounded-xl" />
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-3.5 flex items-center justify-between">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/90 border border-accent/40 px-3 py-1 text-xs font-mono font-bold text-accent backdrop-blur shadow-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
               VERIFIED // SEC-PASS
             </span>
             <button
               type="button"
               onClick={handleOpenModal}
-              className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-slate-900/90 border border-slate-700 px-3.5 text-xs font-bold text-slate-200 hover:text-white shadow-md transition-all hover:bg-slate-800 active:scale-95"
+              className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-white/20 border border-white/30 px-3.5 text-xs font-bold text-white shadow-md transition-all hover:bg-white/30 active:scale-95"
             >
               <IconRefresh size={13} />
               <span>Foto Ulang</span>
@@ -324,30 +324,30 @@ export function SecurityCameraCapture({
           </div>
         </div>
       ) : (
-        <div className="relative rounded-2xl border border-slate-800 bg-slate-900/90 p-3.5 transition-all hover:border-emerald-500/40 hover:bg-slate-900 shadow-sm">
+        <div className="relative rounded-2xl border border-[#ded4c4] bg-white p-3.5 transition-all hover:border-primary/50 shadow-sm">
           <div className="flex flex-col sm:flex-row gap-2.5">
             {/* Direct Tactical Camera Button */}
             <button
               type="button"
               onClick={handleOpenModal}
-              className="flex-1 min-h-14 cursor-pointer inline-flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-slate-850 via-slate-800 to-slate-850 px-4 text-sm font-bold text-emerald-400 shadow-md transition-all hover:border-emerald-500/50 hover:bg-slate-800 active:scale-[0.98] border border-slate-700"
+              className="flex-1 min-h-14 cursor-pointer inline-flex items-center justify-center gap-3 rounded-xl bg-primary-soft hover:bg-emerald-100/70 px-4 text-sm font-bold text-primary shadow-sm transition-all border border-primary/20 active:scale-[0.98]"
             >
-              <span className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-accent shadow-sm">
                 {type === "visitor" ? <IconScanFace size={20} /> : <IconIdCard size={20} />}
               </span>
               <div className="text-left">
-                <span className="block leading-tight font-bold tracking-wide text-slate-100">
-                  {type === "visitor" ? "Optical Facial Capture" : "Optical Document Scan"}
+                <span className="block leading-tight font-bold tracking-wide text-primary">
+                  {type === "visitor" ? "Kamera Wajah Pengunjung" : "Pindai Dokumen Identitas"}
                 </span>
-                <span className="block text-[10px] font-mono text-slate-400">
+                <span className="block text-[10px] font-mono text-muted">
                   {type === "visitor" ? "Kamera Wajah Tamu / Driver" : "Dokumen KTP / SIM / Paspor"}
                 </span>
               </div>
             </button>
 
             {/* Fallback File/Gallery Input */}
-            <label className="min-h-14 cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-4 text-xs font-bold text-slate-300 shadow-sm transition-all hover:bg-slate-800 hover:text-white active:scale-95">
-              <IconCamera size={16} className="text-slate-400" />
+            <label className="min-h-14 cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl border border-[#ded4c4] bg-[#f1eadf] hover:bg-[#e6dccf] px-4 text-xs font-bold text-primary shadow-sm transition-all active:scale-95">
+              <IconCamera size={16} className="text-primary" />
               <span>Berkas</span>
               <input
                 ref={fileInputRef}
@@ -359,9 +359,9 @@ export function SecurityCameraCapture({
               />
             </label>
           </div>
-          <div className="mt-2.5 flex items-center justify-between text-[10px] font-mono text-slate-500 px-1">
-            <span className="flex items-center gap-1">
-              <IconShield size={11} className="text-emerald-500" />
+          <div className="mt-2.5 flex items-center justify-between text-[10px] font-mono text-muted px-1">
+            <span className="flex items-center gap-1 text-primary font-semibold">
+              <IconShield size={11} className="text-primary" />
               AES-256 SECURE VAULT
             </span>
             <span>AUTO-OPTIMIZED // 1200PX</span>
@@ -371,19 +371,19 @@ export function SecurityCameraCapture({
 
       {/* Fullscreen High-Tech Camera HUD Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-2 sm:p-6 backdrop-blur-md">
-          <div className="relative flex flex-col w-full max-w-lg max-h-[96vh] rounded-3xl bg-slate-950 overflow-hidden shadow-2xl border border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-2 sm:p-6 backdrop-blur-md">
+          <div className="relative flex flex-col w-full max-w-lg max-h-[96vh] rounded-3xl bg-[#fdfcf9] border border-[#ded4c4] overflow-hidden shadow-2xl">
             {/* Tactical Top Bar */}
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-slate-900">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/10 bg-primary text-white">
               <div className="flex items-center gap-2.5">
-                <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-white/10 text-accent border border-white/20">
                   <IconCamera size={16} />
                 </span>
                 <div>
                   <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
                     {tempPreview ? "PREVIEW // EVIDENCE" : label}
                   </h3>
-                  <p className="text-[10px] font-mono text-emerald-400">
+                  <p className="text-[10px] font-mono text-accent">
                     {tempPreview ? "Pastikan gambar tajam dan terbaca jelas" : "Posisikan subjek dalam reticle optik"}
                   </p>
                 </div>
@@ -391,7 +391,7 @@ export function SecurityCameraCapture({
               <button
                 type="button"
                 onClick={handleCloseModal}
-                className="grid h-8 w-8 place-items-center rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="grid h-8 w-8 place-items-center rounded-lg bg-white/10 text-white/70 hover:text-white transition-colors cursor-pointer"
                 aria-label="Tutup kamera"
               >
                 <IconX size={15} />
@@ -413,11 +413,11 @@ export function SecurityCameraCapture({
                 />
               ) : cameraError ? (
                 <div className="p-6 text-center text-white max-w-xs">
-                  <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/30">
+                  <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/40">
                     <IconAlertTriangle size={24} />
                   </div>
-                  <p className="text-xs font-bold text-rose-300 font-mono leading-relaxed">{cameraError}</p>
-                  <label className="mt-4 inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 text-xs font-bold text-slate-950 shadow-lg hover:bg-emerald-400">
+                  <p className="text-xs font-bold text-rose-200 font-mono leading-relaxed">{cameraError}</p>
+                  <label className="mt-4 inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-accent text-primary px-4 text-xs font-bold shadow-lg hover:bg-accent-soft">
                     <span>Unggah dari File</span>
                     <input
                       type="file"
@@ -448,7 +448,7 @@ export function SecurityCameraCapture({
                     {/* Top Corner Brackets */}
                     <div className="flex justify-between items-start">
                       <div className="h-6 w-6 border-t-2 border-l-2 border-emerald-400" />
-                      <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-950/80 px-2.5 py-1 text-[10px] font-mono font-bold text-emerald-400 backdrop-blur border border-emerald-500/30 shadow">
+                      <span className="inline-flex items-center gap-1.5 rounded-md bg-black/70 px-2.5 py-1 text-[10px] font-mono font-bold text-emerald-400 backdrop-blur border border-emerald-500/40 shadow">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                         {type === "visitor" ? "OPTICAL FACIAL HUD" : "OCR DOCUMENT HUD"}
                       </span>
@@ -464,7 +464,7 @@ export function SecurityCameraCapture({
                     {/* Bottom Corner Brackets */}
                     <div className="flex justify-between items-end">
                       <div className="h-6 w-6 border-b-2 border-l-2 border-emerald-400" />
-                      <span className="rounded bg-slate-950/80 px-2 py-0.5 text-[9px] font-mono text-slate-400 border border-slate-800">
+                      <span className="rounded bg-black/70 px-2 py-0.5 text-[9px] font-mono text-slate-300 border border-white/20">
                         720P HD // READY
                       </span>
                       <div className="h-6 w-6 border-b-2 border-r-2 border-emerald-400" />
@@ -484,13 +484,13 @@ export function SecurityCameraCapture({
             </div>
 
             {/* Tactical Action Controls Bar */}
-            <div className="p-4 bg-slate-900 border-t border-slate-800">
+            <div className="p-4 bg-primary border-t border-white/10">
               {tempPreview ? (
                 <div className="flex gap-3">
                   <button
                     type="button"
                     onClick={handleRetake}
-                    className="flex-1 min-h-12 cursor-pointer rounded-xl border border-slate-700 bg-slate-800 px-4 text-xs font-bold text-slate-200 transition-all hover:bg-slate-700 active:scale-95 flex items-center justify-center gap-1.5"
+                    className="flex-1 min-h-12 cursor-pointer rounded-xl border border-white/20 bg-white/10 px-4 text-xs font-bold text-white transition-all hover:bg-white/20 active:scale-95 flex items-center justify-center gap-1.5"
                   >
                     <IconRefresh size={14} />
                     <span>Ulangi Foto</span>
@@ -498,7 +498,7 @@ export function SecurityCameraCapture({
                   <button
                     type="button"
                     onClick={handleConfirmPhoto}
-                    className="flex-1 min-h-12 cursor-pointer rounded-xl bg-emerald-500 px-4 text-xs font-bold text-slate-950 shadow-lg transition-all hover:bg-emerald-400 active:scale-95 flex items-center justify-center gap-1.5"
+                    className="flex-1 min-h-12 cursor-pointer rounded-xl bg-accent px-4 text-xs font-bold text-primary shadow-lg transition-all hover:bg-accent-soft active:scale-95 flex items-center justify-center gap-1.5"
                   >
                     <IconCheck size={16} />
                     <span>Gunakan Bukti Ini</span>
@@ -511,7 +511,7 @@ export function SecurityCameraCapture({
                     <button
                       type="button"
                       onClick={handleToggleCamera}
-                      className="min-h-11 px-3.5 cursor-pointer rounded-xl border border-slate-700 bg-slate-800 text-xs font-mono font-bold text-slate-300 flex items-center gap-1.5 hover:bg-slate-700 hover:text-white transition-all active:scale-95"
+                      className="min-h-11 px-3.5 cursor-pointer rounded-xl border border-white/20 bg-white/10 text-xs font-mono font-bold text-white flex items-center gap-1.5 hover:bg-white/20 transition-all active:scale-95"
                       title="Ganti sensor kamera"
                     >
                       <IconRefresh size={14} />
@@ -526,16 +526,16 @@ export function SecurityCameraCapture({
                     type="button"
                     onClick={handleSnapPhoto}
                     disabled={isCapturing || Boolean(cameraError)}
-                    className="group relative h-16 w-16 cursor-pointer rounded-full border-2 border-emerald-400 bg-slate-950 p-1 shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:scale-105 active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center"
+                    className="group relative h-16 w-16 cursor-pointer rounded-full border-2 border-accent bg-white p-1 shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all hover:scale-105 active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center"
                     aria-label="Ambil foto"
                   >
-                    <span className="h-12 w-12 rounded-full bg-emerald-500 group-hover:bg-emerald-400 transition-colors" />
+                    <span className="h-12 w-12 rounded-full bg-accent group-hover:bg-accent-soft transition-colors" />
                   </button>
 
                   <button
                     type="button"
                     onClick={handleCloseModal}
-                    className="min-h-11 px-4 cursor-pointer rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-colors"
+                    className="min-h-11 px-4 cursor-pointer rounded-xl text-xs font-bold text-white/70 hover:text-white transition-colors"
                   >
                     Batal
                   </button>
