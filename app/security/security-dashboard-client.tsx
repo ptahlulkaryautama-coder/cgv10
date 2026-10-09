@@ -48,8 +48,6 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 type TabFilter = "active" | "today" | "checked_out" | "all";
 type CategoryFilter = "all" | VisitType;
 
-const popularClusters = ["Aurora", "Bukit", "Cendana", "Danau", "Flamboyan"];
-
 const quickPresets: {
   label: string;
   type: VisitType;
@@ -1361,38 +1359,12 @@ export function SecurityDashboardClient() {
                 </div>
               </div>
 
-              {/* Destination Fields */}
               {form.destination_type === "house" ? (
-                <div className="space-y-3 rounded-xl border border-[#ded4c4] bg-white p-3.5 shadow-sm">
-                  <div>
-                    <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-muted mb-1.5">
-                      Pilih Blok / Cluster:
-                    </label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {popularClusters.map((c) => (
-                        <button
-                          key={c}
-                          type="button"
-                          onClick={() => {
-                            setForm({ ...form, cluster: c });
-                            triggerHaptic();
-                          }}
-                          className={`rounded-lg px-2.5 py-1 text-xs font-mono font-bold transition-all cursor-pointer ${
-                            form.cluster === c
-                              ? "bg-primary text-white shadow-sm"
-                              : "bg-[#f1eadf] text-primary border border-[#ded4c4] hover:bg-[#e6dccf]"
-                          }`}
-                        >
-                          {c}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
+                <div className="rounded-xl border border-[#ded4c4] bg-white p-3.5 shadow-sm">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[11px] font-mono text-muted mb-1">
-                        Daftar Cluster
+                        Pilih Cluster Resmi CGV10 <span className="text-rose-600 font-bold">*</span>
                       </label>
                       <select
                         value={form.cluster}
